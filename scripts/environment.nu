@@ -332,12 +332,14 @@ def copy_gitignore [
 
   if ($environment_gitignore | is-not-empty) {
     let new_environment_name = (
-      $environment_gitignore
+      $environment_files
+      | get download_url
       | path parse
       | get parent
       | path basename
+      | first
     )
-    
+
     (
       merge_gitignores
         (open .gitignore)
