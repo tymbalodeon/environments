@@ -310,6 +310,30 @@ export def merge_gitignores [
   | to text
 }
 
+def get_environment_name [
+  environment_files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
+] {
+  $environment_files
+  | get download_url
+  | path parse
+  | get parent
+  | path basename
+  | first
+}
+
 def copy_gitignore [
   environment_files: table<
     name: string,
@@ -331,14 +355,7 @@ def copy_gitignore [
   )
 
   if ($environment_gitignore | is-not-empty) {
-    let new_environment_name = (
-      $environment_files
-      | get download_url
-      | path parse
-      | get parent
-      | path basename
-      | first
-    )
+    let new_environment_name = (get_environment_name $environment_files)
 
     (
       merge_gitignores
@@ -354,6 +371,7 @@ def copy_gitignore [
 def get_pre_commit_config_repos [config: record<repos: list>] {
   $config
   | get repos
+  | to yaml
 }
 
 def merge_records [
@@ -409,15 +427,22 @@ def merge_records [
 
 export def merge_pre_commit_configs [
   main_config: record<repos: list>
+  new_environment_name: string
   environment_config: record<repos: list>
 ] {
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
-  { repos: (merge_records $main_config $environment_config repo) }
-  | to yaml
+  (
+    "repos:\n"
+    | append $main_config
+    | append $"# ($new_environment_name)"
+    | append $environment_config
+    | to text
+  ) | yamlfmt -
 }
 
+# TODO account for generic and add remove equivalent
 def copy_pre_commit_config [
   environment_files: table<
     name: string,
@@ -440,10 +465,14 @@ def copy_pre_commit_config [
       get_environment_file $environment_files ".pre-commit-config.yaml"
   )
 
-  merge_pre_commit_configs $main_config $environment_config
-  | save --force .pre-commit-config.yaml
+  let new_environment_name = (get_environment_name $environment_files)
 
-  yamlfmt .pre-commit-config.yaml
+  (
+    merge_pre_commit_configs 
+      $main_config 
+      $new_environment_name 
+      $environment_config
+  ) | save --force .pre-commit-config.yaml
 
   print $"Updated .pre-commit-config.yaml"
 }
