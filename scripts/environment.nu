@@ -610,34 +610,19 @@ def remove_justfile [environment: string] {
   remove_environment_file $environment just
 }
 
-def remove_gitignore [
-  environment_files: table<
-    name: string,
-    path: string,
-    sha: string,
-    size: int,
-    url: string,
-    html_url: string,
-    git_url: string,
-    download_url: string,
-    type: string,
-    self: string,
-    git: string,
-    html: string
-  >
-] {
-  let environment_gitignore = (
-    get_environment_file $environment_files .gitignore
-  )
-
+def remove_gitignore [environment: string] {
   let filtered_gitignore = (
     open .gitignore
-    | lines
+    | split row "# "
     | filter {
-        |line|
+        |item|
 
-        $line not-in ($environment_gitignore | lines)
+        not (
+          $item
+          | str starts-with $environment
+        )
       }
+    | str trim
     | to text
   )
 
@@ -814,7 +799,7 @@ def "main remove" [...environments: string] {
 
     remove_files $environment
     remove_justfile $environment
-    remove_gitignore $environment_files
+    remove_gitignore $environment
     remove_pre_commit_config $environment_files
   }
 }
