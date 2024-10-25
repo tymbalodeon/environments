@@ -290,7 +290,7 @@ def copy_justfile [
 def merge_generic [main: string environment: string] {
   $environment
   | append (
-      $main
+      $main    
       | split row "#"
       | drop nth 0
     )
@@ -387,6 +387,7 @@ export def merge_pre_commit_configs [
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
+
   let merged_pre_commit_config = if $new_environment_name == "generic" {
     merge_generic $main_config $environment_config
   } else {
@@ -424,9 +425,9 @@ def copy_pre_commit_config [
   )
 
   (
-    merge_pre_commit_configs
+    merge_pre_commit_configs 
       .pre-commit-config.yaml
-      $new_environment_name
+      $new_environment_name 
       $environment_config
   ) | save --force .pre-commit-config.yaml
 
