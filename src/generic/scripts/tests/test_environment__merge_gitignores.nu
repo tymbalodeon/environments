@@ -15,16 +15,22 @@ build/
 dist/"
 
 let actual_gitignore = (
-    merge_gitignores $generic_gitignore $environment_gitignore
+  merge_gitignores 
+    $generic_gitignore 
+    python 
+    $environment_gitignore
 )
 
-let expected_gitignore = "*.pyc
-.config
-.coverage
+let expected_gitignore = ".config
 .direnv
 .envrc
 .pdm-python
 .venv
+
+# python
+
+*.pyc
+.coverage
 __pycache__/
 build/
 dist/"
