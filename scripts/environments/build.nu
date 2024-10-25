@@ -90,9 +90,9 @@ def copy_gitignore [] {
 def copy_pre_commit_config [] {
   (
     merge_pre_commit_configs
-      (open .pre-commit-config.yaml)
+      (open --raw .pre-commit-config.yaml)
       generic
-      (open src/generic/.pre-commit-config.yaml)
+      (open --raw src/generic/.pre-commit-config.yaml)
   ) | save --force .pre-commit-config.yaml
 
   print $"Updated .pre-commit-config.yaml"

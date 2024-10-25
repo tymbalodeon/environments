@@ -15,9 +15,9 @@ build/
 dist/"
 
 let actual_gitignore = (
-  merge_gitignores 
-    $generic_gitignore 
-    python 
+  merge_gitignores
+    $generic_gitignore
+    python
     $environment_gitignore
 )
 

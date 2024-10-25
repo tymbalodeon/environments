@@ -287,18 +287,22 @@ def copy_justfile [
   print $"Updated Justfile"
 }
 
+def merge_generic [main: string environment: string] {
+  $environment
+  | append (
+      $main
+      | split row "#"
+      | drop nth 0
+    )
+}
+
 export def merge_gitignores [
   main_gitignore: string
   new_environment_name: string
   environment_gitignore: string
 ] {
   let merged_gitignore = if $new_environment_name == "generic" {
-    $environment_gitignore
-    | append (
-      $main_gitignore    
-      | split row "#"
-      | drop nth 0
-    )
+    merge_generic $main_gitignore $environment_gitignore
   } else {
     $main_gitignore
     | append (
@@ -368,81 +372,35 @@ def copy_gitignore [
   print $"Updated .gitignore"
 }
 
-def get_pre_commit_config_repos [config: record<repos: list>] {
+def get_pre_commit_config_repos [config: string] {
   $config
+  | from yaml
   | get repos
   | to yaml
 }
 
-def merge_records [
-  main_config: list
-  environment_config: list
-  key: string
-] {
-  mut records = []
-
-  for environment_item in $environment_config {
-    if ($environment_item | get $key) in ($main_config | get $key) {
-      let a_record = (
-        $main_config
-        | filter {
-            |main_item|
-
-            ($main_item | get $key) == ($environment_item | get $key)
-          }
-        | first
-      )
-
-      if $key == "repo" {
-        let hooks = (
-          merge_records $a_record.hooks $environment_item.hooks id
-        )
-
-        $records = (
-          $records
-          | append ($environment_item | update hooks $hooks)
-        )
-      } else {
-        $records = (
-          $records
-          | append ($a_record | merge $environment_item)
-        )
-      }
-    } else {
-      $records = (
-        $records
-        | append $environment_item
-      )
-    }
-  }
-
-  for main_item in $main_config {
-    if (($main_item | get $key) not-in ($records | get $key)) {
-      $records = ($records | append $main_item)
-    }
-  }
-
-  $records
-}
-
 export def merge_pre_commit_configs [
-  main_config: record<repos: list>
+  main_config: string
   new_environment_name: string
-  environment_config: record<repos: list>
+  environment_config: string
 ] {
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
-  (
-    "repos:\n"
-    | append $main_config
+  let merged_pre_commit_config = if $new_environment_name == "generic" {
+    merge_generic $main_config $environment_config
+  } else {
+    $main_config
     | append $"# ($new_environment_name)"
     | append $environment_config
-    | to text
-  ) | yamlfmt -
+  }
+
+  "repos:\n"
+  | append $merged_pre_commit_config
+  | to text
+  | yamlfmt -
 }
 
-# TODO account for generic and add remove equivalent
 def copy_pre_commit_config [
   environment_files: table<
     name: string,
@@ -459,18 +417,16 @@ def copy_pre_commit_config [
     html: string
   >
 ] {
-  let main_config = (open .pre-commit-config.yaml)
+  let new_environment_name = (get_environment_name $environment_files)
 
   let environment_config = (
       get_environment_file $environment_files ".pre-commit-config.yaml"
   )
 
-  let new_environment_name = (get_environment_name $environment_files)
-
   (
-    merge_pre_commit_configs 
-      $main_config 
-      $new_environment_name 
+    merge_pre_commit_configs
+      .pre-commit-config.yaml
+      $new_environment_name
       $environment_config
   ) | save --force .pre-commit-config.yaml
 
