@@ -78,6 +78,7 @@ def copy_gitignore [] {
   (
     merge_gitignores
       (open .gitignore)
+      generic
       (open src/generic/.gitignore)
   ) | append "\n"
   | str join

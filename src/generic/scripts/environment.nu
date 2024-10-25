@@ -289,13 +289,24 @@ def copy_justfile [
 
 export def merge_gitignores [
   main_gitignore: string
+  new_environment_name: string
   environment_gitignore: string
 ] {
-  $main_gitignore
-  | lines
-  | append ($environment_gitignore | lines)
-  | uniq
-  | sort
+  let merged_gitignore = if $new_environment_name == "generic" {
+    $environment_gitignore
+    | append (
+      $main_gitignore    
+      | split row "#"
+      | drop nth 0
+    )
+  } else {
+    $main_gitignore
+    | append (
+        $"\n# ($new_environment_name)\n\n($environment_gitignore)"
+      )
+  }
+
+  $merged_gitignore
   | to text
 }
 
@@ -320,9 +331,17 @@ def copy_gitignore [
   )
 
   if ($environment_gitignore | is-not-empty) {
+    let new_environment_name = (
+      $environment_gitignore
+      | path parse
+      | get parent
+      | path basename
+    )
+    
     (
       merge_gitignores
         (open .gitignore)
+        $new_environment_name
         $environment_gitignore
     ) | save --force .gitignore
   }
