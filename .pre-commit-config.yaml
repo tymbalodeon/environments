@@ -58,11 +58,6 @@ repos:
         entry: yamlfmt
         language: system
         pass_filenames: false
-      - id: build
-        name: build
-        entry: just build
-        language: system
-        pass_filenames: false
       - id: test
         name: test
         entry: just test
@@ -82,3 +77,11 @@ repos:
       - id: conventional-pre-commit
         stages:
           - commit-msg
+  # environments
+  - repo: local
+    hooks:
+      - id: build
+        name: build
+        entry: just build
+        language: system
+        pass_filenames: false

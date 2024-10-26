@@ -3,6 +3,7 @@
 use ../environment.nu merge_gitignores
 use ../environment.nu merge_justfiles
 use ../environment.nu merge_pre_commit_configs
+use ../environment.nu save_pre_commit_config
 
 def get_environment_files [] {
   fd --hidden --ignore --exclude .git "" src/generic
@@ -87,22 +88,17 @@ def copy_gitignore [] {
   print $"Updated .gitignore"
 }
 
-def copy_pre_commit_config [] {
-  (
-    merge_pre_commit_configs
-      (open --raw .pre-commit-config.yaml)
-      generic
-      (open --raw src/generic/.pre-commit-config.yaml)
-  ) | save --force .pre-commit-config.yaml
-
-  print $"Updated .pre-commit-config.yaml"
-}
-
 def force_copy_files [] {
   copy_files (get_environment_files)
   copy_justfile
   copy_gitignore
-  copy_pre_commit_config
+
+  save_pre_commit_config (
+    merge_pre_commit_configs
+      (open .pre-commit-config.yaml)
+      generic
+      (open src/generic/.pre-commit-config.yaml)
+  )
 }
 
 def get_modified [file: string] {
