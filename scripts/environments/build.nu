@@ -95,9 +95,9 @@ def force_copy_files [] {
 
   save_pre_commit_config (
     merge_pre_commit_configs
-      (open .pre-commit-config.yaml)
+      (open --raw .pre-commit-config.yaml)
       generic
-      (open src/generic/.pre-commit-config.yaml)
+      (open --raw src/generic/.pre-commit-config.yaml)
   )
 }
 

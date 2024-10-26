@@ -304,18 +304,26 @@ def merge_generic [main: string environment: string] {
     )
 }
 
+def get_environment_comment [environment: string] {
+  $"\n# ($environment)"
+}
+
 export def merge_gitignores [
   main_gitignore: string
   new_environment_name: string
   environment_gitignore: string
 ] {
+  let environment_comment = (get_environment_comment $new_environment_name)
+
+  if $environment_comment in $main_gitignore {
+    return null
+  }
+
   let merged_gitignore = if $new_environment_name == "generic" {
     merge_generic $main_gitignore $environment_gitignore
   } else {
     $main_gitignore
-    | append (
-        $"\n# ($new_environment_name)\n\n($environment_gitignore)"
-      )
+    | append ($"($environment_comment)\n\n($environment_gitignore)")
   }
 
   $merged_gitignore
@@ -373,12 +381,16 @@ def copy_gitignore [
   if ($environment_gitignore | is-not-empty) {
     let new_environment_name = (get_environment_name $environment_files)
 
-    save_gitignore (
+    let merged_gitignore = (
       merge_gitignores
         (open .gitignore)
         $new_environment_name
         $environment_gitignore
     )
+
+    if $merged_gitignore != null {
+      save_gitignore $merged_gitignore
+    }
   }
 }
 
@@ -392,6 +404,12 @@ export def merge_pre_commit_configs [
   new_environment_name: string
   environment_config: string
 ] {
+  let environment_comment = (get_environment_comment $new_environment_name)
+
+  if $environment_comment in $main_config {
+    return null
+  }
+
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
@@ -438,12 +456,16 @@ def copy_pre_commit_config [
     | yamlfmt -
   )
 
-  save_pre_commit_config (
+  let merged_pre_commit_config = (
     merge_pre_commit_configs 
       (open --raw .pre-commit-config.yaml)
       $new_environment_name 
       $environment_config
-  ) 
+  )
+
+  if $merged_pre_commit_config != null {
+    save_pre_commit_config $merged_pre_commit_config
+  }
 }
 
 def reload_environment [
@@ -671,16 +693,16 @@ def "main remove" [...environments: string] {
       save_justfile $filtered_justfile
     }
 
-    (
-      save_gitignore
-        (remove_environment_from_gitignore $environment)
+    save_gitignore (
+      remove_environment_from_gitignore $environment
     )
 
-    (
-      save_pre_commit_config 
-        (remove_environment_from_pre_commit_config $environment)
+    save_pre_commit_config (
+      remove_environment_from_pre_commit_config $environment
     )
   }
+
+  just init
 }
 
 def "main update" [
