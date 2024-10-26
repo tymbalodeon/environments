@@ -403,11 +403,10 @@ export def merge_pre_commit_configs [
     | append $environment_config
   }
 
-  # TODO regex to pull # environment names to the first indent
-
   "repos:"
   | append $merged_pre_commit_config
   | to text
+  | str replace --all --regex ' +#' "  #"
   | yamlfmt -
 }
 
