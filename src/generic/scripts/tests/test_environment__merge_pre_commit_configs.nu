@@ -101,9 +101,9 @@ let environment_pre_commit_config = "repos:
 
 let actual_pre_commit_conifg = (
   merge_pre_commit_configs
-    ($generic_pre_commit_config | from yaml)
+    $generic_pre_commit_config
     python
-    ($environment_pre_commit_config | from yaml)
+    $environment_pre_commit_config
 )
 
 let expected_pre_commit_config = "repos:
@@ -170,9 +170,7 @@ let expected_pre_commit_config = "repos:
     rev: v0.15.1
     hooks:
       - id: lychee
-        args:
-          - --no-progress
-          - .
+        args: [\"--no-progress\", \".\"]
         pass_filenames: false
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.4.0

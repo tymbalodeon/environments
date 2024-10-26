@@ -406,8 +406,8 @@ export def merge_pre_commit_configs [
   "repos:"
   | append $merged_pre_commit_config
   | to text
-  | str replace --all --regex ' +#' "  #"
   | yamlfmt -
+  | str replace --all --regex ' +#' "  #"
 }
 
 export def save_pre_commit_config [config: string] {
