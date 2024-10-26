@@ -372,16 +372,15 @@ def copy_gitignore [
   print $"Updated .gitignore"
 }
 
-def get_pre_commit_config_repos [config: record<repos: list>] {
+def get_pre_commit_config_repos [config: string] {
   $config
-  | get repos
-  | to yaml
+  | str replace "repos:\n" ""
 }
 
 export def merge_pre_commit_configs [
-  main_config: record<repos: list>
+  main_config: string
   new_environment_name: string
-  environment_config: record<repos: list>
+  environment_config: string
 ] {
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
@@ -394,7 +393,9 @@ export def merge_pre_commit_configs [
     | append $environment_config
   }
 
-  "repos:\n"
+  # TODO regex to pull # environment names to the first indent
+
+  "repos:"
   | append $merged_pre_commit_config
   | to text
   | yamlfmt -
@@ -420,14 +421,19 @@ def copy_pre_commit_config [
 
   let environment_config = (
     get_environment_file $environment_files ".pre-commit-config.yaml"
+    | to yaml
+    | yamlfmt -
   )
 
-  (
+  let merged_pre_commit_config = (
     merge_pre_commit_configs 
-      (open .pre-commit-config.yaml)
+      (open --raw .pre-commit-config.yaml)
       $new_environment_name 
       $environment_config
-  ) | save --force .pre-commit-config.yaml
+  ) 
+  
+  $merged_pre_commit_config
+  | save --force .pre-commit-config.yaml
 
   print $"Updated .pre-commit-config.yaml"
 }
