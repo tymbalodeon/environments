@@ -399,6 +399,12 @@ def get_pre_commit_config_repos [config: string] {
   | str replace "repos:\n" ""
 }
 
+def format_yaml_comment []: string -> string {
+  $in
+  | yamlfmt -
+  | str replace --all --regex " +#" "  #"
+}
+
 export def merge_pre_commit_configs [
   main_config: string
   new_environment_name: string
@@ -424,8 +430,7 @@ export def merge_pre_commit_configs [
   "repos:"
   | append $merged_pre_commit_config
   | to text
-  | yamlfmt -
-  | str replace --all --regex ' +#' "  #"
+  | format_yaml_comment
 }
 
 export def save_pre_commit_config [config: string] {
@@ -624,8 +629,9 @@ def remove_environment_from_justfile [environment: string] {
     )
 
     $filtered_justfile
-    | lines
-    | str join "\n"
+    | str trim
+    | append "\n"
+    | str join
   } catch {
     null
   }
@@ -647,7 +653,9 @@ def remove_environment_from_gitignore [environment: string] {
       )
     }
   | str trim
-  | to text
+  | str join "# "
+  | append "\n"
+  | str join
 }
 
 def remove_environment_from_pre_commit_config [environment: string] {
@@ -661,9 +669,11 @@ def remove_environment_from_pre_commit_config [environment: string] {
         | str starts-with $environment
       )
     }
-  | str join "#"
+  | str trim
+  | str join "# "
+  | format_yaml_comment
+  | append "\n"
   | str join
-  | yamlfmt -
 }
 
 def "main remove" [...environments: string] {
@@ -702,7 +712,9 @@ def "main remove" [...environments: string] {
     )
   }
 
-  just init
+  if ($environments | is-not-empty) {
+    just init
+  }
 }
 
 def "main update" [
