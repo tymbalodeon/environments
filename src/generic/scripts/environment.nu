@@ -616,25 +616,26 @@ def remove_gitignore [environment: string] {
   | save --force .gitignore
 }
 
-def remove_pre_commit_config [environment: string] {
-  let filtered_config = (
-    open --raw .pre-commit-config.yaml
-    | split row "# "
-    | filter {
-        |item|
+# TODO
+def remove_environment_from_pre_commit_config [environment: string] {
+  open --raw .pre-commit-config.yaml
+  | split row "# "
+  | filter {
+      |item|
 
-        not (
-          $item
-          | str starts-with $environment
-        )
-      }
-    | to text
-    | yamlfmt -
-  )
-
-  $filtered_config
-  | append "\n"
+      not (
+        $item
+        | str starts-with $environment
+      )
+    }
+  | str join "#"
   | str join
+  | yamlfmt -
+}
+
+# TODO
+def remove_pre_commit_config [environment: string] {
+  remove_environment_from_pre_commit_config $environment
   | save --force .pre-commit-config.yaml
 }
 
