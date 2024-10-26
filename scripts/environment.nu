@@ -234,6 +234,17 @@ export def merge_justfiles [
   | to text
 }
 
+def save_file [contents: string filename: string] {
+  $contents 
+  | save --force $filename
+
+  print $"Updated ($filename)"
+}
+
+def save_justfile [justfile: string] {
+  save_file $justfile Justfile
+}
+
 def copy_justfile [
   environment: string
   environment_files: table<
@@ -277,14 +288,11 @@ def copy_justfile [
     )
 
     if ($merged_justfile | is-not-empty) {
-      $merged_justfile
-      | save --force Justfile
+      save_justfile $merged_justfile
     }
   }
 
   rm $environment_justfile_file
-
-  print $"Updated Justfile"
 }
 
 def merge_generic [main: string environment: string] {
@@ -338,6 +346,10 @@ def get_environment_name [
   | first
 }
 
+def save_gitignore [gitignore: string] {
+  save_file $gitignore .gitignore
+}
+
 def copy_gitignore [
   environment_files: table<
     name: string,
@@ -361,15 +373,13 @@ def copy_gitignore [
   if ($environment_gitignore | is-not-empty) {
     let new_environment_name = (get_environment_name $environment_files)
 
-    (
+    save_gitignore (
       merge_gitignores
         (open .gitignore)
         $new_environment_name
         $environment_gitignore
-    ) | save --force .gitignore
+    )
   }
-
-  print $"Updated .gitignore"
 }
 
 def get_pre_commit_config_repos [config: string] {
@@ -401,6 +411,10 @@ export def merge_pre_commit_configs [
   | yamlfmt -
 }
 
+export def save_pre_commit_config [config: string] {
+  save_file $config .pre-commit-config.yaml
+}
+
 def copy_pre_commit_config [
   environment_files: table<
     name: string,
@@ -425,17 +439,12 @@ def copy_pre_commit_config [
     | yamlfmt -
   )
 
-  let merged_pre_commit_config = (
+  save_pre_commit_config (
     merge_pre_commit_configs 
       (open --raw .pre-commit-config.yaml)
       $new_environment_name 
       $environment_config
   ) 
-  
-  $merged_pre_commit_config
-  | save --force .pre-commit-config.yaml
-
-  print $"Updated .pre-commit-config.yaml"
 }
 
 def reload_environment [
@@ -574,8 +583,8 @@ def remove_files [environment: string] {
   rm -rf $"scripts/($environment)"
 }
 
-def remove_justfile [environment: string] {
-  try {
+def remove_environment_from_justfile [environment: string] {
+  let filtered_justfile = try {
     let environment_mod = (
       "mod "
       | append (
@@ -596,13 +605,16 @@ def remove_justfile [environment: string] {
     $filtered_justfile
     | lines
     | str join "\n"
-    | save --force Justfile
+  } catch {
+    null
   }
 
   remove_environment_file $environment just
+
+  $filtered_justfile
 }
 
-def remove_gitignore [environment: string] {
+def remove_environment_from_gitignore [environment: string] {
   let filtered_gitignore = (
     open .gitignore
     | split row "# "
@@ -617,31 +629,22 @@ def remove_gitignore [environment: string] {
     | str trim
     | to text
   )
-
-  $filtered_gitignore
-  | save --force .gitignore
 }
 
-def remove_pre_commit_config [environment: string] {
-  let filtered_config = (
-    open --raw .pre-commit-config.yaml
-    | split row "# "
-    | filter {
-        |item|
+def remove_environment_from_pre_commit_config [environment: string] {
+  open --raw .pre-commit-config.yaml
+  | split row "# "
+  | filter {
+      |item|
 
-        not (
-          $item
-          | str starts-with $environment
-        )
-      }
-    | to text
-    | yamlfmt -
-  )
-
-  $filtered_config
-  | append "\n"
+      not (
+        $item
+        | str starts-with $environment
+      )
+    }
+  | str join "#"
   | str join
-  | save --force .pre-commit-config.yaml
+  | yamlfmt -
 }
 
 def "main remove" [...environments: string] {
@@ -664,9 +667,22 @@ def "main remove" [...environments: string] {
     let environment_files = (get_environment_files $environment)
 
     remove_files $environment
-    remove_justfile $environment
-    remove_gitignore $environment
-    remove_pre_commit_config $environment
+
+    let filtered_justfile = (remove_environment_from_justfile $environment)
+
+    if $filtered_justfile != null {
+      save_justfile $filtered_justfile
+    }
+
+    (
+      save_gitignore
+        (remove_environment_from_gitignore $environment)
+    )
+
+    (
+      save_pre_commit_config 
+        (remove_environment_from_pre_commit_config $environment)
+    )
   }
 }
 
