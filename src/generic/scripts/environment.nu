@@ -614,20 +614,18 @@ def remove_environment_from_justfile [environment: string] {
 }
 
 def remove_environment_from_gitignore [environment: string] {
-  let filtered_gitignore = (
-    open .gitignore
-    | split row "# "
-    | filter {
-        |item|
+  open .gitignore
+  | split row "# "
+  | filter {
+      |item|
 
-        not (
-          $item
-          | str starts-with $environment
-        )
-      }
-    | str trim
-    | to text
-  )
+      not (
+        $item
+        | str starts-with $environment
+      )
+    }
+  | str trim
+  | to text
 }
 
 def remove_environment_from_pre_commit_config [environment: string] {
