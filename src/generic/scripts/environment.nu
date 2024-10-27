@@ -679,6 +679,34 @@ def remove_environment_from_pre_commit_config [environment: string] {
   | str join
 }
 
+def get_top_level_files [
+  environment_files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
+] {
+  $environment_files
+  | filter {
+      |file|
+
+      (
+        $file.path
+        | path parse
+        | get parent
+      ) | is-empty
+    }
+}
+
 def "main remove" [...environments: string] {
   let installed_environments = (get_installed_environments)
 
@@ -696,8 +724,6 @@ def "main remove" [...environments: string] {
   for environment in $environments {
     print $"Removing ($environment)..."
 
-    let environment_files = (get_environment_files $environment)
-
     remove_files $environment
 
     let filtered_justfile = (remove_environment_from_justfile $environment)
@@ -713,6 +739,39 @@ def "main remove" [...environments: string] {
     save_pre_commit_config (
       remove_environment_from_pre_commit_config $environment
     )
+  }
+
+  let generic_files = (
+    get_top_level_files (get_environment_files generic)
+    | get name
+  )
+
+  for environment in $environments {
+    let environment_files = (
+      get_top_level_files (get_environment_files $environment)
+    )
+
+    $environment_files
+    | filter {
+        |file|
+
+        $file.name not-in $generic_files
+      }
+    | each {
+        |file|
+
+        let message = (
+          [
+            "Warning: "
+            $file.name
+            " may be from the "
+            $environment
+            " environment. Delete if not needed."
+          ] | str join
+        )
+
+        print $"(ansi yb)($message)(ansi reset)"
+    }
   }
 
   if ($environments | is-not-empty) {
