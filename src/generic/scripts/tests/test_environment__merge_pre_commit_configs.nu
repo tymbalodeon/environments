@@ -198,6 +198,7 @@ let expected_pre_commit_config = "repos:
       - id: taplo
         name: taplo
         entry: taplo format
-        language: system"
+        language: system
+"
 
 assert equal $actual_pre_commit_conifg $expected_pre_commit_config
