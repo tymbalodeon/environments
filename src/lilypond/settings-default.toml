@@ -1,3 +1,5 @@
+# lilypond
+
 composer = ""
 instrument = "Piano"
 pdfs_directory = "./pdfs/"

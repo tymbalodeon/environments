@@ -56,7 +56,7 @@ def copy_files [
 ] {
   let environment_scripts_directory = ([scripts $environment] | path join)
 
-  rm -rf $environment_scripts_directory
+  rm --force --recursive $environment_scripts_directory
 
   $environment_files
   | filter {
@@ -599,17 +599,79 @@ def get_environments [
   }
 }
 
-def remove_environment_file [environment: string type: string] {
-  rm -f $"($type)/($environment).($type)"
+def get_top_level_files [
+  environment_files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
+] {
+  $environment_files
+  | filter {
+      |file|
 
-  if (ls $type | length) == 0 {
-    rm $type
-  }
+      (
+        $file.path
+        | path parse
+        | get parent
+      ) | is-empty
+    }
+}
+
+def remove_file [file: string] {
+  rm --force $file.path
+  print $"Removed ($file.path)"
 }
 
 def remove_files [environment: string] {
-  remove_environment_file $environment nix
-  rm -rf $"scripts/($environment)"
+  let top_level_generic_files = (
+    get_top_level_files (get_environment_files generic)
+  )
+
+  let environment_files = (
+    get_environment_files $environment
+    | filter {|file| $file.name not-in $top_level_generic_files.name}
+  )
+
+  let top_level_environment_files = (
+    get_top_level_files $environment_files
+  )
+
+  let environment_files = (
+    $environment_files
+    | filter {|file| $file.name not-in $top_level_environment_files.name}
+  )
+
+  for file in $environment_files {
+    if ($file.path | path exists) {
+      remove_file $file.path
+    }
+  }
+
+  for file in $top_level_environment_files {
+    if ($file.path | path exists) {
+        if (
+          cat $file.path
+          | lines
+          | first
+          | rg $"\(#|//\) ($environment)"
+          | is-not-empty
+        ) {
+          remove_file $file.path
+        }
+    }
+  }
+
+  rm --force --recursive $"scripts/($environment)"
 }
 
 def remove_environment_from_justfile [environment: string] {
@@ -638,8 +700,6 @@ def remove_environment_from_justfile [environment: string] {
   } catch {
     null
   }
-
-  remove_environment_file $environment just
 
   $filtered_justfile
 }
@@ -679,34 +739,6 @@ def remove_environment_from_pre_commit_config [environment: string] {
   | str join
 }
 
-def get_top_level_files [
-  environment_files: table<
-    name: string,
-    path: string,
-    sha: string,
-    size: int,
-    url: string,
-    html_url: string,
-    git_url: string,
-    download_url: string,
-    type: string,
-    self: string,
-    git: string,
-    html: string
-  >
-] {
-  $environment_files
-  | filter {
-      |file|
-
-      (
-        $file.path
-        | path parse
-        | get parent
-      ) | is-empty
-    }
-}
-
 def "main remove" [...environments: string] {
   let installed_environments = (get_installed_environments)
 
@@ -739,39 +771,6 @@ def "main remove" [...environments: string] {
     save_pre_commit_config (
       remove_environment_from_pre_commit_config $environment
     )
-  }
-
-  let generic_files = (
-    get_top_level_files (get_environment_files generic)
-    | get name
-  )
-
-  for environment in $environments {
-    let environment_files = (
-      get_top_level_files (get_environment_files $environment)
-    )
-
-    $environment_files
-    | filter {
-        |file|
-
-        $file.name not-in $generic_files
-      }
-    | each {
-        |file|
-
-        let message = (
-          [
-            "Warning: "
-            $file.name
-            " may be from the "
-            $environment
-            " environment. Delete if not needed."
-          ] | str join
-        )
-
-        print $"(ansi yb)($message)(ansi reset)"
-    }
   }
 
   if ($environments | is-not-empty) {
