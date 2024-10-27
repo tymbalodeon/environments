@@ -432,6 +432,8 @@ export def merge_pre_commit_configs [
   | append $merged_pre_commit_config
   | to text
   | format_yaml_comment
+  | append "\n"
+  | str join
 }
 
 export def save_pre_commit_config [config: string] {
