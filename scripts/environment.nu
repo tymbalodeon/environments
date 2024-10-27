@@ -295,13 +295,14 @@ def copy_justfile [
   rm $environment_justfile_file
 }
 
-def merge_generic [main: string environment: string] {
-  $environment
+def merge_generic [main: string generic: string] {
+  $generic
   | append (
       $main    
       | split row "#"
       | drop nth 0
     )
+  | str join "\n#"
 }
 
 def get_environment_comment [environment: string] {
@@ -410,20 +411,20 @@ export def merge_pre_commit_configs [
   new_environment_name: string
   environment_config: string
 ] {
-  let environment_comment = (get_environment_comment $new_environment_name)
-
-  if $environment_comment in $main_config {
-    return null
-  }
-
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
   let merged_pre_commit_config = if $new_environment_name == "generic" {
     merge_generic $main_config $environment_config
   } else {
+    let environment_comment = (get_environment_comment $new_environment_name)
+
+    if $environment_comment in $main_config {
+      return null
+    }
+
     $main_config
-    | append $"# ($new_environment_name)"
+    | append $environment_comment
     | append $environment_config
   }
 
@@ -670,7 +671,7 @@ def remove_environment_from_pre_commit_config [environment: string] {
       )
     }
   | str trim
-  | str join "\n# "
+  | str join "# "
   | format_yaml_comment
   | append "\n"
   | str join

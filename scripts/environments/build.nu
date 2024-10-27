@@ -93,12 +93,14 @@ def force_copy_files [] {
   copy_justfile
   copy_gitignore
 
-  save_pre_commit_config (
+  let merged_pre_commit_config = (
     merge_pre_commit_configs
       (open --raw .pre-commit-config.yaml)
       generic
       (open --raw src/generic/.pre-commit-config.yaml)
   )
+
+  save_pre_commit_config $merged_pre_commit_config
 }
 
 def get_modified [file: string] {
