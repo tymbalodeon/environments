@@ -444,30 +444,29 @@ export def merge_pre_commit_configs [
   let main_config = (get_pre_commit_config_repos $main_config)
   let environment_config = (get_pre_commit_config_repos $environment_config)
 
-  let merged_pre_commit_config = if $new_environment_name == "generic" {
-    merge_generic $main_config $environment_config
-  } else {
-    let environment_comment = (get_environment_comment $new_environment_name)
+  let merged_pre_commit_config = (
+    if $new_environment_name == "generic" {
+      merge_generic $main_config $environment_config
+    } else {
+      let environment_comment = (get_environment_comment $new_environment_name)
 
-    if $environment_comment in $main_config {
-      return null
+      if $environment_comment in $main_config {
+        return null
+      }
+
+      $main_config
+      | append (
+        $environment_comment 
+        | str trim
+        | append "\n"
+        | append $environment_config
+        | str join
+      )
     }
-
-    $main_config
-    | append (
-      $environment_comment 
-      | str trim
-      | append "\n"
-      | append $environment_config
-      | str join
-    )
-  }
+  ) | each {|config| $config | yamlfmt -}
 
   "repos:"
-  | append (
-    $merged_pre_commit_config
-    | each {|file| $file | yamlfmt -}
-  )
+  | append $merged_pre_commit_config
   | to text
   | format_yaml_comment
   | append "\n"
