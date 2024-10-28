@@ -19,7 +19,7 @@
 @diff-env *args:
     ./scripts/diff-env.nu {{ args }}
 
-# Manage environment
+# Manage environments
 @environment *args:
     ./scripts/environment.nu {{ args }}
 
