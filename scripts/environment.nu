@@ -340,8 +340,25 @@ export def merge_gitignores [
     | append ($"($environment_comment)\n\n($environment_gitignore)")
   }
 
-  $merged_gitignore
-  | to text
+  let merged_gitignore = (
+    $merged_gitignore
+    | to text
+    | split row "#"
+    | str trim
+  )
+
+  let generic_gitignore = (
+    $merged_gitignore
+    | first
+  )
+
+  $generic_gitignore
+  | append (
+      $merged_gitignore
+      | drop nth 0
+      | sort
+    )
+  | str join "\n\n# "
 }
 
 def get_environment_name [
