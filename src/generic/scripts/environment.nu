@@ -184,6 +184,28 @@ def create_environment_recipe [environment: string recipe: string] {
   | str join "\n"
 }
 
+def sort_environment_sections [
+  file: list<string>
+  indicator: string
+] {
+  let file = (
+    $file
+    | to text
+    | split row $indicator
+    | str trim
+  )
+
+  let generic = ($file | first)
+
+  $generic
+  | append (
+      $file
+      | drop nth 0
+      | sort
+    )
+  | str join $"\n\n($indicator) "
+}
+
 export def merge_justfiles [
   environment: string
   main_justfile: string
@@ -218,33 +240,23 @@ export def merge_justfiles [
     return
   }
 
-  let main_justfile = (
+  let merged_justfile = (
     open $main_justfile
-    | split row "mod"
-    | str trim
+    | append (
+        $"mod ($environment) \"just/($environment).just\""
+        | append (
+            $unique_environment_recipes
+            | each {
+                |recipe|
+
+                create_environment_recipe $environment $recipe
+              }
+          )
+        | str join "\n\n"
+      )
   )
 
-  let generic_recipes = ($main_justfile | first)
-
-  $generic_recipes
-  | append (
-      $main_justfile 
-      | drop nth 0
-      | append (
-          $"($environment) \"just/($environment).just\""
-          | append (
-              $unique_environment_recipes
-              | each {
-                  |recipe|
-
-                  create_environment_recipe $environment $recipe
-                }
-            )
-          | str join "\n\n"
-        )
-      | sort
-    )
-  | str join "\n\nmod "
+  sort_environment_sections $merged_justfile "mod"
 }
 
 def save_file [contents: string filename: string] {
@@ -340,25 +352,7 @@ export def merge_gitignores [
     | append ($"($environment_comment)\n\n($environment_gitignore)")
   }
 
-  let merged_gitignore = (
-    $merged_gitignore
-    | to text
-    | split row "#"
-    | str trim
-  )
-
-  let generic_gitignore = (
-    $merged_gitignore
-    | first
-  )
-
-  $generic_gitignore
-  | append (
-      $merged_gitignore
-      | drop nth 0
-      | sort
-    )
-  | str join "\n\n# "
+  sort_environment_sections $merged_gitignore "#"
 }
 
 def get_environment_name [
@@ -466,25 +460,7 @@ export def merge_pre_commit_configs [
   ) | each {|config| $config | yamlfmt -}
 
   let merged_pre_commit_config = (
-    $merged_pre_commit_config
-    | to text
-    | split row "#"
-    | str trim
-  )
-
-  let generic_pre_commit_config = (
-    $merged_pre_commit_config
-    | first
-  )
-
-  let $merged_pre_commit_config = (
-    $generic_pre_commit_config
-    | append (
-        $merged_pre_commit_config
-        | drop nth 0
-        | sort
-      )
-    | str join "\n\n# "
+    sort_environment_sections $merged_pre_commit_config "#"
   )
 
   "repos:"
