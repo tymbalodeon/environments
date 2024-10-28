@@ -454,12 +454,20 @@ export def merge_pre_commit_configs [
     }
 
     $main_config
-    | append $environment_comment
-    | append $environment_config
+    | append (
+      $environment_comment 
+      | str trim
+      | append "\n"
+      | append $environment_config
+      | str join
+    )
   }
 
   "repos:"
-  | append $merged_pre_commit_config
+  | append (
+    $merged_pre_commit_config
+    | each {|file| $file | yamlfmt -}
+  )
   | to text
   | format_yaml_comment
   | append "\n"
