@@ -218,20 +218,33 @@ export def merge_justfiles [
     return
   }
 
-  open $main_justfile
-  | append (
-      $"mod ($environment) \"just/($environment).just\""
-      | append (
-          $unique_environment_recipes
-          | each {
-              |recipe|
+  let main_justfile = (
+    open $main_justfile
+    | split row "mod"
+    | str trim
+  )
 
-              create_environment_recipe $environment $recipe
-            }
+  let generic_recipes = ($main_justfile | first)
+
+  $generic_recipes
+  | append (
+      $main_justfile 
+      | drop nth 0
+      | append (
+          $"($environment) \"just/($environment).just\""
+          | append (
+              $unique_environment_recipes
+              | each {
+                  |recipe|
+
+                  create_environment_recipe $environment $recipe
+                }
+            )
+          | str join "\n\n"
         )
-      | str join "\n\n"
+      | sort
     )
-  | to text
+  | str join "\n\nmod "
 }
 
 def save_file [contents: string filename: string] {
@@ -628,8 +641,8 @@ def get_top_level_files [
 }
 
 def remove_file [file: string] {
-  rm --force $file.path
-  print $"Removed ($file.path)"
+  rm --force $file
+  print $"Removed ($file)"
 }
 
 def remove_files [environment: string] {
