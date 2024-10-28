@@ -465,6 +465,28 @@ export def merge_pre_commit_configs [
     }
   ) | each {|config| $config | yamlfmt -}
 
+  let merged_pre_commit_config = (
+    $merged_pre_commit_config
+    | to text
+    | split row "#"
+    | str trim
+  )
+
+  let generic_pre_commit_config = (
+    $merged_pre_commit_config
+    | first
+  )
+
+  let $merged_pre_commit_config = (
+    $generic_pre_commit_config
+    | append (
+        $merged_pre_commit_config
+        | drop nth 0
+        | sort
+      )
+    | str join "\n\n# "
+  )
+
   "repos:"
   | append $merged_pre_commit_config
   | to text
