@@ -155,6 +155,8 @@ def copy_outdated_files [] {
     )
 
     cp $source_file $file
+
+    print $"Updated ($file)"
   }
 }
 
