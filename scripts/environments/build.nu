@@ -148,22 +148,14 @@ def copy_outdated_files [] {
 
   mut environment_files = []
 
-  for file in $outdated_files {
-    let basename = ($file | path basename)
-    let extension = ($basename | path parse | get extension)
+  for source_file in $outdated_files {
+    let file = (
+      $source_file
+      | str replace "src/generic/" ""
+    )
 
-    if $basename == ".gitignore" {
-      copy_gitignore
-    } else if $basename == ".pre-commit-config.yaml" {
-      copy_pre_commit_config
-    } else if $basename == "Justfile" {
-      copy_justfile
-    } else {
-      $environment_files = ($environment_files | append $file)
-    }
+    cp $source_file $file
   }
-
-  copy_files $environment_files
 }
 
 # Build dev environment

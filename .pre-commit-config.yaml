@@ -1,10 +1,10 @@
 repos:
 -   repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
-    rev: v0.6.0
+    rev: v0.6.0post1
     hooks:
     -   id: pre-commit-update
 -   repo: https://github.com/gitleaks/gitleaks
-    rev: v8.21.1
+    rev: v8.21.2
     hooks:
     -   id: gitleaks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
@@ -70,11 +70,3 @@ repos:
     -   id: conventional-pre-commit
         stages:
         -   commit-msg
-  # environments
--   repo: local
-    hooks:
-    -   id: build
-        name: build
-        entry: just build
-        language: system
-        pass_filenames: false

@@ -260,7 +260,7 @@ export def merge_justfiles [
 }
 
 def save_file [contents: string filename: string] {
-  $contents 
+  $contents
   | save --force $filename
 
   print $"Updated ($filename)"
@@ -323,7 +323,7 @@ def copy_justfile [
 def merge_generic [main: string generic: string] {
   $generic
   | append (
-      $main    
+      $main
       | split row "#"
       | drop nth 0
     )
@@ -450,7 +450,7 @@ export def merge_pre_commit_configs [
 
       $main_config
       | append (
-        $environment_comment 
+        $environment_comment
         | str trim
         | append "\n"
         | append $environment_config
@@ -500,9 +500,9 @@ def copy_pre_commit_config [
   )
 
   let merged_pre_commit_config = (
-    merge_pre_commit_configs 
+    merge_pre_commit_configs
       (open --raw .pre-commit-config.yaml)
-      $new_environment_name 
+      $new_environment_name
       $environment_config
   )
 
@@ -780,8 +780,8 @@ def "main remove" [...environments: string] {
   let environments = (
     get_environments $environments $installed_environments
     | filter {
-        |environment| 
-        
+        |environment|
+
         $environment != "generic" and (
           $environment in $installed_environments
         )
@@ -827,5 +827,6 @@ def main [
   environment?: string
 ] {
   get_installed_environments
-  | str join
+  | sort
+  | to text
 }
