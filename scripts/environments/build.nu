@@ -37,6 +37,13 @@ def get_environment_directories [environment_files: list<string>] {
 
 }
 
+def copy_file [source_file: string file: string] {
+  cp $source_file $file
+
+  print $"Updated ($file)"
+  
+}
+
 def copy_files [environment_files: list<string>] {
   for directory in (get_environment_directories $environment_files) {
     mkdir $directory
@@ -55,12 +62,10 @@ def copy_files [environment_files: list<string>] {
       }
   )
 
-  for file in $environment_files {
-    let build_path = (get_build_path $file)
+  for source_file in $environment_files {
+    let file = (get_build_path $source_file)
 
-    cp $file $build_path
-
-    print $"Updated ($build_path)"
+    copy_file $source_file $file
   }
 }
 
@@ -88,19 +93,20 @@ def copy_gitignore [] {
   print $"Updated .gitignore"
 }
 
-def force_copy_files [] {
-  copy_files (get_environment_files)
-  copy_justfile
-  copy_gitignore
-
-  let merged_pre_commit_config = (
+def copy_pre_commit_config [] {
+  save_pre_commit_config (
     merge_pre_commit_configs
       (open --raw .pre-commit-config.yaml)
       generic
       (open --raw src/generic/.pre-commit-config.yaml)
   )
+}
 
-  save_pre_commit_config $merged_pre_commit_config
+def force_copy_files [] {
+  copy_files (get_environment_files)
+  copy_gitignore
+  copy_pre_commit_config
+  copy_justfile
 }
 
 def get_modified [file: string] {
@@ -149,14 +155,22 @@ def copy_outdated_files [] {
   mut environment_files = []
 
   for source_file in $outdated_files {
-    let file = (
-      $source_file
-      | str replace "src/generic/" ""
-    )
+    let basename = ($source_file | path basename)
 
-    cp $source_file $file
+    if $basename == ".gitignore" {
+      copy_gitignore
+    } else if $basename == ".pre-commit-config.yaml" {
+      copy_pre_commit_config
+    } else if $basename == "Justfile" {
+      copy_justfile      
+    } else {
+      let file = (
+        $source_file
+        | str replace "src/generic/" ""
+      )
 
-    print $"Updated ($file)"
+      copy_file $source_file $file
+    }
   }
 }
 
