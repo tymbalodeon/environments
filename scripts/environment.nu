@@ -327,7 +327,6 @@ def merge_generic [main: string generic: string] {
       | split row "#"
       | drop nth 0
     )
-  | str join "\n#"
 }
 
 def get_environment_comment [environment: string] {
