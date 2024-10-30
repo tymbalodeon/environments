@@ -64,7 +64,7 @@ def copy_files [
     git: string,
     html: string
   >
-  --update
+  update: bool
 ] {
   if $update {
     rm --force --recursive ([scripts $environment] | path join)
@@ -83,15 +83,23 @@ def copy_files [
     mkdir $directory
   }
 
-  $environment_files
-  | filter {
-      |file|
+  let environment_files = (
+    $environment_files
+    | filter {
+        |file|
 
-      $file.name not-in [.gitignore .pre-commit-config.yaml Justfile] and not (
-        $file.path 
-        | path exists
-      )
-    }
+        $file.name not-in [.gitignore .pre-commit-config.yaml Justfile] and not (
+          $file.path 
+          | path exists
+        )
+      }
+  )
+
+  if ($environment_files | is-empty) {
+    return false
+  }
+
+  $environment_files
   | select path download_url
   | par-each {
       |file|
@@ -103,6 +111,8 @@ def copy_files [
 
       print $"Downloaded ($path)..."
     }
+
+  return true
 }
 
 def get_environment_file_url [
@@ -156,6 +166,14 @@ def get_environment_file [
   http_get $url
 }
 
+def get_temporary_file [extension?: string] {
+  if ($extension | is-not-empty) {
+    mktemp --tmpdir --suffix $".($extension)"
+  } else {
+    mktemp --tmpdir
+  }
+}
+
 def download_environment_file [
   environment_files: table<
     name: string,
@@ -174,11 +192,7 @@ def download_environment_file [
   file: string
   extension?: string
 ] {
-  let temporary_file = if ($extension | is-not-empty) {
-    mktemp --tmpdir --suffix $".($extension)"
-  } else {
-    mktemp --tmpdir
-  }
+  let temporary_file = (get_temporary_file $extension)
 
   let file_contents = (
     get_environment_file $environment_files $file
@@ -249,13 +263,21 @@ export def merge_justfiles [
     )
   }
 
+  let main_justfile_without_environment = (get_temporary_file just)
+
+  open $main_justfile
+  | split row "mod "
+  | filter {|module| not ($module | str starts-with $environment)}
+  | str join "mod? "
+  | save --force $main_justfile_without_environment
+
   let unique_environment_recipes = (
     get_recipes $environment_justfile
     | filter {
         |recipe|
 
         $recipe not-in (
-          get_recipes $main_justfile
+          get_recipes $main_justfile_without_environment
         )
     }
   )
@@ -265,7 +287,7 @@ export def merge_justfiles [
   }
 
   let merged_justfile = (
-    open $main_justfile
+    open $main_justfile_without_environment
     | append (
         $"mod ($environment) \"just/($environment).just\""
         | append (
@@ -278,8 +300,10 @@ export def merge_justfiles [
           )
         | str join "\n\n"
       )
+    | str replace "mod?" "mod"
   )
 
+  rm $main_justfile_without_environment
   sort_environment_sections $merged_justfile "mod"
 }
 
@@ -310,7 +334,14 @@ def copy_justfile [
     git: string,
     html: string
   >
+  update: bool
 ] {
+  let environment_identifier = $"mod ($environment)"
+
+  if not $update and $environment_identifier in (open Justfile) {
+    return false
+  }
+
   let environment_justfile_name = if $environment == "generic" {
     "Justfile"
   } else {
@@ -342,6 +373,8 @@ def copy_justfile [
   }
 
   rm $environment_justfile_file
+
+  return true
 }
 
 def merge_generic [main: string generic: string] {
@@ -406,7 +439,14 @@ def save_gitignore [gitignore: string] {
   save_file $gitignore .gitignore
 }
 
+def is_up_to_date [update: bool environment: string file: string] {
+  not $update and (
+    (get_environment_comment $environment | str trim) in $file 
+  )
+}
+
 def copy_gitignore [
+  environment: string
   environment_files: table<
     name: string,
     path: string,
@@ -421,7 +461,12 @@ def copy_gitignore [
     git: string,
     html: string
   >
+  update: bool
 ] {
+  if (is_up_to_date $update $environment (open .gitignore)) {
+    return false
+  }
+
   let environment_gitignore = (
     get_environment_file $environment_files ".gitignore"
   )
@@ -440,6 +485,8 @@ def copy_gitignore [
       save_gitignore $merged_gitignore
     }
   }
+
+  return true
 }
 
 def get_pre_commit_config_repos [config: string] {
@@ -499,6 +546,7 @@ export def save_pre_commit_config [config: string] {
 }
 
 def copy_pre_commit_config [
+  environment: string
   environment_files: table<
     name: string,
     path: string,
@@ -513,7 +561,12 @@ def copy_pre_commit_config [
     git: string,
     html: string
   >
+  update: bool
 ] {
+  if (is_up_to_date $update $environment (open --raw .pre-commit-config.yaml)) {
+    return false
+  }
+
   let new_environment_name = (get_environment_name $environment_files)
 
   let environment_config = (
@@ -534,53 +587,38 @@ def copy_pre_commit_config [
   }
 }
 
-def reload_environment [
-  environment_files: table<
-    name: string,
-    path: string,
-    sha: string,
-    size: int,
-    url: string,
-    html_url: string,
-    git_url: string,
-    download_url: string,
-    type: string,
-    self: string,
-    git: string,
-    html: string
-  >
-] {
-  if (
-    $environment_files
-    | filter {
-        |file|
-
-        (
-          $file.name
-          | path parse
-          | get extension
-        ) == "nix"
-      }
-    | is-not-empty
-  ) {
-    just init
-  }
-}
-
 def "main add" [
   ...environments: string
+  --update
 ] {
+  mut should_reload = false
+
   for environment in $environments {
     let environment_files = (get_environment_files $environment)
 
-    copy_files $environment $environment_files
-    copy_justfile $environment $environment_files
-    copy_gitignore $environment_files
-    copy_pre_commit_config $environment_files
+    if (
+      $environment_files
+      | filter {|file| ($file.name | path parse | get extension) == "nix"}
+      | each {|file| not ($file.path | path exists)}
+      | any {|status| $status}
+    ) {
+      $should_reload = true
+    }
 
-    reload_environment $environment_files
+    mut added = false
 
-    print $"Added ($environment) environment..."
+    $added = copy_files $environment $environment_files $update
+    $added = copy_justfile $environment $environment_files $update
+    $added = copy_gitignore $environment $environment_files $update
+    $added = copy_pre_commit_config $environment $environment_files $update
+
+    if $added {
+      print $"Added ($environment) environment..."
+    }
+  }
+
+  if $should_reload {
+    just init
   }
 }
 
