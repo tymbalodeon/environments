@@ -4,8 +4,19 @@ def get_base_url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
 
+def http_get [url: string] {
+  try {
+    http get $url
+  } catch {
+      |error|
+
+      print "Network error (most likely too many requests). Please try again later."
+      exit 1
+  }
+}
+
 def get_files [url: string] {
-  let contents = (http get $url)
+  let contents = (http_get $url)
 
   $contents
   | filter {|item| $item.type == "file"}
@@ -87,7 +98,7 @@ def copy_files [
 
       let path = $file.path
 
-      http get $file.download_url
+      http_get $file.download_url
       | save $path
 
       print $"Downloaded ($path)..."
@@ -142,7 +153,7 @@ def get_environment_file [
     return ""
   }
 
-  http get $url
+  http_get $url
 }
 
 def download_environment_file [
@@ -581,7 +592,7 @@ def "main list" [
 
   if ($environment | is-empty) {
     return (
-      http get $url
+      http_get $url
       | get name
       | to text
     )
@@ -616,7 +627,7 @@ def "main list" [
       | first
     )
 
-    return (http get $file_url)
+    return (http_get $file_url)
   }
 
   $files
@@ -627,11 +638,13 @@ def "main list" [
 }
 
 def get_installed_environments [] {
+  let available_environments = (main list)
+
   ls nix
   | get name
   | path parse
   | get stem
-  | filter {|environment| $environment in (main list)}
+  | filter {|environment| $environment in $available_environments}
 }
 
 def get_environments [
@@ -705,16 +718,14 @@ def remove_files [environment: string] {
   }
 
   for file in $top_level_environment_files {
-    if ($file.path | path exists) {
-        if (
-          cat $file.path
-          | lines
-          | first
-          | rg $"\(#|//\) ($environment)"
-          | is-not-empty
-        ) {
-          remove_file $file.path
-        }
+    if ($file.path | path exists) and (
+      cat $file.path
+      | lines
+      | first
+      | rg $"\(#|//\) ($environment)"
+      | is-not-empty
+    ) {
+      remove_file $file.path
     }
   }
 
@@ -789,6 +800,7 @@ def remove_environment_from_pre_commit_config [environment: string] {
 def "main remove" [...environments: string] {
   let installed_environments = (get_installed_environments)
 
+  # TODO clean this up?
   let environments = (
     get_environments $environments $installed_environments
     | filter {
