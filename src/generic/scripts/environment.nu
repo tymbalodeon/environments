@@ -53,32 +53,45 @@ def copy_files [
     git: string,
     html: string
   >
+  --update
 ] {
-  let environment_scripts_directory = ([scripts $environment] | path join)
+  if $update {
+    rm --force --recursive ([scripts $environment] | path join)
+  }
 
-  rm --force --recursive $environment_scripts_directory
+  let parent_directories = (
+    $environment_files
+    | get path
+    | path parse
+    | get parent
+    | uniq
+    | filter {|directory| $directory | is-not-empty}
+  )
+
+  for $directory in $parent_directories {
+    mkdir $directory
+  }
 
   $environment_files
   | filter {
-      |row|
+      |file|
 
-      $row.name not-in [.gitignore .pre-commit-config.yaml Justfile]
+      $file.name not-in [.gitignore .pre-commit-config.yaml Justfile] and not (
+        $file.path 
+        | path exists
+      )
     }
   | select path download_url
   | par-each {
       |file|
 
-      let parent = ($file.path | path parse | get parent)
-
-      if ($parent | is-not-empty) {
-        mkdir $parent
-      }
-
-      print $"Downloading ($file.path)..."
+      let path = $file.path
 
       http get $file.download_url
-      | save --force $file.path
-  }
+      | save $path
+
+      print $"Downloaded ($path)..."
+    }
 }
 
 def get_environment_file_url [
