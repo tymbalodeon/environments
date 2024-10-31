@@ -1,4 +1,2 @@
-# rust
-
 max_width = 79
 group_imports = "StdExternalCrate"
