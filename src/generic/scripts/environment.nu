@@ -97,7 +97,7 @@ def copy_files [
     | filter {
         |file|
 
-        $file.path | path exists
+        not ($file.path | path exists)
       }
   } else {
     $environment_files
