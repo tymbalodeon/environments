@@ -64,7 +64,6 @@
               nushell
               pdm
               pre-commit
-              python312Packages.pre-commit-hooks
               ripgrep
               statix
               stylelint
