@@ -472,7 +472,7 @@ def save_gitignore [gitignore: string] {
 
 def is_up_to_date [update: bool environment: string file: string] {
   not $update and (
-    (get_environment_comment $environment | str trim) in $file 
+    (get_environment_comment $environment | str trim) in $file
   )
 }
 
@@ -626,7 +626,7 @@ def "main add" [
   --update
 ] {
   if ($environments | is-empty) {
-    print "Please specify an environment to add. Available environments:\n"    
+    print "Please specify an environment to add. Available environments:\n"
 
     return (
       main list
@@ -948,7 +948,7 @@ def "main update" [
 
 # View the contents of a remote environment file
 def "main view" [
-  environment: string 
+  environment: string
   file: string
 ] {
   let files = (

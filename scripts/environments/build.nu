@@ -41,7 +41,7 @@ def copy_file [source_file: string file: string] {
   cp $source_file $file
 
   print $"Updated ($file)"
-  
+
 }
 
 def copy_files [environment_files: list<string>] {
@@ -162,7 +162,7 @@ def copy_outdated_files [] {
     } else if $basename == ".pre-commit-config.yaml" {
       copy_pre_commit_config
     } else if $basename == "Justfile" {
-      copy_justfile      
+      copy_justfile
     } else {
       let file = (
         $source_file
