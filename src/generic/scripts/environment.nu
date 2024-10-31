@@ -618,10 +618,23 @@ def copy_pre_commit_config [
   return true
 }
 
+# Add environments to the project
 def "main add" [
   ...environments: string
   --update
 ] {
+  if ($environments | is-empty) {
+    print "Please specify an environment to add. Available environments:\n"    
+
+    return (
+      main list
+      | lines
+      | filter {|environment| $environment != "generic"}
+      | each {|environment| $"– ($environment)"}
+      | to text
+    )
+  }
+
   mut should_reload = false
 
   for environment in $environments {
@@ -661,6 +674,32 @@ def "main add" [
   }
 }
 
+def list_environment_directory [
+  environment: string
+  directory: string
+  environment_files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
+] {
+  $environment_files
+  | where path =~ $directory
+  | get path
+  | str replace $"src/($environment)/" ""
+  | to text
+}
+
+# List environment files
 def "main list" [
   environment?: string
   path?: string
@@ -691,27 +730,7 @@ def "main list" [
     )
   }
 
-  let full_path = (
-    [src $environment $path]
-    | path join
-  )
-
-  if $full_path in ($files | get path) {
-    let file_url = (
-      $files
-      | where path == $full_path
-      | get download_url
-      | first
-    )
-
-    return (http_get $file_url)
-  }
-
-  $files
-  | where path =~ $path
-  | get path
-  | str replace $"src/($environment)/" ""
-  | to text
+  list_environment_directory $environment $path $files
 }
 
 def get_installed_environments [] {
@@ -724,7 +743,7 @@ def get_installed_environments [] {
   | filter {|environment| $environment in $available_environments}
 }
 
-def get_environments [
+def get_environments_to_process [
   environments: list<string>
   installed_environments: list<string>
 ] {
@@ -874,18 +893,13 @@ def remove_environment_from_pre_commit_config [environment: string] {
   | str join
 }
 
+# Remove environments from the project
 def "main remove" [...environments: string] {
   let installed_environments = (get_installed_environments)
 
   let environments = (
-    get_environments $environments $installed_environments
-    | filter {
-        |environment|
-
-        $environment != "generic" and (
-          $environment in $installed_environments
-        )
-      }
+    get_environments_to_process $environments $installed_environments
+    | filter {|environment| $environment != "generic"}
   )
 
   for environment in $environments {
@@ -913,14 +927,46 @@ def "main remove" [...environments: string] {
   }
 }
 
+# Update environments to the latest available version
 def "main update" [
   ...environments: string
 ] {
   let environments = (
-    get_environments $environments (get_installed_environments)
+    get_environments_to_process $environments (get_installed_environments)
   )
 
   main add --update ...$environments
+}
+
+# View the contents of a remote environment file
+def "main view" [
+  environment: string 
+  file: string
+] {
+  let files = (
+    get_files (
+      [(get_base_url) $environment]
+      | path join
+    )
+  )
+
+  let full_path = (
+    [src $environment $file]
+    | path join
+  )
+
+  if $full_path in ($files | get path) {
+    let file_url = (
+      $files
+      | where path == $full_path
+      | get download_url
+      | first
+    )
+
+    return (http_get $file_url)
+  }
+
+  list_environment_directory $environment $file $files
 }
 
 def main [
@@ -928,5 +974,5 @@ def main [
 ] {
   get_installed_environments
   | sort
-  | to text
+  | str join
 }
