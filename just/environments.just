@@ -16,8 +16,3 @@
 [no-cd]
 @pre-commit-update *help:
     ./scripts/environments/pre-commit-update.nu {{ help }}
-
-# Run tests
-[no-cd]
-@test *args:
-    ./scripts/environments/test.nu {{ args }}

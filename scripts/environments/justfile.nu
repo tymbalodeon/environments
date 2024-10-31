@@ -11,7 +11,11 @@ def main --wrapped [
     $environment
   }
 
-  let justfile = $"src/($environment)/just/($environment).just"
+  let justfile = if $environment == "generic" {
+    $"src/($environment)/Justfile"
+  } else {
+    $"src/($environment)/just/($environment).just"
+  }
 
   if ($args | is-empty) {
     just --justfile $justfile --list --list-submodules

@@ -72,3 +72,11 @@ repos:
       - id: conventional-pre-commit
         stages:
           - commit-msg
+  # environments
+  - repo: local
+    hooks:
+      - id: just test
+        name: just test
+        entry: just test
+        language: system
+        pass_filenames: false
