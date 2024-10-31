@@ -88,12 +88,20 @@ def copy_files [
     | filter {
         |file|
 
-        $file.name not-in [.gitignore .pre-commit-config.yaml Justfile] and not (
-          $file.path 
-          | path exists
-        )
+        $file.name not-in [.gitignore .pre-commit-config.yaml Justfile]
       }
   )
+
+  let $environment_files = if not $update {
+    $environment_files
+    | filter {
+        |file|
+
+        $file.path | path exists
+      }
+  } else {
+    $environment_files
+  }
 
   if ($environment_files | is-empty) {
     return false
@@ -107,7 +115,28 @@ def copy_files [
       let path = $file.path
 
       http_get $file.download_url
-      | save $path
+      | save --force $path
+
+      let parent = ($path | path parse | get parent)
+
+      if ($parent | is-empty) {
+        let extension = ($path | path parse | get extension)
+
+        let comment = if $extension == "kdl" {
+          "//"
+        } else {
+          "#"
+        }
+
+        let tagged_contents = (
+          open --raw $path
+          | prepend $"($comment) ($environment)\n"
+          | str join
+        )
+
+        $tagged_contents
+        | save --force $path
+      }
 
       print $"Downloaded ($path)"
     }
@@ -223,7 +252,7 @@ def create_environment_recipe [environment: string recipe: string] {
 }
 
 def sort_environment_sections [
-  file: list<string>
+  file: list
   indicator: string
 ] {
   let file = (
