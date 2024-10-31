@@ -114,6 +114,7 @@ mod python \"just/python.just\"
 
 # Alias for `python test`
 @test *args:
-    just python test {{ args }}"
+    just python test {{ args }}
+"
 
 assert equal $actual_justfile $expected_justfile
