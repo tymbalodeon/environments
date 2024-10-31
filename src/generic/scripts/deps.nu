@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use ./environment.nu list_nix_folder
+
 def get_flake_dependencies [flake: string] {
   $flake
   | rg --multiline "packages = .+(\n|\\[|[^;])+\\]"
@@ -28,7 +30,7 @@ def main [
   --environment: string # List only dependencies for $environment
 ] {
   let environment_files = (
-    "flake.nix" ++ (ls nix | get name)
+    "flake.nix" ++ (list_nix_folder | get name)
   )
 
   let environment_files = if ($environment | is-empty) {

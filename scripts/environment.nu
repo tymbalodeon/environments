@@ -733,10 +733,16 @@ def "main list" [
   list_environment_directory $environment $path $files
 }
 
+export def list_nix_folder [] {
+  mkdir nix
+
+  ls nix
+}
+
 def get_installed_environments [] {
   let available_environments = (main list)
 
-  ls nix
+  list_nix_folder
   | get name
   | path parse
   | get stem
