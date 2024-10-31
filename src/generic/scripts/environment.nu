@@ -109,7 +109,7 @@ def copy_files [
       http_get $file.download_url
       | save $path
 
-      print $"Downloaded ($path)..."
+      print $"Downloaded ($path)"
     }
 
   return true
@@ -585,6 +585,8 @@ def copy_pre_commit_config [
   if $merged_pre_commit_config != null {
     save_pre_commit_config $merged_pre_commit_config
   }
+
+  return true
 }
 
 def "main add" [
@@ -612,8 +614,16 @@ def "main add" [
     $added = copy_gitignore $environment $environment_files $update
     $added = copy_pre_commit_config $environment $environment_files $update
 
-    if $added {
-      print $"Added ($environment) environment..."
+    let action = if $update {
+      "Updated"
+    } else {
+      "Added"
+    }
+
+    let message = $"($action) ($environment) environment"
+
+    if $update or $added {
+      print $message
     }
   }
 
@@ -881,7 +891,7 @@ def "main update" [
     get_environments $environments (get_installed_environments)
   )
 
-  main add ...$environments
+  main add --update ...$environments
 }
 
 def main [
