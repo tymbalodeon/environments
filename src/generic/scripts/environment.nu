@@ -620,6 +620,38 @@ def copy_pre_commit_config [
   return true
 }
 
+def get_type [item: any] {
+  $item
+  | describe --detailed
+  | get type
+}
+
+def merge_toml [generic: any environment: any] {
+  if (get_type $generic) in [record table] {
+    mut result = {}
+
+    for column in ($generic | columns) {
+      if $column in ($environment | columns) {
+        $result = $result | insert $column (
+          merge_toml ($generic | get $column) ($environment | get $column)
+        )
+      } else {
+        $result = $result | insert $column ($generic | get $column)
+      }
+    }
+
+    $result
+  } else {
+    if (get_type $generic) == "list" or (get_type $environment) == "list" {
+      $generic
+      | append $environment
+      | uniq
+    } else {
+      $environment
+    }
+  }
+}
+
 # Add environments to the project
 def "main add" [
   ...environments: string
