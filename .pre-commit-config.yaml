@@ -75,8 +75,13 @@ repos:
   # environments
   - repo: local
     hooks:
-      - id: just test
-        name: just test
+      - id: test
+        name: test
         entry: just test
+        language: system
+        pass_filenames: false
+      - id: build
+        name: build
+        entry: just build
         language: system
         pass_filenames: false
