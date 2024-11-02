@@ -3,21 +3,53 @@
 # Run tests
 def main [
   search_term?: string # Run tests matching $search_term only
-  --file: string # Run tests in $file only
+  --file  # Match $search_term to $file only
+  --function  # Match $search_term to $function only
 ] {
-  let tests = (ls **/tests/**/test_*.nu)
+  let all_tests = (ls **/tests/**/test_*.nu | get name)
 
-  let tests = if ($file | is-not-empty) {
-    $tests
-    | filter {|file| ($file.name | path basename) == $file}
-  } else if ($search_term | is-not-empty) {
-    $tests
-    | where name =~ $search_term
-  } else {
-    $tests
-  }
+  let tests = (
+    if ($search_term | is-empty) {
+      $all_tests
+    } else if $file {
+      $all_tests
+      | filter {
+          |file| 
 
-  for test in ($tests | get name) {
+          try {
+            (
+              $file 
+              | split row "test_"
+              | last
+              | split row "__"
+              | first
+            ) =~ $search_term
+          } catch {
+            false
+          }
+        }
+    } else if $function {
+      $all_tests
+      | filter {
+          |file| 
+
+          try {
+            (
+              $file 
+              | split row "__"
+              | last
+            ) =~ $search_term
+          } catch {
+            false
+          }
+        }
+    } else {
+      $all_tests
+      | filter {|file| $file =~ $search_term}
+    }
+  )
+
+  for test in $tests {
     print --no-newline $"($test)..."
 
     try {
