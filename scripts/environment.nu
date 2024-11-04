@@ -271,8 +271,6 @@ def sort_environment_sections [
       | sort
     )
   | str join $"\n\n($indicator) "
-  | append "\n"
-  | str join
 }
 
 export def merge_justfiles [
@@ -558,7 +556,50 @@ export def merge_pre_commit_configs [
         | str join
       )
     }
-  ) | each {|config| $config | yamlfmt -}
+  ) 
+  | each {
+      |config| 
+
+      let first_line = try {
+        $config 
+        | from yaml
+
+        ""
+      } catch {
+        $config
+        | lines
+        | first
+      }
+
+      let yaml = (
+        if ($first_line | is-empty) {
+          $config 
+        } else {
+          $config
+          | lines
+          | drop nth 0
+          | to text
+        } | yamlfmt -
+      )
+
+      if ($first_line | is-empty) {
+        $yaml
+      } else {
+        $first_line
+        | append $yaml
+        | to text
+      }
+    }
+
+  let merged_pre_commit_config = (
+    $merged_pre_commit_config
+    | first
+    | append (
+      $merged_pre_commit_config
+      | drop nth 0
+      | each {|item| "#" | append $item | str join}
+    )
+  )
 
   let merged_pre_commit_config = (
     sort_environment_sections $merged_pre_commit_config "#"
