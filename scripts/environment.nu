@@ -591,7 +591,7 @@ export def merge_pre_commit_configs [
       }
     }
 
-  let merged_pre_commit_config = (
+  let merged_pre_commit_config = if $new_environment_name == "generic" {
     $merged_pre_commit_config
     | first
     | append (
@@ -599,7 +599,9 @@ export def merge_pre_commit_configs [
       | drop nth 0
       | each {|item| "#" | append $item | str join}
     )
-  )
+  } else {
+    $merged_pre_commit_config
+  }
 
   let merged_pre_commit_config = (
     sort_environment_sections $merged_pre_commit_config "#"
