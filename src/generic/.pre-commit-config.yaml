@@ -27,7 +27,7 @@ repos:
         types:
         -   markdown
 -   repo: https://github.com/kamadorueda/alejandra
-    rev: 3.0.0
+    rev: 3.1.0
     hooks:
     -   id: alejandra-system
 -   repo: https://github.com/astro/deadnix
