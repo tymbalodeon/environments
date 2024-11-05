@@ -18,7 +18,7 @@
       default = pkgs.writeShellApplication {
         name = "init";
         runtimeInputs = [pkgs.nushell];
-        text = "nu <(cat ${./init.nu})";
+        text = "nu <(cat ${./init.nu}) \"$@\"";
       };
     });
   };
