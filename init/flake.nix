@@ -14,13 +14,11 @@
       "x86_64-linux"
     ];
   in {
-    packages = forEachSupportedSystem ({pkgs}: let
-      script = builtins.readFile ./init.nu;
-    in {
+    packages = forEachSupportedSystem ({pkgs}: {
       default = pkgs.writeShellApplication {
         name = "init";
         runtimeInputs = [pkgs.nushell];
-        text = "nu -c \"${script}\"";
+        text = "nu <(cat ${./init.nu})";
       };
     });
   };
