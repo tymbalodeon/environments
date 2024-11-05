@@ -3,4 +3,6 @@
 .envrc
 .pdm-python
 .venv
+
+# environments
 init/flake.lock
