@@ -1,10 +1,7 @@
 {
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  outputs = {
-    self,
-    nixpkgs,
-  }: let
+  outputs = {nixpkgs}: let
     forEachSupportedSystem = f:
       nixpkgs.lib.genAttrs supportedSystems
       (system: f {pkgs = import nixpkgs {inherit system;};});

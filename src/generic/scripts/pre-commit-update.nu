@@ -14,23 +14,23 @@ def main [file: string] {
 
   let repos = (
     open $file
-    | get repos 
-    | where repo != "local" 
-    | get repo 
+    | get repos
+    | where repo != "local"
+    | get repo
   )
 
   let github_repos = (filter_repos_by_domain $repos github)
   # let gitlab_repos = (filter_repos_by_domain $repos gitlab)
-  
+
   let github_urls = (
     $github_repos
     | each {
-      |repo| 
+      |repo|
 
       let release_url = (
         $repo
-        | str replace "github.com" "api.github.com/repos" 
-        | str replace --regex ".git$" "" 
+        | str replace "github.com" "api.github.com/repos"
+        | str replace --regex ".git$" ""
         | path join "releases"
       )
 

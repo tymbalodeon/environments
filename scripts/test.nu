@@ -14,11 +14,11 @@ def main [
     } else if $file {
       $all_tests
       | filter {
-          |file| 
+          |file|
 
           try {
             (
-              $file 
+              $file
               | split row "test_"
               | last
               | split row "__"
@@ -31,11 +31,11 @@ def main [
     } else if $function {
       $all_tests
       | filter {
-          |file| 
+          |file|
 
           try {
             (
-              $file 
+              $file
               | split row "__"
               | last
             ) =~ $search_term

@@ -13,17 +13,7 @@ def main [] {
       )
 
       cd $parent
-
-      try {
-        pdm run pre-commit-update
-      } catch {
-        pdm venv create --force
-        pdm install
-
-        try {
-          pdm run pre-commit-update
-        }
-      }
+      uv run pre-commit-update
 
       print $"Updated ($file)"
     }

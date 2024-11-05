@@ -1,10 +1,5 @@
 [project]
 name = "environments"
 version = "0.1.0"
-requires-python = "==3.12.*"
-
-[tool.pdm]
-distribution = false
-
-[tool.pdm.dev-dependencies]
-dev = ["pre-commit-update>=0.3.3.post1"]
+requires-python = ">=3.12"
+dependencies = ["pre-commit-update>=0.6.0.post1"]
