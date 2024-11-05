@@ -48,6 +48,14 @@ def get_environment_files [environment: string] {
   }
 }
 
+def get_comment_character [extension: string] {
+  if $extension == "kdl" {
+    "//"
+  } else {
+    "#"
+  }
+}
+
 def copy_files [
   environment: string
   environment_files: table<
@@ -121,16 +129,11 @@ def copy_files [
         $path | path parse | get parent | is-empty
       ) {
         let extension = ($path | path parse | get extension)
-
-        let comment = if $extension == "kdl" {
-          "//"
-        } else {
-          "#"
-        }
+        let comment_character = (get_comment_character $extension)
 
         let tagged_contents = (
           open --raw $path
-          | prepend $"($comment) ($environment)\n"
+          | prepend $"($comment_character) ($environment)\n"
           | str join
         )
 
@@ -415,7 +418,7 @@ def merge_generic [main: string generic: string] {
     )
 }
 
-def get_environment_comment [environment: string] {
+def create_environment_comment [environment: string] {
   $"\n# ($environment)"
 }
 
@@ -424,7 +427,7 @@ export def merge_gitignores [
   new_environment_name: string
   environment_gitignore: string
 ] {
-  let environment_comment = (get_environment_comment $new_environment_name)
+  let environment_comment = (create_environment_comment $new_environment_name)
 
   if $environment_comment in $main_gitignore {
     return null
@@ -435,6 +438,12 @@ export def merge_gitignores [
   } else {
     $main_gitignore
     | append ($"($environment_comment)\n\n($environment_gitignore)")
+  }
+
+  let merged_gitignore = if $new_environment_name == "generic" {
+    restore_environment_comment $merged_gitignore .gitignore
+  } else {
+    $merged_gitignore
   }
 
   sort_environment_sections $merged_gitignore "#"
@@ -470,7 +479,7 @@ def save_gitignore [gitignore: string] {
 
 def is_up_to_date [update: bool environment: string file: string] {
   not $update and (
-    (get_environment_comment $environment | str trim) in $file
+    (create_environment_comment $environment | str trim) in $file
   )
 }
 
@@ -529,6 +538,25 @@ def format_yaml_comment []: string -> string {
   | str replace --all --regex " +#" "  #"
 }
 
+def restore_environment_comment [
+  merged_data: list<string>
+  extension: string
+] {
+    $merged_data
+    | first
+    | append (
+      $merged_data
+      | drop nth 0
+      | each {
+          |item|
+
+          (get_comment_character $extension)
+          | append $item
+          | str join
+        }
+    )
+}
+
 export def merge_pre_commit_configs [
   main_config: string
   new_environment_name: string
@@ -541,7 +569,7 @@ export def merge_pre_commit_configs [
     if $new_environment_name == "generic" {
       merge_generic $main_config $environment_config
     } else {
-      let environment_comment = (get_environment_comment $new_environment_name)
+      let environment_comment = (create_environment_comment $new_environment_name)
 
       if $environment_comment in $main_config {
         return null
@@ -592,13 +620,7 @@ export def merge_pre_commit_configs [
     }
 
   let merged_pre_commit_config = if $new_environment_name == "generic" {
-    $merged_pre_commit_config
-    | first
-    | append (
-      $merged_pre_commit_config
-      | drop nth 0
-      | each {|item| "#" | append $item | str join}
-    )
+    restore_environment_comment $merged_pre_commit_config .yaml
   } else {
     $merged_pre_commit_config
   }
