@@ -12,11 +12,9 @@
     ];
   in {
     packages = forEachSupportedSystem ({pkgs}: {
-      default = pkgs.writeShellApplication {
-        name = "init";
-        runtimeInputs = [pkgs.nushell];
-        text = "nu <(cat ${./init.nu}) \"$@\"";
-      };
+      default =
+        pkgs.writers.writeNuBin
+        "init" {} (builtins.readFile ./init.nu);
     });
   };
 }
