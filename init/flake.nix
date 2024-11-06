@@ -15,7 +15,9 @@
       default = let
         environment =
           pkgs.writers.writeNuBin
-          "environment" {} (builtins.readFile ../src/generic/scripts/environment.nu);
+          "environment"
+          {}
+          (builtins.readFile ../src/generic/scripts/environment.nu);
       in
         pkgs.writers.writeNuBin
         "init" {
