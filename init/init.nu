@@ -1,9 +1,11 @@
-def main [param?: string] {
-  let asked_for = if ($param | is-empty) {
-    "the default"
+def main [...environments: string] {
+  let environments = if ($environments | is-empty) {
+    [generic]
   } else {
-    $param
+    $environments
   }
 
-  print $"You asked for ($asked_for)"
+  environment add --help
+
+  print $environments
 }
