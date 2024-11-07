@@ -1,9 +1,8 @@
 def get_environments [environments: list<string>] {
-  if ($environments | is-empty) {
-    [generic]
-  } else {
-    $environments
-  }
+  [generic]
+  | append $environments
+  | str downcase
+  | uniq
 }
 
 def "main init" [
@@ -18,8 +17,6 @@ def "main new" [
   path: string
   ...environments: string
 ] {
-  let environments = (get_environments $environments)
-
   mkdir $path
   cd $path
 

@@ -4,13 +4,33 @@ def get_base_url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
 
-def --wrapped http_get [...args: string] {
+def http_get [url: string --raw] {
   try {
-    http get ($args | str join " ")
+    if $raw {
+      http get --raw $url
+    } else {
+      http get $url
+    }
   } catch {
       |error|
 
-      print "Network error (most likely too many requests). Please try again later."
+      try {
+        print --raw (
+          $error.debug
+          | split row --regex '\{|\}|,'
+          | str trim
+          | filter {|line| $line | str starts-with "msg: "}
+          | first
+          | split row "msg: "
+          | last
+          | str replace --all '\"' "'" 
+          | str replace --all '"' '' 
+          | str replace --all "'" '"'         
+        )
+      } catch {
+        print $error.raw
+      }
+
       exit 1
   }
 }
@@ -125,6 +145,10 @@ def copy_files [
       http_get $file.download_url
       | save --force $path
 
+      if ($path | path parse | get extension) == "nu" {
+        chmod +x $path
+      }
+
       if $environment != "generic" and (
         $path | path parse | get parent | is-empty
       ) {
@@ -188,6 +212,7 @@ def get_environment_file [
     html: string
   >
   file: string
+  --raw
 ] {
   let url = (get_environment_file_url $environment_files $file)
 
@@ -195,7 +220,11 @@ def get_environment_file [
     return ""
   }
 
-  http_get --raw $url
+  if $raw {
+    http_get --raw $url 
+  } else {
+    http_get $url 
+  }
 }
 
 def get_temporary_file [extension?: string] {
@@ -227,7 +256,7 @@ def download_environment_file [
   let temporary_file = (get_temporary_file $extension)
 
   let file_contents = (
-    get_environment_file $environment_files $file
+    get_environment_file --raw $environment_files $file
   )
 
   $file_contents
@@ -752,6 +781,22 @@ def "main add" [
     if $update or $added {
       print $message
     }
+  }
+
+  if (
+    git rev-parse
+    | complete
+    | get exit_code
+    | into bool
+  ) {
+    git init
+    git add .
+  } else if (
+    git ls-tree --full-tree --name-only -r HEAD
+    | rg '^flake.nix$'
+    | is-empty
+  ) { 
+    git add flake.nix
   }
 
   if $should_reload {
