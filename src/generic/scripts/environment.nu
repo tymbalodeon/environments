@@ -4,9 +4,9 @@ def get_base_url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
 
-def http_get [url: string] {
+def --wrapped http_get [...args: string] {
   try {
-    http get $url
+    http get ($args | str join " ")
   } catch {
       |error|
 
@@ -195,7 +195,7 @@ def get_environment_file [
     return ""
   }
 
-  http_get $url
+  http_get --raw $url
 }
 
 def get_temporary_file [extension?: string] {
@@ -350,6 +350,16 @@ def save_justfile [justfile: string] {
   save_file $justfile Justfile
 }
 
+def initialize_generic_file [filename: string] {
+  if not ($filename | path exists) {
+    let file = (
+      download_environment_file (get_environment_files generic) $filename
+    )
+
+    mv $file $filename
+  }
+}
+
 def copy_justfile [
   environment: string
   environment_files: table<
@@ -369,6 +379,8 @@ def copy_justfile [
   update: bool
 ] {
   let environment_identifier = $"mod ($environment)"
+
+  initialize_generic_file Justfile
 
   if not $update and $environment_identifier in (open Justfile) {
     return false
@@ -501,6 +513,8 @@ def copy_gitignore [
   >
   update: bool
 ] {
+  initialize_generic_file .gitignore
+
   if (is_up_to_date $update $environment (open .gitignore)) {
     return false
   }
@@ -659,6 +673,8 @@ def copy_pre_commit_config [
   >
   update: bool
 ] {
+  initialize_generic_file .pre-commit-config.yaml
+
   if (is_up_to_date $update $environment (open --raw .pre-commit-config.yaml)) {
     return false
   }
@@ -685,6 +701,14 @@ def copy_pre_commit_config [
   return true
 }
 
+def get_available_environments [] {
+  main list
+  | lines
+  | filter {|environment| $environment != "generic"}
+  | each {|environment| $"– ($environment)"}
+  | to text
+}
+
 # Add environments to the project
 def "main add" [
   ...environments: string
@@ -693,13 +717,7 @@ def "main add" [
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
 
-    return (
-      main list
-      | lines
-      | filter {|environment| $environment != "generic"}
-      | each {|environment| $"– ($environment)"}
-      | to text
-    )
+    return (get_available_environments)
   }
 
   mut should_reload = false

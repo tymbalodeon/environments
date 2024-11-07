@@ -1,16 +1,29 @@
-def main [
-  ...environments: string
-  --path: string
-] {
-  let environments = if ($environments | is-empty) {
+def get_environments [environments: list<string>] {
+  if ($environments | is-empty) {
     [generic]
   } else {
     $environments
   }
-
-  if ($path | is-empty) {
-    print (pwd)
-  } else {
-    print $path
-  }
 }
+
+def "main init" [
+  ...environments: string
+] {
+  let environments = (get_environments $environments)
+
+  environment add ...$environments
+}
+
+def "main new" [
+  path: string
+  ...environments: string
+] {
+  let environments = (get_environments $environments)
+
+  mkdir $path
+  cd $path
+
+  main init ...$environments
+}
+
+def main [] {}
