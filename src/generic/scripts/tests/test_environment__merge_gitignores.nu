@@ -28,7 +28,6 @@ let expected_gitignore = ".config
 .venv
 
 # python
-
 *.pyc
 .coverage
 __pycache__/

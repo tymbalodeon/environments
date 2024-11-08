@@ -478,7 +478,7 @@ export def merge_gitignores [
     merge_generic $main_gitignore $environment_gitignore
   } else {
     $main_gitignore
-    | append ($"($environment_comment)\n\n($environment_gitignore)")
+    | append ($"($environment_comment)\n($environment_gitignore)")
   }
 
   let merged_gitignore = if $new_environment_name == "generic" {
