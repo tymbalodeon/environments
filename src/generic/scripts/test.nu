@@ -6,7 +6,12 @@ def main [
   --file  # Match $search_term to $file only
   --function  # Match $search_term to $function only
 ] {
-  let all_tests = (ls **/tests/**/test_*.nu | get name)
+  let all_tests = try {
+    ls **/tests/**/test_*.nu 
+    | get name
+  } catch {
+    return
+  }
 
   let tests = (
     if ($search_term | is-empty) {

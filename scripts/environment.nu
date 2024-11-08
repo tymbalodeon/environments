@@ -116,7 +116,12 @@ def copy_files [
     | filter {
         |file|
 
-        $file.name not-in [.gitignore .pre-commit-config.yaml Justfile]
+        $file.name not-in [
+          .gitignore 
+          .pre-commit-config.yaml 
+          Justfile
+          pre-commit-update.nu
+        ]
       }
   )
 
