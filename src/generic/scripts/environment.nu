@@ -23,9 +23,9 @@ def http_get [url: string --raw] {
           | first
           | split row "msg: "
           | last
-          | str replace --all '\"' "'" 
-          | str replace --all '"' '' 
-          | str replace --all "'" '"'         
+          | str replace --all '\"' "'"
+          | str replace --all '"' ''
+          | str replace --all "'" '"'
         )
       } catch {
         print $error.raw
@@ -221,9 +221,9 @@ def get_environment_file [
   }
 
   if $raw {
-    http_get --raw $url 
+    http_get --raw $url
   } else {
-    http_get $url 
+    http_get $url
   }
 }
 
@@ -795,7 +795,7 @@ def "main add" [
     git ls-tree --full-tree --name-only -r HEAD
     | rg '^flake.nix$'
     | is-empty
-  ) { 
+  ) {
     git add flake.nix
   }
 
