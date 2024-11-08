@@ -308,6 +308,8 @@ def sort_environment_sections [
       | sort
     )
   | str join $"\n\n($indicator) "
+  | append "\n"
+  | str join
 }
 
 export def merge_justfiles [
