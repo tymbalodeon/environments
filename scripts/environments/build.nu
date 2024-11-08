@@ -86,9 +86,7 @@ def copy_gitignore [] {
       (open .gitignore)
       generic
       (open src/generic/.gitignore)
-  ) | append "\n"
-  | str join
-  | save --force .gitignore
+  ) | save --force .gitignore
 
   print $"Updated .gitignore"
 }

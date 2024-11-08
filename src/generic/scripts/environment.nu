@@ -296,13 +296,23 @@ def sort_environment_sections [
 
   let generic = ($sections | first)
 
-  $generic
-  | append (
-      $sections
-      | drop nth 0
-      | sort
-    )
-  | str join $"\n\n($indicator) "
+  let sorted_sections = (
+    $generic
+    | append (
+        $sections
+        | drop nth 0
+        | sort
+      )
+    | str join $"\n\n($indicator) "
+  )
+
+  if not ($sorted_sections | str ends-with "\n") {
+    $sorted_sections
+    | append "\n"
+    | str join
+  } else {
+    $sorted_sections
+  }
 }
 
 export def merge_justfiles [
@@ -742,6 +752,7 @@ def get_available_environments [] {
 def "main add" [
   ...environments: string
   --update
+  --reload
 ] {
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
@@ -754,7 +765,7 @@ def "main add" [
   for environment in $environments {
     let environment_files = (get_environment_files $environment)
 
-    if (
+    if $reload and (
       $environment_files
       | filter {|file| ($file.name | path parse | get extension) == "nix"}
       | each {|file| not ($file.path | path exists)}
@@ -1030,7 +1041,10 @@ def remove_environment_from_pre_commit_config [environment: string] {
 }
 
 # Remove environments from the project
-def "main remove" [...environments: string] {
+def "main remove" [
+  ...environments: string
+  --reload
+] {
   let installed_environments = (get_installed_environments)
 
   let environments = (
@@ -1058,7 +1072,7 @@ def "main remove" [...environments: string] {
     )
   }
 
-  if ($environments | is-not-empty) {
+  if $reload and ($environments | is-not-empty) {
     just init
   }
 }
