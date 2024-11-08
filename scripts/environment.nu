@@ -301,13 +301,23 @@ def sort_environment_sections [
 
   let generic = ($sections | first)
 
-  $generic
-  | append (
-      $sections
-      | drop nth 0
-      | sort
-    )
-  | str join $"\n\n($indicator) "
+  let sorted_sections = (
+    $generic
+    | append (
+        $sections
+        | drop nth 0
+        | sort
+      )
+    | str join $"\n\n($indicator) "
+  )
+
+  if not ($sorted_sections | str ends-with "\n") {
+    $sorted_sections
+    | append "\n"
+    | str join
+  } else {
+    $sorted_sections
+  }
 }
 
 export def merge_justfiles [
