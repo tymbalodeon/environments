@@ -1036,7 +1036,7 @@ def remove_environment_from_gitignore [environment: string] {
       )
     }
   | str trim
-  | str join "# "
+  | str join "\n\n# "
   | append "\n"
   | str join
 }
