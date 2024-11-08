@@ -47,7 +47,7 @@ def main [
   }
 }
 
-def get_pdfs_directory [] {
+export def get_pdfs_directory [] {
   let pdfs_directory = (main | get pdfs_directory)
 
   mkdir $pdfs_directory
