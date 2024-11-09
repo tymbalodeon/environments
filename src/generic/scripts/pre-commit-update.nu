@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-def filter_repos_by_domain [repos: list<string> domain: string] {
+def filter-repos-by-domain [repos: list<string> domain: string] {
   $repos
   | filter {|repo| $"($domain).com" in $repo}
 }
@@ -19,8 +19,7 @@ def main [file: string] {
     | get repo
   )
 
-  let github_repos = (filter_repos_by_domain $repos github)
-  # let gitlab_repos = (filter_repos_by_domain $repos gitlab)
+  let github_repos = (filter-repos-by-domain $repos github)
 
   let github_urls = (
     $github_repos
