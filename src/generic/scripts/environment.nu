@@ -859,6 +859,10 @@ def list_environment_directory [
   | to text
 }
 
+def "main diff" [a: string b: string] {
+  print "Implement me based on diff-env.nu"
+}
+
 # List environment files
 def "main list" [
   environment?: string
