@@ -1,6 +1,6 @@
 use std assert
 
-use ../domain.nu parse_git_origin
+use ../domain.nu parse-git-origin
 
 let origins = [
   "git@github.com:tymbalodeon/environments.git"
@@ -14,7 +14,7 @@ let expected_owner = "tymbalodeon"
 let expected_repo = "environments"
 
 for origin in $origins {
-  let actual_origin = (parse_git_origin $origin)
+  let actual_origin = (parse-git-origin $origin)
 
   assert equal ($actual_origin | get domain) $expected_domain
   assert equal ($actual_origin | get owner) $expected_owner
@@ -32,7 +32,7 @@ for origin in $origins {
 }
 
 let invalid_origin = "github.com/tymbalodeon/environments"
-let actual_invalid_origin = (parse_git_origin --quiet $invalid_origin)
+let actual_invalid_origin = (parse-git-origin --quiet $invalid_origin)
 
 assert equal ($actual_invalid_origin | get domain) null
 assert equal ($actual_invalid_origin | get owner) null
