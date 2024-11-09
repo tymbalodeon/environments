@@ -45,7 +45,7 @@ export def main [recipe: string] {
   let $environment = if ($environment | is-empty) and (
     $script_parent != "scripts"
   ) {
-    $script_parent 
+    $script_parent
     | path split
     | get 1
   } else {

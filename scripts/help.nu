@@ -13,7 +13,7 @@ def main [
         --list
         --list-submodules
     )
-  } 
+  }
 
   let script = (find-script $recipe)
 
