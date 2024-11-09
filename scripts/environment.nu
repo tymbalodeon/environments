@@ -893,7 +893,7 @@ def "main list" [
   list_environment_directory $environment $path $files
 }
 
-export def list_nix_folder [] {
+export def list-nix-folder [] {
   mkdir nix
 
   ls nix

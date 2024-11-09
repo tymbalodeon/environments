@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-use ./environment.nu list_nix_folder
+use ./environment.nu list-nix-folder
 
-def get_flake_dependencies [flake: string] {
+def get-flake-dependencies [flake: string] {
   $flake
   | rg --multiline "packages = .+(\n|\\[|[^;])+\\]"
   | lines
@@ -11,12 +11,12 @@ def get_flake_dependencies [flake: string] {
   | str trim
 }
 
-export def merge_flake_dependencies [...flakes: string] {
+export def merge-flake-dependencies [...flakes: string] {
   $flakes
   | each {
       |flake|
 
-      get_flake_dependencies $flake
+      get-flake-dependencies $flake
     }
   | flatten
   | uniq
@@ -29,14 +29,12 @@ def main [
   dependency?: string # Search for a dependency
   --environment: string # List only dependencies for $environment
 ] {
-  let environment_files = (
-    "flake.nix" ++ (list_nix_folder | get name)
-  )
+  let nix_files = "flake.nix" ++ (list-nix-folder | get name)
 
-  let environment_files = if ($environment | is-empty) {
-    $environment_files
+  let nix_files = if ($environment | is-empty) {
+    $nix_files
   } else {
-    $environment_files
+    $nix_files
     | filter {
         |file|
 
@@ -50,12 +48,12 @@ def main [
       }
   }
 
-  let flakes = (
-    $environment_files
+  let contents = (
+    $nix_files
     | each {|flake| open $flake}
   )
 
-  let dependencies = (merge_flake_dependencies ...$flakes)
+  let dependencies = (merge-flake-dependencies ...$contents)
 
   if ($dependency | is-empty) {
     print --no-newline $dependencies

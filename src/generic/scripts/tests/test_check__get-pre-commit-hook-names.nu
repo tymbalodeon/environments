@@ -1,6 +1,6 @@
 use std assert
 
-use ../check.nu get_pre_commit_hook_names
+use ../check.nu get-pre-commit-hook-names
 
 let config = "
 repos:
@@ -25,6 +25,6 @@ pre-commit-update
 sort-simple-yaml
 trailing-whitespace"
 
-let actual_hooks = (get_pre_commit_hook_names ($config | from yaml))
+let actual_hooks = (get-pre-commit-hook-names ($config | from yaml))
 
 assert equal $actual_hooks $expected_hooks

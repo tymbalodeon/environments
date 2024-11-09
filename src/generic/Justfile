@@ -11,9 +11,11 @@
 @check *args:
     ./scripts/check.nu {{ args }}
 
+alias deps := dependencies
+
 # List dependencies
-@deps *args:
-    ./scripts/deps.nu {{ args }}
+@dependencies *args:
+    ./scripts/dependencies.nu {{ args }}
 
 # View the diff between environments
 @diff-env *args:
