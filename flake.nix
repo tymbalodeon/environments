@@ -53,6 +53,7 @@
               deadnix
               delta
               eza
+              fd
               flake-checker
               fzf
               gh
