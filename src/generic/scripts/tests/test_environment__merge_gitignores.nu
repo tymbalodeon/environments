@@ -33,6 +33,7 @@ let expected_gitignore = ".config
 .coverage
 __pycache__/
 build/
-dist/"
+dist/
+"
 
 assert equal $actual_gitignore $expected_gitignore

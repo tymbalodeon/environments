@@ -5,6 +5,10 @@ def main --wrapped [
   environment?: string # The environment whose Justfile to run
   ...args: string # Arguments to pass to the Justfile
 ] {
+  if $environment == "--self-help" {
+    return (help main)
+  }
+
   let environment = if ($environment | is-empty) {
     "generic"
   } else {
