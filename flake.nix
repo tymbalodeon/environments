@@ -58,10 +58,12 @@
               fzf
               gh
               git
+              glab
               just
               lychee
               markdown-oxide
               marksman
+              nb
               nil
               nodePackages.prettier
               nushell
