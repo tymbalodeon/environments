@@ -2,7 +2,7 @@ use std assert
 
 use ../history.nu parse-args
 
-let actual_args = [
+let args = [
   --option1
   value
   --option2
@@ -19,4 +19,4 @@ let expected_args = [
   --option3
 ]
 
-assert equal (parse-args ...$actual_args) $expected_args
+assert equal (parse-args ...$args) $expected_args
