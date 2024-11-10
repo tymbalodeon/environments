@@ -859,33 +859,53 @@ def list_environment_directory [
   | to text
 }
 
-# TODO in progres...
-def get_diff_name [name?: string] {
-  if ($name| is-empty) {
-    "generic"
-  } else {
-    $name
-  }
+def color_yellow [text: string] {
+  $"(ansi y)($text)(ansi reset)"
 }
 
-# TODO in progres...
 def get_diff_files [installed_environments: list<string> name?: string] {
   if $name in $installed_environments {
     $"Getting local ($name) files..."
   } else {
-    $"Getting local ($name) files..."
+    $"Getting remote ($name) files..."
   }
 }
 
-# TODO in progres...
 def "main diff" [
   a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
   b?: string # Environment name (uses local files, if installed, else remote)
   --remote: string # Use remote files for $remote (replaces $b)
   --remotes # Use remote files for both $a and $b
 ] {
-  let a = (get_diff_name $a)
-  let b = (get_diff_name $b)
+  if ($remote | is-not-empty) and ($b | is-not-empty) {
+    let remote_arg = (color_yellow "'--remote: string'")
+    let b_arg = (color_yellow "'b?: string'")
+    let heading = $"(ansi rb)error:(ansi reset) "
+
+    let message = (
+      $"($heading) the argument ($remote_arg) cannot be used with ($b_arg)\n"
+    )
+
+    print $message
+    print (help main diff)
+
+    exit 1
+  }
+
+  let a = if ($a | is-empty) {
+    "generic"
+  } else {
+    $a
+  }
+
+  let b = if ($remote | is-not-empty) {
+    $remote
+  } else if ($b | is-not-empty) {
+    $b
+  } else {
+    $a
+  }
+
   let installed_environments = (get_installed_environments)
   let $a_files = (get_diff_files $installed_environments $a)
   let $b_files = (get_diff_files $installed_environments $b)
