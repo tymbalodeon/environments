@@ -902,7 +902,7 @@ def "main diff" [
     $environment_b | is-empty
   ) and (
     $environment_a not-in $installed_environments
-  ) { 
+  ) {
     "generic"
   } else {
     $environment_a
