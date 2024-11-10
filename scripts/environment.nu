@@ -859,8 +859,39 @@ def list_environment_directory [
   | to text
 }
 
-def "main diff" [a: string b: string] {
-  print "Implement me based on diff-env.nu"
+# TODO in progres...
+def get_diff_name [name?: string] {
+  if ($name| is-empty) {
+    "generic"
+  } else {
+    $name
+  }
+}
+
+# TODO in progres...
+def get_diff_files [installed_environments: list<string> name?: string] {
+  if $name in $installed_environments {
+    $"Getting local ($name) files..."
+  } else {
+    $"Getting local ($name) files..."
+  }
+}
+
+# TODO in progres...
+def "main diff" [
+  a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote) 
+  b?: string # Environment name (uses local files, if installed, else remote) 
+  --remote: string # Use remote files for $remote (replaces $b)
+  --remotes # Use remote files for both $a and $b
+] {
+  let a = (get_diff_name $a)
+  let b = (get_diff_name $b)
+  let installed_environments = (get_installed_environments)
+  let $a_files = (get_diff_files $installed_environments $a)
+  let $b_files = (get_diff_files $installed_environments $b)
+
+  print $a_files
+  print $b_files
 }
 
 # List environment files
