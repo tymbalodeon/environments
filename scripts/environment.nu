@@ -863,8 +863,12 @@ def color_yellow [text: string] {
   $"(ansi y)($text)(ansi reset)"
 }
 
-def get_diff_files [installed_environments: list<string> name?: string] {
-  if $name in $installed_environments {
+def get_diff_files [
+  installed_environments: list<string>
+  name?: string
+  --remote
+] {
+  if not $remote and $name in $installed_environments {
     $"Getting local ($name) files..."
   } else {
     $"Getting remote ($name) files..."
@@ -872,12 +876,12 @@ def get_diff_files [installed_environments: list<string> name?: string] {
 }
 
 def "main diff" [
-  a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
-  b?: string # Environment name (uses local files, if installed, else remote)
+  environment_a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
+  environment_b?: string # Environment name (uses local files, if installed, else remote)
   --remote: string # Use remote files for $remote (replaces $b)
   --remotes # Use remote files for both $a and $b
 ] {
-  if ($remote | is-not-empty) and ($b | is-not-empty) {
+  if ($remote | is-not-empty) and ($environment_b | is-not-empty) {
     let remote_arg = (color_yellow "'--remote: string'")
     let b_arg = (color_yellow "'b?: string'")
     let heading = $"(ansi rb)error:(ansi reset) "
@@ -892,23 +896,33 @@ def "main diff" [
     exit 1
   }
 
-  let a = if ($a | is-empty) {
+  let installed_environments = ("generic" ++ (get_installed_environments))
+
+  let a = if ($environment_a | is-empty) or (
+    $environment_b | is-empty
+  ) and (
+    $environment_a not-in $installed_environments
+  ) { 
     "generic"
   } else {
-    $a
+    $environment_a
   }
 
   let b = if ($remote | is-not-empty) {
     $remote
-  } else if ($b | is-not-empty) {
-    $b
-  } else {
-    $a
+  } else if ($environment_b | is-not-empty) {
+    $environment_b
+  } else if ($environment_a not-in $installed_environments) {
+    $environment_a
   }
 
-  let installed_environments = (get_installed_environments)
   let $a_files = (get_diff_files $installed_environments $a)
-  let $b_files = (get_diff_files $installed_environments $b)
+
+  let $b_files = if $a == $b {
+    get_diff_files --remote $installed_environments $b
+  } else {
+    get_diff_files $installed_environments $b
+  }
 
   print $a_files
   print $b_files
