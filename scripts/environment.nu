@@ -879,8 +879,8 @@ def get_diff_files [installed_environments: list<string> name?: string] {
 
 # TODO in progres...
 def "main diff" [
-  a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote) 
-  b?: string # Environment name (uses local files, if installed, else remote) 
+  a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
+  b?: string # Environment name (uses local files, if installed, else remote)
   --remote: string # Use remote files for $remote (replaces $b)
   --remotes # Use remote files for both $a and $b
 ] {
