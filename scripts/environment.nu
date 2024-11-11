@@ -53,7 +53,9 @@ def get_files [url: string] {
 def get_environment_files [environment: string] {
   get_files ([(get-base-url) $environment] | path join)
   | update path {
-      $in.path
+      |row|
+
+      $row.path
       | str replace $"src/($environment)/" ""
     }
   | filter {
@@ -856,7 +858,7 @@ def color_yellow [text: string] {
 
 def get_diff_files [
   installed_environments: list<string>
-  environment?: string
+  environment: string
   --remote
 ] {
   let files = (get_environment_files $environment)
@@ -864,8 +866,12 @@ def get_diff_files [
   if not $remote and $environment in $installed_environments {
     $files
     | filter {|file| $file.path | path exists}
+    | wrap file
+    | insert type local
   } else {
     $files
+    | wrap file
+    | insert type local
   }
 }
 
@@ -878,6 +884,31 @@ def diff_error_with_help [message: string] {
   print (help main diff)
 
   exit 1
+}
+
+def get-diff-file [
+  type: string
+  path: string
+  files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
+] {
+  match $type {
+    "local" => $path
+    "remote" => (download_environment_file $files $path)
+    _ => "BAD"
+  }
 }
 
 def "main diff" [
@@ -958,8 +989,25 @@ def "main diff" [
     get_diff_files $installed_environments $b
   }
 
-  print $a_files
-  print $b_files
+  for item in $a_files {
+    let type = $item.type
+    let path = $item.file.path
+    let a_file = (get-diff-file $type $path $a_files.file)
+
+    let b_file = if $path in $b_files.file.path {
+      get-diff-file $type $path $a_files.file
+    } else {
+      null      
+    }
+
+    print $a_file
+    print $b_file
+    # delta $a_file $b_file
+
+    if $type == "remote" {
+      rm $a_file
+    }
+  }
 }
 
 # List environment files
