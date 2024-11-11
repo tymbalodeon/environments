@@ -1,12 +1,12 @@
 #!/usr/bin/env nu
 
-use ./filesystem.nu get-project-absolute-path
+use filesystem.nu get-project-absolute-path
 
-def get_base_url [] {
+def get-base-url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
 
-def http_get [url: string --raw] {
+def http-get [url: string --raw] {
   try {
     if $raw {
       http get --raw $url
@@ -21,12 +21,12 @@ def http_get [url: string --raw] {
           $error.debug
           | split row --regex '\{|\}|,'
           | str trim
-          | filter {|line| $line | str starts-with "msg: "}
+          | filter {str starts-with "msg: "}
           | first
           | split row "msg: "
           | last
           | str replace --all '\"' "'"
-          | str replace --all '"' ''
+          | str trim --char '"'
           | str replace --all "'" '"'
         )
       } catch {
@@ -38,7 +38,7 @@ def http_get [url: string --raw] {
 }
 
 def get_files [url: string] {
-  let contents = (http_get $url)
+  let contents = (http-get $url)
 
   $contents
   | filter {|item| $item.type == "file"}
@@ -51,22 +51,15 @@ def get_files [url: string] {
 }
 
 def get_environment_files [environment: string] {
-  get_files ([(get_base_url) $environment] | path join)
+  get_files ([(get-base-url) $environment] | path join)
   | update path {
-      |row|
-
-      $row.path
+      $in.path
       | str replace $"src/($environment)/" ""
     }
   | filter {
-      |row|
+      let path = ($in.path | path parse)
 
-      let path = ($row.path | path parse)
-
-      $path.extension != "lock" and "tests" not-in (
-        $path
-        | get parent
-      )
+      $path.extension != "lock" and "tests" not-in $path.parent
   }
 }
 
@@ -106,7 +99,7 @@ def copy_files [
     | path parse
     | get parent
     | uniq
-    | filter {|directory| $directory | is-not-empty}
+    | filter {is-not-empty}
   )
 
   for $directory in $parent_directories {
@@ -129,11 +122,7 @@ def copy_files [
 
   let $environment_files = if not $update {
     $environment_files
-    | filter {
-        |file|
-
-        not ($file.path | path exists)
-      }
+    | filter {|file| not ($file.path | path exists)}
   } else {
     $environment_files
   }
@@ -149,7 +138,7 @@ def copy_files [
 
       let path = $file.path
 
-      http_get $file.download_url
+      http-get $file.download_url
       | save --force $path
 
       if ($path | path parse | get extension) == "nu" {
@@ -228,9 +217,9 @@ def get_environment_file [
   }
 
   if $raw {
-    http_get --raw $url
+    http-get --raw $url
   } else {
-    http_get $url
+    http-get $url
   }
 }
 
@@ -764,8 +753,8 @@ def copy_pre_commit_config [
 def get_available_environments [] {
   main list
   | lines
-  | filter {|environment| $environment != "generic"}
-  | each {|environment| $"– ($environment)"}
+  | filter {$in != "generic"}
+  | each {$"– ($in)"}
   | to text
 }
 
@@ -978,11 +967,11 @@ def "main list" [
   environment?: string
   path?: string
 ] {
-  let url = (get_base_url)
+  let url = (get-base-url)
 
   if ($environment | is-empty) {
     return (
-      http_get $url
+      http-get $url
       | get name
       | to text
     )
@@ -1118,7 +1107,7 @@ def remove_environment_from_justfile [environment: string] {
           open Justfile
           | split row "mod"
           | str trim
-          | filter {|recipes| $recipes | str starts-with $environment}
+          | filter {str starts-with $environment}
           | first
         )
       | str join
@@ -1237,7 +1226,7 @@ def "main view" [
 ] {
   let files = (
     get_files (
-      [(get_base_url) $environment]
+      [(get-base-url) $environment]
       | path join
     )
   )
@@ -1255,7 +1244,7 @@ def "main view" [
       | first
     )
 
-    return (http_get $file_url)
+    return (http-get $file_url)
   }
 
   list_environment_directory $environment $file $files
