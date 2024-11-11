@@ -17,10 +17,6 @@ alias deps := dependencies
 @dependencies *args:
     ./scripts/dependencies.nu {{ args }}
 
-# View the diff between environments
-@diff-env *args:
-    ./scripts/diff-env.nu {{ args }}
-
 # Manage environments
 @environment *args:
     ./scripts/environment.nu {{ args }}
