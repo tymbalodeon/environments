@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ./find-script.nu
+use find-script.nu
 
 # View help text
 def main [
@@ -16,6 +16,16 @@ def main [
   }
 
   let script = (find-script $recipe)
+
+  print $script
+
+  if ($script | is-empty) {
+    try {
+      return (just --color always --list $recipe --quiet)
+    } catch {
+      return
+    }
+  }
 
   if "def main --wrapped" in (open $script) {
     nu $script "--self-help"

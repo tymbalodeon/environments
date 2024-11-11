@@ -1,10 +1,10 @@
 #!/usr/bin/env nu
 
-use ./environment.nu list-nix-files
+use environment.nu list-nix-files
 
-def get-flake-dependencies [flake: string] {
-  $flake
-  | rg --multiline "packages = .+(\n|\\[|[^;])+\\]"
+def get-flake-dependencies []: string -> list<string> {
+  $in
+  | rg --multiline 'packages = .+(\n|\[|[^;])+\]'
   | lines
   | drop nth 0
   | filter {|line| "[" not-in $line and "]" not-in $line}
@@ -13,11 +13,7 @@ def get-flake-dependencies [flake: string] {
 
 export def merge-flake-dependencies [...flakes: string] {
   $flakes
-  | each {
-      |flake|
-
-      get-flake-dependencies $flake
-    }
+  | each {get-flake-dependencies}
   | flatten
   | uniq
   | sort
@@ -53,12 +49,7 @@ def main [
       }
   }
 
-  let contents = (
-    $nix_files
-    | each {|flake| open $flake}
-  )
-
-  let dependencies = (merge-flake-dependencies ...$contents)
+  let dependencies = (merge-flake-dependencies ...($nix_files | each {open}))
 
   if ($dependency | is-empty) {
     print --no-newline $dependencies
