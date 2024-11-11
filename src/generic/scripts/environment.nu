@@ -875,6 +875,10 @@ def get_diff_files [
   }
 }
 
+def get_error_heading [] {
+  $"(ansi rb)error:(ansi reset)"
+}
+
 def "main diff" [
   environment_a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
   environment_b?: string # Environment name (uses local files, if installed, else remote)
@@ -882,12 +886,41 @@ def "main diff" [
   --remotes # Use remote files for both $a and $b
 ] {
   if ($remote | is-not-empty) and ($environment_b | is-not-empty) {
-    let remote_arg = (color_yellow "'--remote: string'")
-    let b_arg = (color_yellow "'b?: string'")
-    let heading = $"(ansi rb)error:(ansi reset) "
+    let message = (
+      [
+        (get_error_heading)
+        " the argument "
+        (color_yellow "'--remote: string'")
+        " cannot be used with "
+        (color_yellow "'b?: string'")
+        "\n"
+      ] 
+      | str join
+    )
+
+    print $message
+    print (help main diff)
+
+    exit 1
+  }
+
+  if $remotes and $environment_a == "generic" {
+    let environment_a_arg = (color_yellow "'environment_a'")
 
     let message = (
-      $"($heading) the argument ($remote_arg) cannot be used with ($b_arg)\n"
+      [
+        (get_error_heading)
+        " the argument "
+        (color_yellow "'--remotes'")
+        " requires either both "
+        $environment_a_arg
+        " and "
+        (color_yellow "'environment_b'")
+        " or "
+        $environment_a_arg
+        " not be \"generic\"\n"
+      ] 
+      | str join
     )
 
     print $message
@@ -912,13 +945,19 @@ def "main diff" [
     $remote
   } else if ($environment_b | is-not-empty) {
     $environment_b
-  } else if ($environment_a not-in $installed_environments) {
-    $environment_a
+  } else if ($environment_a | is-not-empty) {
+    $environment_a 
+  } else {
+    $a
   }
 
-  let $a_files = (get_diff_files $installed_environments $a)
+  let $a_files = if $remotes {
+    get_diff_files --remote $installed_environments $a
+  } else {
+    get_diff_files $installed_environments $a
+  }
 
-  let $b_files = if $a == $b {
+  let $b_files = if $remotes or $a == $b {
     get_diff_files --remote $installed_environments $b
   } else {
     get_diff_files $installed_environments $b
