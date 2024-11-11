@@ -882,6 +882,13 @@ def get_error_heading [] {
   $"(ansi rb)error:(ansi reset)"
 }
 
+def diff_error_with_help [message: string] {
+  print $message
+  print (help main diff)
+
+  exit 1
+}
+
 def "main diff" [
   environment_a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
   environment_b?: string # Environment name (uses local files, if installed, else remote)
@@ -901,10 +908,7 @@ def "main diff" [
       | str join
     )
 
-    print $message
-    print (help main diff)
-
-    exit 1
+    diff_error_with_help $message
   }
 
   if $remotes and $environment_a == "generic" {
@@ -926,10 +930,7 @@ def "main diff" [
       | str join
     )
 
-    print $message
-    print (help main diff)
-
-    exit 1
+    diff_error_with_help $message
   }
 
   let installed_environments = ("generic" ++ (get_installed_environments))
