@@ -2,7 +2,11 @@
 
 use filesystem.nu get-project-absolute-path
 
-export def get-script [recipe: string scripts: list<string>] {
+export def get-script [
+  recipe: string
+  scripts: list<string>
+  scripts_directory: string
+] {
   let parts = (
     $recipe
     | split row "::"
@@ -18,7 +22,6 @@ export def get-script [recipe: string scripts: list<string>] {
 
   let $recipe = ($parts | last)
 
-  let scripts_directory = (get-project-absolute-path scripts)
 
   let matching_scripts = (
     $scripts
@@ -27,7 +30,7 @@ export def get-script [recipe: string scripts: list<string>] {
 
         let path = ($script | path parse)
         let parent = ($path | get parent)
-        
+
         if ($environment | is-not-empty) and (
           $parent != ($scripts_directory | path join $environment)
         ) {
@@ -38,6 +41,15 @@ export def get-script [recipe: string scripts: list<string>] {
       }
   )
 
+  let matching_scripts = if (
+    ($matching_scripts | length) > 1
+  ) and ($environment | is-empty) {
+    $matching_scripts
+    | filter {|script| ($script | path parse | get parent) == $scripts_directory}
+  } else {
+    $matching_scripts
+  }
+
   try {
     $matching_scripts
     | first
@@ -45,10 +57,12 @@ export def get-script [recipe: string scripts: list<string>] {
 }
 
 export def main [recipe: string] {
+  let scripts_directory = (get-project-absolute-path scripts)
+
   let scripts = (
-    fd --exclude tests --type file "" (get-project-absolute-path scripts)
+    fd --exclude tests --type file "" $scripts_directory
     | lines
   )
 
-  get-script $recipe $scripts
+  get-script $recipe $scripts $scripts_directory
 }

@@ -73,9 +73,9 @@ def main [
 
       # FIXME
       let new_todo = if ($repo_name in $todos) {
-        
+
       } else {
-        
+
       }
 
       nb todo add --edit

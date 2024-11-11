@@ -906,7 +906,7 @@ def "main diff" [
         " cannot be used with "
         (color_yellow "'b?: string'")
         "\n"
-      ] 
+      ]
       | str join
     )
 
@@ -928,7 +928,7 @@ def "main diff" [
         " or "
         $environment_a_arg
         " not be \"generic\"\n"
-      ] 
+      ]
       | str join
     )
 
@@ -952,7 +952,7 @@ def "main diff" [
   } else if ($environment_b | is-not-empty) {
     $environment_b
   } else if ($environment_a | is-not-empty) {
-    $environment_a 
+    $environment_a
   } else {
     $a
   }
