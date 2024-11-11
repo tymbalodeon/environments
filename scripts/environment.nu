@@ -865,13 +865,16 @@ def color_yellow [text: string] {
 
 def get_diff_files [
   installed_environments: list<string>
-  name?: string
+  environment?: string
   --remote
 ] {
-  if not $remote and $name in $installed_environments {
-    $"Getting local ($name) files..."
+  let files = (get_environment_files $environment)
+
+  if not $remote and $environment in $installed_environments {
+    $files
+    | filter {|file| $file.path | path exists}
   } else {
-    $"Getting remote ($name) files..."
+    $files
   }
 }
 
