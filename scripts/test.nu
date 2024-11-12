@@ -59,13 +59,27 @@ def main [
     }
   )
 
+  mut exit_error = false
+
   for test in $tests {
     print --no-newline $"($test)..."
 
-    try {
+    let failed = try {
       nu $test
 
       print $"(ansi green_bold)OK(ansi reset)"
+
+      false
+    } catch {
+      true
     }
+
+    if $failed and not $exit_error {
+      $exit_error = $failed
+    }
+  }
+
+  if $exit_error {
+    exit 1
   }
 }

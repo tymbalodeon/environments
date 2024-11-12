@@ -1042,7 +1042,7 @@ def "main list" [
 }
 
 export def list-nix-files [] {
-  let nix_directory = (get-project-absolute-path nix)
+  let nix_directory = (get-project-path nix)
 
   mkdir $nix_directory
 

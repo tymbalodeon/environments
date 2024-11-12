@@ -1,6 +1,6 @@
 use std assert
 
-use ../build.nu get_outdated_files
+use ../build.nu get-outdated-files
 
 let files = (
   [
@@ -65,6 +65,7 @@ let test_data = [
     )
     expected_outdated_files: []
   }
+
   {
     files: (
       $files
@@ -73,6 +74,7 @@ let test_data = [
     )
     expected_outdated_files: []
   }
+
   {
     files: (
       $files
@@ -84,26 +86,10 @@ let test_data = [
 ]
 
 for test in $test_data {
-  let actual_outdated_files = (get_outdated_files $test.files)
+  let actual_outdated_files = (get-outdated-files $test.files)
 
   assert equal $actual_outdated_files $test.expected_outdated_files
 }
 
-# FIXME
-# let new_file = "src/generic/new"
-
-# let new_row = (
-#   [
-#     [
-#       environment
-#       environment_modified
-#     ];
-
-#     [$new_file $new]
-#   ]
-# )
-
-
-# let actual_outdated_files = (get_outdated_files $files)
-
-# assert equal $actual_outdated_files [$new_file]
+# TODO
+# test new file

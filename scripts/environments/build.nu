@@ -7,7 +7,7 @@ use ../environment.nu save_pre_commit_config
 use ../filesystem.nu get-project-path
 use pre-commit-update.nu
 
-def get_environment_files [] {
+def get-environment-files [] {
   let generic_directory = (get-project-path src/generic)
 
   fd --hidden --ignore --exclude .git "" $generic_directory
@@ -30,7 +30,7 @@ def get_build_path [path: string] {
   | str replace --regex "src/[a-zA-Z-_]+/" ""
 }
 
-def get_environment_directories [environment_files: list<string>] {
+def get-environment-directories [environment_files: list<string>] {
   $environment_files
   | path parse
   | get parent
@@ -41,15 +41,15 @@ def get_environment_directories [environment_files: list<string>] {
 
 }
 
-def copy_file [source_file: string file: string] {
+def copy-file [source_file: string file: string] {
   cp $source_file $file
 
   print $"Updated ($file)"
 
 }
 
-def copy_files [environment_files: list<string>] {
-  for directory in (get_environment_directories $environment_files) {
+def copy-files [environment_files: list<string>] {
+  for directory in (get-environment-directories $environment_files) {
     mkdir $directory
   }
 
@@ -69,11 +69,11 @@ def copy_files [environment_files: list<string>] {
   for source_file in $environment_files {
     let file = (get_build_path $source_file)
 
-    copy_file $source_file $file
+    copy-file $source_file $file
   }
 }
 
-def copy_justfile [] {
+def copy-justfile [] {
   (
     merge_justfiles
       generic
@@ -84,7 +84,7 @@ def copy_justfile [] {
   print $"Updated Justfile"
 }
 
-def copy_gitignore [] {
+def copy-gitignore [] {
   (
     merge_gitignores
       (open .gitignore)
@@ -95,7 +95,7 @@ def copy_gitignore [] {
   print $"Updated .gitignore"
 }
 
-def copy_pre_commit_config [] {
+def copy-pre-commit-config [] {
   save_pre_commit_config (
     merge_pre_commit_configs
       (open --raw .pre-commit-config.yaml)
@@ -104,14 +104,14 @@ def copy_pre_commit_config [] {
   )
 }
 
-def force_copy_files [] {
-  copy_files (get_environment_files)
-  copy_gitignore
-  copy_pre_commit_config
-  copy_justfile
+def force-copy-files [] {
+  copy-files (get-environment-files)
+  copy-gitignore
+  copy-pre-commit-config
+  copy-justfile
 }
 
-def get_modified [file: string] {
+def get-modified [file: string] {
   try {
     ls $file
     | first
@@ -119,8 +119,8 @@ def get_modified [file: string] {
   }
 }
 
-def get_files_and_modified [] {
-  get_environment_files
+def get-files-and-modified [] {
+  get-environment-files
   | wrap environment
   | insert local {
       |$file|
@@ -130,16 +130,16 @@ def get_files_and_modified [] {
   | insert environment_modified {
       |row|
 
-      get_modified $row.environment
+      get-modified $row.environment
     }
   | insert local_modified {
       |row|
 
-      get_modified $row.local
+      get-modified $row.local
   }
 }
 
-export def get_outdated_files [files: list] {
+export def get-outdated-files [files: list] {
   $files
   | filter {
       |file|
@@ -151,8 +151,8 @@ export def get_outdated_files [files: list] {
   | get environment
 }
 
-def copy_outdated_files [] {
-  let outdated_files = (get_outdated_files (get_files_and_modified))
+def copy-outdated-files [] {
+  let outdated_files = (get-outdated-files (get-files-and-modified))
 
   mut environment_files = []
 
@@ -171,7 +171,7 @@ def copy_outdated_files [] {
         | str replace "src/generic/" ""
       )
 
-      copy_file $source_file $file
+      copy-file $source_file $file
     }
   }
 }
@@ -182,9 +182,9 @@ def main [
   --update # Update all pre-commit-conifg files
 ] {
   if $force {
-    force_copy_files
+    force-copy-files
   } else {
-    copy_outdated_files
+    copy-outdated-files
   }
 
   if $force or $update {
