@@ -999,7 +999,6 @@ def "main diff" [
       null
     }
 
-    # print $"($a_file) ($b_file)"
     do --ignore-errors { delta $a_file $b_file }
 
     if $type == "remote" {
