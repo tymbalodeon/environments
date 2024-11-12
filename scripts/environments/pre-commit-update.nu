@@ -1,29 +1,15 @@
 #!/usr/bin/env nu
 
-def main [] {
-  fd --hidden .pre-commit-config.yaml
-  | lines
-  | each {
-      |file|
+use ../filesystem.nu get-project-absolute-path
 
-      let parent = (
-        realpath $file
-        | path parse
-        | get parent
-      )
+export def main [] {
+  let src_directory = (get-project-absolute-path src)
 
-      cd $parent
-      uv run pre-commit-update
+  for directory in (ls $src_directory | get name) {
+    cd $directory
 
-      print $"Updated ($file)"
+    try {
+      uv run pre-commit-update err> /dev/null
     }
-
-  fd --hidden --no-ignore .venv
-  | lines
-  | each {
-      |item|
-
-      rm -rf $item
-    }
-  | null
+  }
 }

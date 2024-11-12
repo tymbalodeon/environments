@@ -4,9 +4,13 @@ use ../environment.nu merge_gitignores
 use ../environment.nu merge_justfiles
 use ../environment.nu merge_pre_commit_configs
 use ../environment.nu save_pre_commit_config
+use ../filesystem.nu get-project-absolute-path
+use pre-commit-update.nu
 
 def get_environment_files [] {
-  fd --hidden --ignore --exclude .git "" src/generic
+  let generic_directory = (get-project-absolute-path src/generic)
+
+  fd --hidden --ignore --exclude .git "" $generic_directory
   | lines
   | filter {
       |file|
@@ -175,10 +179,15 @@ def copy_outdated_files [] {
 # Build dev environment
 def main [
   --force # Build environment even if up-to-date
+  --update # Update all pre-commit-conifg files
 ] {
   if $force {
     force_copy_files
   } else {
     copy_outdated_files
+  }
+
+  if $force or $update {
+    pre-commit-update
   }
 }

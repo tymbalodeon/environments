@@ -11,8 +11,3 @@
 [no-cd]
 @justfile *args:
     ./scripts/environments/justfile.nu {{ args }}
-
-# Update all .pre-commit-config.yaml files
-[no-cd]
-@pre-commit-update *help:
-    ./scripts/environments/pre-commit-update.nu {{ help }}
