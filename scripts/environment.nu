@@ -871,7 +871,7 @@ def get_diff_files [
   } else {
     $files
     | wrap file
-    | insert type local
+    | insert type remote
   }
 }
 
@@ -907,7 +907,6 @@ def get-diff-file [
   match $type {
     "local" => $path
     "remote" => (download_environment_file $files $path)
-    _ => "BAD"
   }
 }
 
@@ -995,14 +994,13 @@ def "main diff" [
     let a_file = (get-diff-file $type $path $a_files.file)
 
     let b_file = if $path in $b_files.file.path {
-      get-diff-file $type $path $a_files.file
+      get-diff-file ($b_files.type | uniq | first) $path $a_files.file
     } else {
-      null      
+      null
     }
 
-    print $a_file
-    print $b_file
-    # delta $a_file $b_file
+    # print $"($a_file) ($b_file)"
+    do --ignore-errors { delta $a_file $b_file }
 
     if $type == "remote" {
       rm $a_file
