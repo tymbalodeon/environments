@@ -4,11 +4,11 @@ use ../environment.nu merge_gitignores
 use ../environment.nu merge_justfiles
 use ../environment.nu merge_pre_commit_configs
 use ../environment.nu save_pre_commit_config
-use ../filesystem.nu get-project-absolute-path
+use ../filesystem.nu get-project-path
 use pre-commit-update.nu
 
 def get_environment_files [] {
-  let generic_directory = (get-project-absolute-path src/generic)
+  let generic_directory = (get-project-path src/generic)
 
   fd --hidden --ignore --exclude .git "" $generic_directory
   | lines

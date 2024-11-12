@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use filesystem.nu get-project-absolute-path
+use filesystem.nu get-project-path
 
 def get-base-url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"

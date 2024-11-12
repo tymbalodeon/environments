@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use filesystem.nu get-project-absolute-path
+use filesystem.nu get-project-path
 
 export def get-script [
   recipe: string
@@ -57,7 +57,7 @@ export def get-script [
 }
 
 export def main [recipe: string] {
-  let scripts_directory = (get-project-absolute-path scripts)
+  let scripts_directory = (get-project-path scripts)
 
   let scripts = (
     fd --exclude tests --type file "" $scripts_directory

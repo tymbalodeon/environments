@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use ../filesystem.nu get-project-path
+
 # Run an environment Justfile
 def main --wrapped [
   environment?: string # The environment whose Justfile to run
@@ -9,21 +11,26 @@ def main --wrapped [
     return (help main)
   }
 
-  let environment = if ($environment | is-empty) {
-    "generic"
-  } else {
-    $environment
+  let environment = match $environment {
+    null => "generic"
+    _ => $environment
   }
 
-  let justfile = if $environment == "generic" {
-    $"src/($environment)/Justfile"
-  } else {
-    $"src/($environment)/just/($environment).just"
+  let base_directory = (get-project-path ("src" | path join $environment))
+
+  let justfile = match $environment {
+    "generic" => {$base_directory | path join Justfile}
+
+    _ => {
+      let environment_justfile = ("just" | path join $"($environment).just")
+
+      $base_directory
+      | path join $environment_justfile
+    }
   }
 
-  if ($args | is-empty) {
-    just --justfile $justfile --list --list-submodules
-  } else {
-    just --justfile $justfile ...$args
+  match $args {
+    null => {just --justfile $justfile --list --list-submodules}
+    _ => {just --justfile $justfile ...$args}
   }
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
 
-use ../filesystem.nu get-project-absolute-path
+use ../filesystem.nu get-project-path
 
 export def main [] {
-  let src_directory = (get-project-absolute-path src)
+  let src_directory = (get-project-path src)
 
   for directory in (ls $src_directory | get name) {
     cd $directory

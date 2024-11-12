@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use filesystem.nu get-project-absolute-path
+use filesystem.nu get-project-path
 
 def get-base-url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
@@ -1042,7 +1042,7 @@ def "main list" [
 }
 
 export def list-nix-files [] {
-  let nix_directory = (get-project-absolute-path nix)
+  let nix_directory = (get-project-path nix)
 
   mkdir $nix_directory
 
