@@ -19,7 +19,7 @@ def main --wrapped [
   let base_directory = (get-project-path ("src" | path join $environment))
 
   let justfile = match $environment {
-    "generic" => {$base_directory | path join Justfile}
+    "generic" => ($base_directory | path join Justfile)
 
     _ => {
       let environment_justfile = ("just" | path join $"($environment).just")
@@ -30,7 +30,7 @@ def main --wrapped [
   }
 
   match $args {
-    null => {just --justfile $justfile --list --list-submodules}
-    _ => {just --justfile $justfile ...$args}
+    null => (just --justfile $justfile --list --list-submodules)
+    _ => (just --justfile $justfile ...$args)
   }
 }

@@ -10,10 +10,9 @@ use find-script.nu
 def main [
   recipe?: string # The recipe command
 ] {
-  let recipe = if ($recipe | is-empty) {
-    choose-recipe
-  } else {
-    $recipe
+  let recipe = match $recipe {
+    null => (choose-recipe)
+    _ => $recipe
   }
 
   bat (find-script $recipe)

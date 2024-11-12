@@ -17,8 +17,6 @@ def main [
 
   let script = (find-script $recipe)
 
-  print $script
-
   if ($script | is-empty) {
     try {
       return (just --color always --list $recipe --quiet)
