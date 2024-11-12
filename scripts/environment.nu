@@ -996,7 +996,7 @@ def "main diff" [
     let b_file = if $path in $b_files.file.path {
       get-diff-file ($b_files.type | uniq | first) $path $a_files.file
     } else {
-      null
+      "/dev/null"
     }
 
     do --ignore-errors { delta $a_file $b_file }
