@@ -999,7 +999,7 @@ def "main diff" [
       "/dev/null"
     }
 
-    do --ignore-errors { delta $a_file $b_file }
+    do --ignore-errors { delta --paging never $a_file $b_file }
 
     if $type == "remote" {
       rm $a_file
