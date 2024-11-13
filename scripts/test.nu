@@ -1,46 +1,103 @@
 #!/usr/bin/env nu
 
-export def get-test [
+export def get-tests [
   tests: list<string>
+  filters: record<
+    file: any,
+    function: any,
+    module: any,
+  >
   search_term?: string
-  --file
-  --function
 ] {
-  if ($search_term | is-empty) {
-    return $tests
+  let module = $filters.module
+  let file = $filters.file
+  let function = $filters.function
+
+  let tests = match $module {
+    null => $tests
+
+    _ => (
+      $tests
+      | filter {
+          |test|
+
+          let parent = (
+            $test
+            | path parse
+            | get parent
+          )
+
+          $"src/($module)" in $parent or (
+            $"scripts/($module)" in $parent
+          )
+        }
+    )
   }
 
-  $tests
-  | filter {
-      |test|
+  let $tests = match $file {
+    null => $tests
 
-      try {
-        let test_name = if $file {
-          $test
-          | split row "test_"
-          | last
-          | split row "__"
-          | first
-        } else if $function {
-          $test
-          | split row "__"
-          | last
-        } else {
-          $test
+    _ => (
+      $tests
+      | filter {
+          |test|
+
+          try {
+            let name = (
+              $test
+              | split row "test_"
+              | last
+              | split row "__"
+              | first
+            )
+
+            $name =~ $file
+          } catch {
+            false
+          }
         }
+    )
+  }
 
-        $test_name =~ $search_term
-      } catch {
-        false
-      }
-    }
+  let $tests = match $function {
+    null => $tests
+
+    _ => (
+      $tests
+      | filter {
+          |test|
+
+          try {
+            let name = (
+              $test
+              | split row "__"
+              | last
+            )
+
+            $name =~ $function
+          } catch {
+            false
+          }
+        }
+    )
+  }
+
+  match $search_term {
+    null => $tests
+
+    _ => (
+      $tests
+      | filter {|test| $test =~ $search_term}
+    )
+  }
 }
 
 # Run tests
 def main [
   search_term?: string # Run tests matching $search_term only
-  --file  # Match $search_term to $file only
-  --function  # Match $search_term to $function only
+  --file: string  # Run tests for $file only
+  --function: string # Run tests for $function only
+  --module: string # Run tests for $module only
 ] {
   let tests = try {
     ls **/tests/**/test_*.nu
@@ -49,15 +106,13 @@ def main [
     return
   }
 
-  let tests = (
-    if $file {
-      get-test --file $tests $search_term
-    } else if $function {
-      get-test --function $tests $search_term
-    } else {
-      get-test $tests $search_term
-    }
-  )
+  let filters = {
+    file: $file
+    function: $function
+    module: $module
+  }
+
+  let tests = (get-tests $tests $filters $search_term)
 
   mut exit_error = false
 

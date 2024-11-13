@@ -10,9 +10,9 @@ def main [
   let environment = "typst"
 
   (
-    display-just-help 
-      $recipe 
-      (get-project-path $"just/($environment).just") 
+    display-just-help
+      $recipe
+      (get-project-path $"just/($environment).just")
       $environment
   )
 }

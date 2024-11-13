@@ -1,6 +1,6 @@
 use std assert
 
-use ../test.nu get-test
+use ../test.nu get-tests
 
 let tests = [
   test_check__get-pre-commit-hook-names.nu
@@ -16,14 +16,26 @@ let tests = [
   test_test__get-test.nu
 ]
 
-assert equal (get-test $tests) $tests
+let filters = {
+  file: null
+  function: null
+  module: null
+}
+
+assert equal (get-tests $tests $filters) $tests
 
 let expected_tests = [
   test_filename__search_term.nu
   test_search_term__function-name.nu
 ]
 
-assert equal (get-test $tests search_term) $expected_tests
+assert equal (get-tests $tests $filters search_term) $expected_tests
+
+let filters = {
+  file: environment
+  function: null
+  module: null
+}
 
 let expected_tests = [
   test_environment__merge_gitignores.nu
@@ -31,7 +43,13 @@ let expected_tests = [
   test_environment__merge_pre_commit_configs.nu
 ]
 
-assert equal (get-test $tests --file environment) $expected_tests
+assert equal (get-tests $tests $filters) $expected_tests
+
+let filters = {
+  file: null
+  function: merge
+  module: null
+}
 
 let expected_tests = [
   test_deps__merge-flake-dependencies.nu
@@ -40,4 +58,4 @@ let expected_tests = [
   test_environment__merge_pre_commit_configs.nu
 ]
 
-assert equal (get-test $tests --function merge) $expected_tests
+assert equal (get-tests $tests $filters) $expected_tests

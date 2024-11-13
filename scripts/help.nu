@@ -3,7 +3,7 @@
 use find-script.nu
 
 export def display-just-help [
-  recipe?: string 
+  recipe?: string
   justfile?: string
   environment?: string
 ] {
