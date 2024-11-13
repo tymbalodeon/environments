@@ -37,9 +37,8 @@ def get-environment-directories [environment_files: list<string>] {
   | get parent
   | uniq
   | str replace "src/generic" ""
-  | filter {s-not-empty}
-  | str trim --char "/"
-
+  | str replace "//" "/"
+  | filter {is-not-empty}
 }
 
 def copy-file [source_file: string file: string] {
