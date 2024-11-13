@@ -7,10 +7,12 @@ use ../help.nu display-just-help
 def main [
   recipe?: string # View help text for recipe
 ] {
+  let environment = "environments"
+
   (
     display-just-help 
       $recipe 
-      (get-project-path just/environments.just) 
-      environments
+      (get-project-path $"just/($environment).just") 
+      $environment
   )
 }
