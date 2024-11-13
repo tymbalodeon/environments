@@ -1,5 +1,47 @@
 #!/usr/bin/env nu
 
+def filter_file [test: string file: string] {
+  try {
+    let name = (
+      $test
+      | split row "test_"
+      | last
+      | split row "__"
+      | first
+    )
+
+    $name =~ $file
+  } catch {
+    false
+  }
+}
+
+def filter_function [test: string function: string] {
+  try {
+    let name = (
+      $test
+      | split row "__"
+      | last
+    )
+
+    $name =~ $function
+  } catch {
+    false
+  }
+}
+
+def filter_module [test: string module: string] {
+  let parent = (
+    $test
+    | path parse
+    | get parent
+  )
+
+  $"src/($module)" in $parent or (
+    $"scripts/($module)" in $parent
+  )
+}
+
 export def get-tests [
   tests: list<string>
   filters: record<
@@ -15,80 +57,22 @@ export def get-tests [
 
   let tests = match $module {
     null => $tests
-
-    _ => (
-      $tests
-      | filter {
-          |test|
-
-          let parent = (
-            $test
-            | path parse
-            | get parent
-          )
-
-          $"src/($module)" in $parent or (
-            $"scripts/($module)" in $parent
-          )
-        }
-    )
+    _ => ($tests | filter {|test| filter_module $test $module})
   }
 
   let $tests = match $file {
     null => $tests
-
-    _ => (
-      $tests
-      | filter {
-          |test|
-
-          try {
-            let name = (
-              $test
-              | split row "test_"
-              | last
-              | split row "__"
-              | first
-            )
-
-            $name =~ $file
-          } catch {
-            false
-          }
-        }
-    )
+    _ => ($tests | filter {|test| filter_file $test $file})
   }
 
   let $tests = match $function {
     null => $tests
-
-    _ => (
-      $tests
-      | filter {
-          |test|
-
-          try {
-            let name = (
-              $test
-              | split row "__"
-              | last
-            )
-
-            $name =~ $function
-          } catch {
-            false
-          }
-        }
-    )
+    _ => ($tests | filter {|test| filter_function $test $function})
   }
 
   match $search_term {
     null => $tests
-
-    _ => (
-      $tests
-      | filter {|test| $test =~ $search_term}
-    )
+    _ => ($tests | filter {|test| $test =~ $search_term})
   }
 }
 
