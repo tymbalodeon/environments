@@ -3,6 +3,7 @@
 use ../environment.nu merge_gitignores
 use ../environment.nu merge_justfiles
 use ../environment.nu merge_pre_commit_configs
+use ../environment.nu save-file
 use ../environment.nu save_pre_commit_config
 use ../filesystem.nu get-project-path
 use pre-commit-update.nu
@@ -25,7 +26,7 @@ def get-environment-files [] {
     }
 }
 
-def get_build_path [path: string] {
+def get-build-path [path: string] {
   $path
   | str replace --regex "src/[a-zA-Z-_]+/" ""
 }
@@ -36,8 +37,8 @@ def get-environment-directories [environment_files: list<string>] {
   | get parent
   | uniq
   | str replace "src/generic" ""
-  | filter {|directory| $directory | is-not-empty}
-  | str replace "/" ""
+  | filter {s-not-empty}
+  | str trim --char "/"
 
 }
 
@@ -67,32 +68,28 @@ def copy-files [environment_files: list<string>] {
   )
 
   for source_file in $environment_files {
-    let file = (get_build_path $source_file)
+    let file = (get-build-path $source_file)
 
     copy-file $source_file $file
   }
 }
 
 def copy-justfile [] {
-  (
+  save-file (
     merge_justfiles
       generic
       Justfile
       src/generic/Justfile
-  ) | save --force Justfile
-
-  print $"Updated Justfile"
+  ) Justfile
 }
 
 def copy-gitignore [] {
-  (
+  save-file (
     merge_gitignores
       (open .gitignore)
       generic
       (open src/generic/.gitignore)
-  ) | save --force .gitignore
-
-  print $"Updated .gitignore"
+  ) .gitignore
 }
 
 def copy-pre-commit-config [] {
@@ -122,21 +119,9 @@ def get-modified [file: string] {
 def get-files-and-modified [] {
   get-environment-files
   | wrap environment
-  | insert local {
-      |$file|
-
-      $file.environment | str replace "src/generic/" ""
-    }
-  | insert environment_modified {
-      |row|
-
-      get-modified $row.environment
-    }
-  | insert local_modified {
-      |row|
-
-      get-modified $row.local
-  }
+  | insert local {$in.environment | str replace "src/generic/" ""}
+  | insert environment_modified {get-modified $in.environment}
+  | insert local_modified {get-modified $in.local}
 }
 
 export def get-outdated-files [files: list] {
@@ -159,19 +144,19 @@ def copy-outdated-files [] {
   for source_file in $outdated_files {
     let basename = ($source_file | path basename)
 
-    if $basename == ".gitignore" {
-      copy_gitignore
-    } else if $basename == ".pre-commit-config.yaml" {
-      copy_pre_commit_config
-    } else if $basename == "Justfile" {
-      copy_justfile
-    } else {
-      let file = (
-        $source_file
-        | str replace "src/generic/" ""
-      )
+    match $basename {
+      ".gitignore" => (copy_gitignore)
+      ".pre-commit-config.yaml" => (copy_pre_commit_config)
+      "Justfile" => (copy_justfile)
 
-      copy-file $source_file $file
+      _ => {
+        let file = (
+          $source_file
+          | str replace "src/generic/" ""
+        )
+
+        copy-file $source_file $file
+      }
     }
   }
 }

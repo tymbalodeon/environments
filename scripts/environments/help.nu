@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use ../filesystem.nu get-project-path
+
 # View help text
 def main [
   recipe?: string # View help text for recipe
@@ -8,10 +10,11 @@ def main [
     (
       just
         --color always
-        --justfile environments.just
+        --justfile (get-project-path just/environments.just)
         --list
     )
   } else {
+
     nu $"../scripts/environments/($recipe).nu" --help
  }
 }

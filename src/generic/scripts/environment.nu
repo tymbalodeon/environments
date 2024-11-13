@@ -376,7 +376,7 @@ export def merge_justfiles [
   sort_environment_sections $merged_justfile "mod"
 }
 
-def save_file [contents: string filename: string] {
+export def save-file [contents: string filename: string] {
   $contents
   | save --force $filename
 
@@ -384,7 +384,7 @@ def save_file [contents: string filename: string] {
 }
 
 def save_justfile [justfile: string] {
-  save_file $justfile Justfile
+  save-file $justfile Justfile
 }
 
 def initialize_generic_file [filename: string] {
@@ -523,7 +523,7 @@ def get_environment_name [
 }
 
 def save_gitignore [gitignore: string] {
-  save_file $gitignore .gitignore
+  save-file $gitignore .gitignore
 }
 
 def is_up_to_date [update: bool environment: string file: string] {
@@ -703,7 +703,7 @@ export def merge_pre_commit_configs [
 }
 
 export def save_pre_commit_config [config: string] {
-  save_file $config .pre-commit-config.yaml
+  save-file $config .pre-commit-config.yaml
 }
 
 def copy_pre_commit_config [
