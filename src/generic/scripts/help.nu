@@ -2,17 +2,34 @@
 
 use find-script.nu
 
-# View help text
-def main [
-  recipe?: string # View help text for recipe
+export def display-just-help [
+  recipe?: string 
+  justfile?: string
+  environment?: string
 ] {
   if ($recipe | is-empty) {
     return (
-      just
-        --color always
-        --list
-        --list-submodules
+      match $justfile {
+        null => (
+          just
+            --color always
+            --list
+            --list-submodules
+        )
+
+        _ => (
+            just
+              --color always
+              --justfile $justfile
+              --list
+        )
+      }
     )
+  }
+
+  let recipe = match $environment {
+    null => $recipe
+    _ => $"($environment)/($recipe)"
   }
 
   let script = (find-script $recipe)
@@ -25,9 +42,16 @@ def main [
     }
   }
 
-  if "def main --wrapped" in (open $script) {
+  if (rg "^def main --wrapped" $script | is-not-empty) {
     nu $script "--self-help"
   } else {
     nu $script --help
   }
+}
+
+# View help text
+def main [
+  recipe?: string # View help text for recipe
+] {
+  display-just-help $recipe
 }
