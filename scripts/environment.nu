@@ -390,10 +390,15 @@ export def merge_justfiles [
 }
 
 export def save-file [contents: string filename: string] {
+  let action = match ($filename | path exists) {
+    true => "Updated"
+    false => "Added"
+  }
+
   $contents
   | save --force $filename
 
-  print $"Updated ($filename)"
+  print $"($action) ($filename)"
 }
 
 def save_justfile [justfile: string] {
@@ -777,7 +782,7 @@ def get_available_environments [] {
 def "main add" [
   ...environments: string
   --update
-  --reload
+  --reactivate
 ] {
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
@@ -785,18 +790,18 @@ def "main add" [
     return (get_available_environments)
   }
 
-  mut should_reload = false
+  mut should_reactivate = false
 
   for environment in $environments {
     let environment_files = (get_environment_files $environment)
 
-    if $reload and (
+    if $reactivate and (
       $environment_files
       | filter {|file| ($file.name | path parse | get extension) == "nix"}
       | each {|file| not ($file.path | path exists)}
       | any {|status| $status}
     ) {
-      $should_reload = true
+      $should_reactivate = true
     }
 
     mut added = false
@@ -806,10 +811,9 @@ def "main add" [
     $added = copy_gitignore $environment $environment_files $update
     $added = copy_pre_commit_config $environment $environment_files $update
 
-    let action = if $update {
-      "Updated"
-    } else {
-      "Added"
+    let action = match $update {
+      true => "Updated"
+      false => "Added"
     }
 
     let message = $"($action) ($environment) environment"
@@ -835,7 +839,7 @@ def "main add" [
     git add flake.nix
   }
 
-  if $should_reload {
+  if $should_reactivate {
     main activate
   }
 }
@@ -1226,7 +1230,7 @@ def remove_environment_from_pre_commit_config [environment: string] {
 # Remove environments from the project
 def "main remove" [
   ...environments: string
-  --reload
+  --reactivate
 ] {
   let installed_environments = (get_installed_environments)
 
@@ -1255,7 +1259,7 @@ def "main remove" [
     )
   }
 
-  if $reload and ($environments | is-not-empty) {
+  if $reactivate and ($environments | is-not-empty) {
     main activate
   }
 }
