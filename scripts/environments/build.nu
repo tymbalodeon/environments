@@ -144,9 +144,9 @@ def copy-outdated-files [] {
     let basename = ($source_file | path basename)
 
     match $basename {
-      ".gitignore" => (copy_gitignore)
-      ".pre-commit-config.yaml" => (copy_pre_commit_config)
-      "Justfile" => (copy_justfile)
+      ".gitignore" => (copy-gitignore)
+      ".pre-commit-config.yaml" => (copy-pre-commit-config)
+      "Justfile" => (copy-justfile)
 
       _ => {
         let file = (
