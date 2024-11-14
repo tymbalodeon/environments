@@ -1098,11 +1098,13 @@ def get-environments-to-process [
   environments: list<string>
   installed_environments: list<string>
 ] {
-  if ($environments | is-empty) {
-    "generic"
-    | append $installed_environments
-  } else {
-    $environments
+  match $environments {
+    null => (
+      "generic"
+      | append $installed_environments
+    )
+
+    _ => $environments
   }
 }
 
@@ -1141,16 +1143,16 @@ def remove-file [file: string] {
 
 def remove-files [environment: string] {
   let top_level_generic_files = (
-    get_top_level_files (get-environment-files generic)
+    get-top-level-files (get-environment-files generic)
   )
 
   let environment_files = (
-    get_environment_files $environment
+    get-environment-files $environment
     | filter {|file| $file.name not-in $top_level_generic_files.name}
   )
 
   let top_level_environment_files = (
-    get_top_level_files $environment_files
+    get-top-level-files $environment_files
   )
 
   let environment_files = (
@@ -1160,7 +1162,7 @@ def remove-files [environment: string] {
 
   for file in $environment_files {
     if ($file.path | path exists) {
-      remove_file $file.path
+      remove-file $file.path
     }
   }
 
@@ -1172,7 +1174,7 @@ def remove-files [environment: string] {
       | rg $"\(#|//\) ($environment)"
       | is-not-empty
     ) {
-      remove_file $file.path
+      remove-file $file.path
     }
   }
 
@@ -1253,13 +1255,13 @@ def "main remove" [
 
   let environments = (
     get-environments-to-process $environments $installed_environments
-    | filter {|environment| $environment != "generic"}
+    | filter {$in != "generic"}
   )
 
   for environment in $environments {
     print $"Removing ($environment)..."
 
-    remove_files $environment
+    remove-files $environment
 
     let filtered_justfile = (remove-environment-from-justfile $environment)
 
