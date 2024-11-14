@@ -50,6 +50,19 @@ export def get-script [
     $matching_scripts
   }
 
+  let matching_scripts = match $matching_scripts {
+    [] => {
+      let recipe = (
+        rg $"alias ($recipe)" (get-project-path Justfile)
+        | split row ":= "
+        | last
+      )
+
+      return (get-script $recipe $scripts $scripts_directory)
+    }
+    _ => $matching_scripts
+  }
+
   try {
     $matching_scripts
     | first

@@ -15,5 +15,7 @@ def main [
     _ => $recipe
   }
 
-  bat (find-script $recipe)
+  try {
+    bat (find-script $recipe)
+  }
 }
