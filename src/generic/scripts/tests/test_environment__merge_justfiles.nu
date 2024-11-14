@@ -14,4 +14,4 @@ let actual_justfile = (
   merge_justfiles python $generic_justfile $environment_justfile
 )
 
-assert equal $actual_justfile (open $expected_justfile)
+assert equal $actual_justfile (open $expected_justfile | decode utf-8)
