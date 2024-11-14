@@ -1017,7 +1017,24 @@ def "main diff" [
       "/dev/null"
     }
 
-    do --ignore-errors { delta --paging never $a_file $b_file }
+    do --ignore-errors { 
+      if (tput cols | into int) >= 160 {
+        (
+          delta 
+            --diff-so-fancy
+            --paging never 
+            --side-by-side
+            $a_file $b_file 
+        )
+      } else {
+        (
+          delta 
+            --diff-so-fancy
+            --paging never 
+            $a_file $b_file 
+        )
+      }
+    }
 
     if $type == "remote" {
       rm $a_file
