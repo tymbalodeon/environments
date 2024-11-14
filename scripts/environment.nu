@@ -2,6 +2,19 @@
 
 use filesystem.nu get-project-path
 
+# Activate installed environments
+def "main activate" [] {
+  if (which direnv | is-empty) {
+    print "Direnv (https://direnv.net/) is not installed."
+    print "Please install and try again."
+
+    exit 1
+  }
+
+  echo "use flake" | save --force .envrc
+  direnv allow
+}
+
 def get-base-url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
@@ -823,7 +836,7 @@ def "main add" [
   }
 
   if $should_reload {
-    just init
+    main activate
   }
 }
 
@@ -910,6 +923,7 @@ def get-diff-file [
   }
 }
 
+# View the diff between environments 
 def "main diff" [
   environment_a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
   environment_b?: string # Environment name (uses local files, if installed, else remote)
@@ -1242,7 +1256,7 @@ def "main remove" [
   }
 
   if $reload and ($environments | is-not-empty) {
-    just init
+    main activate
   }
 }
 
@@ -1298,6 +1312,10 @@ def "main view" [
 def main [
   environment?: string
 ] {
+  if ($environment | is-empty) {
+    return (help main)
+  }
+
   get_installed_environments
   | sort
   | str join
