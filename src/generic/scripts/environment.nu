@@ -50,7 +50,7 @@ def http-get [url: string --raw] {
   }
 }
 
-def get_files [url: string] {
+def get-files [url: string] {
   let contents = (http-get $url)
 
   $contents
@@ -58,13 +58,13 @@ def get_files [url: string] {
   | append (
       $contents
       | filter {|item| $item.type == "dir"}
-      | par-each {|directory| get_files $directory.url}
+      | par-each {|directory| get-files $directory.url}
     )
   | flatten
 }
 
-def get_environment_files [environment: string] {
-  get_files ([(get-base-url) $environment] | path join)
+def get-environment-files [environment: string] {
+  get-files ([(get-base-url) $environment] | path join)
   | update path {
       |row|
 
@@ -78,7 +78,7 @@ def get_environment_files [environment: string] {
   }
 }
 
-def get_comment_character [extension: string] {
+def get-comment-character [extension: string] {
   if $extension == "kdl" {
     "//"
   } else {
@@ -86,7 +86,7 @@ def get_comment_character [extension: string] {
   }
 }
 
-def copy_files [
+def copy-files [
   environment: string
   environment_files: table<
     name: string,
@@ -164,7 +164,7 @@ def copy_files [
         $path | path parse | get parent | is-empty
       ) {
         let extension = ($path | path parse | get extension)
-        let comment_character = (get_comment_character $extension)
+        let comment_character = (get-comment-character $extension)
 
         let tagged_contents = (
           open --raw $path
@@ -182,7 +182,7 @@ def copy_files [
   return true
 }
 
-def get_environment_file_url [
+def get-environment-file-url [
   environment_files: table<
     name: string,
     path: string,
@@ -207,7 +207,7 @@ def get_environment_file_url [
   }
 }
 
-def get_environment_file [
+def get-environment-file [
   environment_files: table<
     name: string,
     path: string,
@@ -225,7 +225,7 @@ def get_environment_file [
   file: string
   --raw
 ] {
-  let url = (get_environment_file_url $environment_files $file)
+  let url = (get-environment-file-url $environment_files $file)
 
   if ($url | is-empty) {
     return ""
@@ -238,7 +238,7 @@ def get_environment_file [
   }
 }
 
-def get_temporary_file [extension?: string] {
+def get-temporary-file [extension?: string] {
   if ($extension | is-not-empty) {
     mktemp --tmpdir --suffix $".($extension)"
   } else {
@@ -246,7 +246,7 @@ def get_temporary_file [extension?: string] {
   }
 }
 
-def download_environment_file [
+def download-environment-file [
   environment_files: table<
     name: string,
     path: string,
@@ -264,10 +264,10 @@ def download_environment_file [
   file: string
   extension?: string
 ] {
-  let temporary_file = (get_temporary_file $extension)
+  let temporary_file = (get-temporary-file $extension)
 
   let file_contents = (
-    get_environment_file --raw $environment_files $file
+    get-environment-file --raw $environment_files $file
   )
 
   $file_contents
@@ -276,7 +276,7 @@ def download_environment_file [
   $temporary_file
 }
 
-def get_recipes [justfile: string] {
+def get-recipes [justfile: string] {
   (
     just
       --justfile $justfile
@@ -285,7 +285,7 @@ def get_recipes [justfile: string] {
   )
 }
 
-def create_environment_recipe [environment: string recipe: string] {
+def create-environment-recipe [environment: string recipe: string] {
   let documentation = $"# Alias for `($environment) ($recipe)`"
   let declaration = $"@($recipe) *args:"
   let content = $"    just ($environment) ($recipe) {{ args }}"
@@ -294,7 +294,7 @@ def create_environment_recipe [environment: string recipe: string] {
   | str join "\n"
 }
 
-def sort_environment_sections [
+def sort-environment-sections [
   sections: list
   indicator: string
 ] {
@@ -345,7 +345,7 @@ export def merge_justfiles [
     )
   }
 
-  let main_justfile_without_environment = (get_temporary_file just)
+  let main_justfile_without_environment = (get-temporary-file just)
 
   open $main_justfile
   | split row "mod "
@@ -354,12 +354,12 @@ export def merge_justfiles [
   | save --force $main_justfile_without_environment
 
   let unique_environment_recipes = (
-    get_recipes $environment_justfile
+    get-recipes $environment_justfile
     | filter {
         |recipe|
 
         $recipe not-in (
-          get_recipes $main_justfile_without_environment
+          get-recipes $main_justfile_without_environment
         )
     }
   )
@@ -377,7 +377,7 @@ export def merge_justfiles [
             | each {
                 |recipe|
 
-                create_environment_recipe $environment $recipe
+                create-environment-recipe $environment $recipe
               }
           )
         | str join "\n\n"
@@ -386,7 +386,7 @@ export def merge_justfiles [
   )
 
   rm $main_justfile_without_environment
-  sort_environment_sections $merged_justfile "mod"
+  sort-environment-sections $merged_justfile "mod"
 }
 
 export def save-file [contents: string filename: string] {
@@ -401,21 +401,21 @@ export def save-file [contents: string filename: string] {
   print $"($action) ($filename)"
 }
 
-def save_justfile [justfile: string] {
+def save-justfile [justfile: string] {
   save-file $justfile Justfile
 }
 
-def initialize_generic_file [filename: string] {
+def initialize-generic-file [filename: string] {
   if not ($filename | path exists) {
     let file = (
-      download_environment_file (get_environment_files generic) $filename
+      download-environment-file (get-environment-files generic) $filename
     )
 
     mv $file $filename
   }
 }
 
-def copy_justfile [
+def copy-justfile [
   environment: string
   environment_files: table<
     name: string,
@@ -435,7 +435,7 @@ def copy_justfile [
 ] {
   let environment_identifier = $"mod ($environment)"
 
-  initialize_generic_file Justfile
+  initialize-generic-file Justfile
 
   if not $update and $environment_identifier in (open Justfile) {
     return false
@@ -448,7 +448,7 @@ def copy_justfile [
   }
 
   let environment_justfile_file = (
-    download_environment_file
+    download-environment-file
       $environment_files
       $environment_justfile_name
   )
@@ -460,14 +460,14 @@ def copy_justfile [
     | is-not-empty
   ) {
     let merged_justfile = (
-      merge_justfiles
+      merge-justfiles
         $environment
         Justfile
         $environment_justfile_file
     )
 
     if ($merged_justfile | is-not-empty) {
-      save_justfile $merged_justfile
+      save-justfile $merged_justfile
     }
   }
 
@@ -476,7 +476,7 @@ def copy_justfile [
   return true
 }
 
-def merge_generic [main: string generic: string] {
+def merge-generic [main: string generic: string] {
   $generic
   | append (
       $main
@@ -485,7 +485,7 @@ def merge_generic [main: string generic: string] {
     )
 }
 
-def create_environment_comment [environment: string] {
+def create-environment-comment [environment: string] {
   $"\n# ($environment)"
 }
 
@@ -494,29 +494,29 @@ export def merge_gitignores [
   new_environment_name: string
   environment_gitignore: string
 ] {
-  let environment_comment = (create_environment_comment $new_environment_name)
+  let environment_comment = (create-environment-comment $new_environment_name)
 
   if $environment_comment in $main_gitignore {
     return null
   }
 
   let merged_gitignore = if $new_environment_name == "generic" {
-    merge_generic $main_gitignore $environment_gitignore
+    merge-generic $main_gitignore $environment_gitignore
   } else {
     $main_gitignore
     | append ($"($environment_comment)\n($environment_gitignore)")
   }
 
   let merged_gitignore = if $new_environment_name == "generic" {
-    restore_environment_comment $merged_gitignore .gitignore
+    restore-environment-comment $merged_gitignore .gitignore
   } else {
     $merged_gitignore
   }
 
-  sort_environment_sections $merged_gitignore "#"
+  sort-environment-sections $merged_gitignore "#"
 }
 
-def get_environment_name [
+def get-environment-name [
   environment_files: table<
     name: string,
     path: string,
@@ -540,17 +540,17 @@ def get_environment_name [
   | first
 }
 
-def save_gitignore [gitignore: string] {
+def save-gitignore [gitignore: string] {
   save-file $gitignore .gitignore
 }
 
-def is_up_to_date [update: bool environment: string file: string] {
+def is-up-to-date [update: bool environment: string file: string] {
   not $update and (
-    (create_environment_comment $environment | str trim) in $file
+    (create-environment-comment $environment | str trim) in $file
   )
 }
 
-def copy_gitignore [
+def copy-gitignore [
   environment: string
   environment_files: table<
     name: string,
@@ -568,46 +568,46 @@ def copy_gitignore [
   >
   update: bool
 ] {
-  initialize_generic_file .gitignore
+  initialize-generic-file .gitignore
 
-  if (is_up_to_date $update $environment (open .gitignore)) {
+  if (is-up-to-date $update $environment (open .gitignore)) {
     return false
   }
 
   let environment_gitignore = (
-    get_environment_file $environment_files ".gitignore"
+    get-environment-file $environment_files ".gitignore"
   )
 
   if ($environment_gitignore | is-not-empty) {
-    let new_environment_name = (get_environment_name $environment_files)
+    let new_environment_name = (get-environment-name $environment_files)
 
     let merged_gitignore = (
-      merge_gitignores
+      merge-gitignores
         (open .gitignore)
         $new_environment_name
         $environment_gitignore
     )
 
     if $merged_gitignore != null {
-      save_gitignore $merged_gitignore
+      save-gitignore $merged_gitignore
     }
   }
 
   return true
 }
 
-def get_pre_commit_config_repos [config: string] {
+def get-pre-commit-config-repos [config: string] {
   $config
   | str replace "repos:\n" ""
 }
 
-def format_yaml_comment []: string -> string {
+def format-yaml-comment []: string -> string {
   $in
   | yamlfmt -
   | str replace --all --regex " +#" "  #"
 }
 
-def restore_environment_comment [
+def restore-environment-comment [
   merged_data: list<string>
   extension: string
 ] {
@@ -619,7 +619,7 @@ def restore_environment_comment [
       | each {
           |item|
 
-          (get_comment_character $extension)
+          (get-comment-character $extension)
           | append $item
           | str join
         }
@@ -631,15 +631,15 @@ export def merge_pre_commit_configs [
   new_environment_name: string
   environment_config: string
 ] {
-  let main_config = (get_pre_commit_config_repos $main_config)
-  let environment_config = (get_pre_commit_config_repos $environment_config)
+  let main_config = (get-pre-commit-config-repos $main_config)
+  let environment_config = (get-pre-commit-config-repos $environment_config)
 
   let merged_pre_commit_config = (
     if $new_environment_name == "generic" {
-      merge_generic $main_config $environment_config
+      merge-generic $main_config $environment_config
     } else {
       let environment_comment = (
-        create_environment_comment $new_environment_name
+        create-environment-comment $new_environment_name
       )
 
       if $environment_comment in $main_config {
@@ -703,19 +703,19 @@ export def merge_pre_commit_configs [
   )
 
   let merged_pre_commit_config = if $new_environment_name == "generic" {
-    restore_environment_comment $merged_pre_commit_config .yaml
+    restore-environment-comment $merged_pre_commit_config .yaml
   } else {
     $merged_pre_commit_config
   }
 
   let merged_pre_commit_config = (
-    sort_environment_sections $merged_pre_commit_config "#"
+    sort-environment-sections $merged_pre_commit_config "#"
   )
 
   "repos:"
   | append $merged_pre_commit_config
   | to text
-  | format_yaml_comment
+  | format-yaml-comment
   | append "\n"
   | str join
 }
@@ -724,7 +724,7 @@ export def save_pre_commit_config [config: string] {
   save-file $config .pre-commit-config.yaml
 }
 
-def copy_pre_commit_config [
+def copy-pre-commit-config [
   environment: string
   environment_files: table<
     name: string,
@@ -742,35 +742,35 @@ def copy_pre_commit_config [
   >
   update: bool
 ] {
-  initialize_generic_file .pre-commit-config.yaml
+  initialize-generic-file .pre-commit-config.yaml
 
-  if (is_up_to_date $update $environment (open --raw .pre-commit-config.yaml)) {
+  if (is-up-to-date $update $environment (open --raw .pre-commit-config.yaml)) {
     return false
   }
 
-  let new_environment_name = (get_environment_name $environment_files)
+  let new_environment_name = (get-environment-name $environment_files)
 
   let environment_config = (
-    get_environment_file $environment_files ".pre-commit-config.yaml"
+    get-environment-file $environment_files ".pre-commit-config.yaml"
     | to yaml
     | yamlfmt -
   )
 
   let merged_pre_commit_config = (
-    merge_pre_commit_configs
+    merge-pre-commit-configs
       (open --raw .pre-commit-config.yaml)
       $new_environment_name
       $environment_config
   )
 
   if $merged_pre_commit_config != null {
-    save_pre_commit_config $merged_pre_commit_config
+    save-pre-commit-config $merged_pre_commit_config
   }
 
   return true
 }
 
-def get_available_environments [] {
+def get-available-environments [] {
   main list
   | lines
   | filter {$in != "generic"}
@@ -787,13 +787,13 @@ def "main add" [
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
 
-    return (get_available_environments)
+    return (get-available-environments)
   }
 
   mut should_reactivate = false
 
   for environment in $environments {
-    let environment_files = (get_environment_files $environment)
+    let environment_files = (get-environment-files $environment)
 
     if $reactivate and (
       $environment_files
@@ -806,10 +806,10 @@ def "main add" [
 
     mut added = false
 
-    $added = copy_files $environment $environment_files $update
-    $added = copy_justfile $environment $environment_files $update
-    $added = copy_gitignore $environment $environment_files $update
-    $added = copy_pre_commit_config $environment $environment_files $update
+    $added = copy-files $environment $environment_files $update
+    $added = copy-justfile $environment $environment_files $update
+    $added = copy-gitignore $environment $environment_files $update
+    $added = copy-pre-commit-config $environment $environment_files $update
 
     let action = match $update {
       true => "Updated"
@@ -844,7 +844,7 @@ def "main add" [
   }
 }
 
-def list_environment_directory [
+def list-environment-directory [
   environment: string
   directory: string
   environment_files: table<
@@ -869,16 +869,16 @@ def list_environment_directory [
   | to text
 }
 
-def color_yellow [text: string] {
+def color-yellow [text: string] {
   $"(ansi y)($text)(ansi reset)"
 }
 
-def get_diff_files [
+def get-diff-files [
   installed_environments: list<string>
   environment: string
   --remote
 ] {
-  let files = (get_environment_files $environment)
+  let files = (get-environment-files $environment)
 
   if not $remote and $environment in $installed_environments {
     $files
@@ -892,11 +892,11 @@ def get_diff_files [
   }
 }
 
-def get_error_heading [] {
+def get-error-heading [] {
   $"(ansi rb)error:(ansi reset)"
 }
 
-def diff_error_with_help [message: string] {
+def diff-error-with-help [message: string] {
   print $message
   print (help main diff)
 
@@ -923,7 +923,7 @@ def get-diff-file [
 ] {
   match $type {
     "local" => $path
-    "remote" => (download_environment_file $files $path)
+    "remote" => (download-environment-file $files $path)
   }
 }
 
@@ -937,31 +937,31 @@ def "main diff" [
   if ($remote | is-not-empty) and ($environment_b | is-not-empty) {
     let message = (
       [
-        (get_error_heading)
+        (get-error-heading)
         " the argument "
-        (color_yellow "'--remote: string'")
+        (color-yellow "'--remote: string'")
         " cannot be used with "
-        (color_yellow "'b?: string'")
+        (color-yellow "'b?: string'")
         "\n"
       ]
       | str join
     )
 
-    diff_error_with_help $message
+    diff-error-with-help $message
   }
 
   if $remotes and $environment_a == "generic" {
-    let environment_a_arg = (color_yellow "'environment_a'")
+    let environment_a_arg = (color-yellow "'environment_a'")
 
     let message = (
       [
         (get_error_heading)
         " the argument "
-        (color_yellow "'--remotes'")
+        (color-yellow "'--remotes'")
         " requires either both "
         $environment_a_arg
         " and "
-        (color_yellow "'environment_b'")
+        (color-yellow "'environment_b'")
         " or "
         $environment_a_arg
         " not be \"generic\"\n"
@@ -969,10 +969,10 @@ def "main diff" [
       | str join
     )
 
-    diff_error_with_help $message
+    diff-error-with-help $message
   }
 
-  let installed_environments = ("generic" ++ (get_installed_environments))
+  let installed_environments = ("generic" ++ (get-installed-environments))
 
   let a = if ($environment_a | is-empty) or (
     $environment_b | is-empty
@@ -995,15 +995,15 @@ def "main diff" [
   }
 
   let $a_files = if $remotes {
-    get_diff_files --remote $installed_environments $a
+    geget-diff-files --remote $installed_environments $a
   } else {
-    get_diff_files $installed_environments $a
+    geget-diff-files $installed_environments $a
   }
 
   let $b_files = if $remotes or $a == $b {
-    get_diff_files --remote $installed_environments $b
+    geget-diff-files --remote $installed_environments $b
   } else {
-    get_diff_files $installed_environments $b
+    geget-diff-files $installed_environments $b
   }
 
   for item in $a_files {
@@ -1058,7 +1058,7 @@ def "main list" [
   }
 
   let files = (
-    get_files (
+    get-files (
       [$url $environment]
       | path join
     )
@@ -1085,7 +1085,7 @@ export def list-nix-files [] {
   | get name
 }
 
-def get_installed_environments [] {
+def get-installed-environments [] {
   let available_environments = (main list)
 
   list-nix-files
@@ -1094,7 +1094,7 @@ def get_installed_environments [] {
   | filter {|environment| $environment in $available_environments}
 }
 
-def get_environments_to_process [
+def get-environments-to-process [
   environments: list<string>
   installed_environments: list<string>
 ] {
@@ -1106,7 +1106,7 @@ def get_environments_to_process [
   }
 }
 
-def get_top_level_files [
+def get-top-level-files [
   environment_files: table<
     name: string,
     path: string,
@@ -1134,14 +1134,14 @@ def get_top_level_files [
     }
 }
 
-def remove_file [file: string] {
+def remove-file [file: string] {
   rm --force $file
   print $"Removed ($file)"
 }
 
-def remove_files [environment: string] {
+def remove-files [environment: string] {
   let top_level_generic_files = (
-    get_top_level_files (get_environment_files generic)
+    get_top_level_files (get-environment-files generic)
   )
 
   let environment_files = (
@@ -1179,7 +1179,7 @@ def remove_files [environment: string] {
   rm --force --recursive $"scripts/($environment)"
 }
 
-def remove_environment_from_justfile [environment: string] {
+def remove-environment-from-justfile [environment: string] {
   let filtered_justfile = try {
     let environment_mod = (
       "mod "
@@ -1209,7 +1209,7 @@ def remove_environment_from_justfile [environment: string] {
   $filtered_justfile
 }
 
-def remove_environment_from_gitignore [environment: string] {
+def remove-environment-from-gitignore [environment: string] {
   open .gitignore
   | split row "# "
   | filter {
@@ -1226,7 +1226,7 @@ def remove_environment_from_gitignore [environment: string] {
   | str join
 }
 
-def remove_environment_from_pre_commit_config [environment: string] {
+def remove-environment-from-pre-commit-config [environment: string] {
   open --raw .pre-commit-config.yaml
   | split row "# "
   | filter {
@@ -1239,7 +1239,7 @@ def remove_environment_from_pre_commit_config [environment: string] {
     }
   | str trim
   | str join "\n# "
-  | format_yaml_comment
+  | format-yaml-comment
   | append "\n"
   | str join
 }
@@ -1249,10 +1249,10 @@ def "main remove" [
   ...environments: string
   --reactivate
 ] {
-  let installed_environments = (get_installed_environments)
+  let installed_environments = (get-installed-environments)
 
   let environments = (
-    get_environments_to_process $environments $installed_environments
+    get-environments-to-process $environments $installed_environments
     | filter {|environment| $environment != "generic"}
   )
 
@@ -1261,18 +1261,18 @@ def "main remove" [
 
     remove_files $environment
 
-    let filtered_justfile = (remove_environment_from_justfile $environment)
+    let filtered_justfile = (remove-environment-from-justfile $environment)
 
     if $filtered_justfile != null {
-      save_justfile $filtered_justfile
+      save-justfile $filtered_justfile
     }
 
-    save_gitignore (
-      remove_environment_from_gitignore $environment
+    save-gitignore (
+      remove-environment-from-gitignore $environment
     )
 
-    save_pre_commit_config (
-      remove_environment_from_pre_commit_config $environment
+    save-pre-commit-config (
+      remove-environment-from-pre-commit-config $environment
     )
   }
 
@@ -1286,13 +1286,13 @@ def "main update" [
   ...environments: string
 ] {
   let new_environment_file = (
-    download_environment_file
-      (get_environment_files generic)
+    download-environment-file
+      (get-environment-files generic)
       scripts/environment.nu
   )
 
   let environments = (
-    get_environments_to_process $environments (get_installed_environments)
+    get-environments-to-process $environments (get-installed-environments)
   )
 
   nu $new_environment_file add --update ...$environments
@@ -1305,7 +1305,7 @@ def "main view" [
   file: string
 ] {
   let files = (
-    get_files (
+    get-files (
       [(get-base-url) $environment]
       | path join
     )
@@ -1327,7 +1327,7 @@ def "main view" [
     return (http-get $file_url)
   }
 
-  list_environment_directory $environment $file $files
+  list-environment-directory $environment $file $files
 }
 
 def main [
@@ -1337,7 +1337,7 @@ def main [
     return (help main)
   }
 
-  get_installed_environments
+  get-installed-environments
   | sort
   | str join
 }
