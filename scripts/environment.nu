@@ -923,7 +923,7 @@ def get-diff-file [
   }
 }
 
-# View the diff between environments 
+# View the diff between environments
 def "main diff" [
   environment_a?: string # Environment name (generic, if not specified; uses local files, if installed, else remote)
   environment_b?: string # Environment name (uses local files, if installed, else remote)
