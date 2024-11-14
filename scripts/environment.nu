@@ -1017,21 +1017,21 @@ def "main diff" [
       "/dev/null"
     }
 
-    do --ignore-errors { 
+    do --ignore-errors {
       if (tput cols | into int) >= 160 {
         (
-          delta 
+          delta
             --diff-so-fancy
-            --paging never 
+            --paging never
             --side-by-side
-            $a_file $b_file 
+            $a_file $b_file
         )
       } else {
         (
-          delta 
+          delta
             --diff-so-fancy
-            --paging never 
-            $a_file $b_file 
+            --paging never
+            $a_file $b_file
         )
       }
     }
