@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 use ../environment.nu merge_gitignores
-use ../environment.nu merge_justfiles
+use ../environment.nu merge-justfiles
 use ../environment.nu merge_pre_commit_configs
 use ../environment.nu save-file
 use ../environment.nu save_pre_commit_config
@@ -75,7 +75,7 @@ def copy-files [environment_files: list<string>] {
 
 def copy-justfile [] {
   save-file (
-    merge_justfiles
+    merge-justfiles
       generic
       Justfile
       src/generic/Justfile

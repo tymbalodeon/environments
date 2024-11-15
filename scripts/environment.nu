@@ -324,7 +324,7 @@ def sort-environment-sections [
   }
 }
 
-export def merge_justfiles [
+export def merge-justfiles [
   environment: string
   main_justfile: string
   environment_justfile: string
