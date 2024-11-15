@@ -1073,7 +1073,7 @@ def "main list" [
     )
   }
 
-  list_environment_directory $environment $path $files
+  list-environment-directory $environment $path $files
 }
 
 export def list-nix-files [] {
@@ -1327,9 +1327,26 @@ def "main view" [
     )
 
     return (http-get $file_url)
-  }
+  } else {
+    let matching_files = (
+      $files
+      | where path =~ $file
+    )
 
-  list-environment-directory $environment $file $files
+    if ($matching_files | length) == 1 {
+      return (http-get ($matching_files | first))
+    } else {
+      print $"Multiple files match \"($file).\"" 
+      print "Please choose which one you mean:\n"
+
+      print (
+        $matching_files 
+        | get path 
+        | each {prepend "- " | str join} 
+        | to text
+      )
+    }
+  }
 }
 
 def main [
