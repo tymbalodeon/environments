@@ -1106,7 +1106,7 @@ def get-environments-to-process [
   installed_environments: list<string>
 ] {
   match $environments {
-    null => (
+    [] => (
       "generic"
       | append $installed_environments
     )
