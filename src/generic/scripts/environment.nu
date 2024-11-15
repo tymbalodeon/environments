@@ -100,9 +100,9 @@ def copy-files [
     git: string,
     html: string
   >
-  update: bool
+  upgrade: bool
 ] {
-  if $update {
+  if $upgrade {
     rm --force --recursive ([scripts $environment] | path join)
   }
 
@@ -133,7 +133,7 @@ def copy-files [
       }
   )
 
-  let $environment_files = if not $update {
+  let $environment_files = if not $upgrade {
     $environment_files
     | filter {|file| not ($file.path | path exists)}
   } else {
@@ -405,7 +405,7 @@ export def merge-justfiles [
 
 export def save-file [contents: string filename: string] {
   let action = match ($filename | path exists) {
-    true => "Updated"
+    true => "Upgraded"
     false => "Added"
   }
 
@@ -445,13 +445,13 @@ def copy-justfile [
     git: string,
     html: string
   >
-  update: bool
+  upgrade: bool
 ] {
   let environment_identifier = $"mod ($environment)"
 
   initialize-generic-file Justfile
 
-  if not $update and $environment_identifier in (open Justfile) {
+  if not $upgrade and $environment_identifier in (open Justfile) {
     return false
   }
 
@@ -558,8 +558,8 @@ def save-gitignore [gitignore: string] {
   save-file $gitignore .gitignore
 }
 
-def is-up-to-date [update: bool environment: string file: string] {
-  not $update and (
+def is-up-to-date [upgrade: bool environment: string file: string] {
+  not $upgrade and (
     (create-environment-comment $environment | str trim) in $file
   )
 }
@@ -580,11 +580,11 @@ def copy-gitignore [
     git: string,
     html: string
   >
-  update: bool
+  upgrade: bool
 ] {
   initialize-generic-file .gitignore
 
-  if (is-up-to-date $update $environment (open .gitignore)) {
+  if (is-up-to-date $upgrade $environment (open .gitignore)) {
     return false
   }
 
@@ -754,11 +754,11 @@ def copy-pre-commit-config [
     git: string,
     html: string
   >
-  update: bool
+  upgrade: bool
 ] {
   initialize-generic-file .pre-commit-config.yaml
 
-  if (is-up-to-date $update $environment (open --raw .pre-commit-config.yaml)) {
+  if (is-up-to-date $upgrade $environment (open --raw .pre-commit-config.yaml)) {
     return false
   }
 
@@ -795,7 +795,7 @@ def get-available-environments [] {
 # Add environments to the project
 def "main add" [
   ...environments: string
-  --update
+  --upgrade
   --reactivate
 ] {
   if ($environments | is-empty) {
@@ -820,19 +820,19 @@ def "main add" [
 
     mut added = false
 
-    $added = copy-files $environment $environment_files $update
-    $added = copy-justfile $environment $environment_files $update
-    $added = copy-gitignore $environment $environment_files $update
-    $added = copy-pre-commit-config $environment $environment_files $update
+    $added = copy-files $environment $environment_files $upgrade
+    $added = copy-justfile $environment $environment_files $upgrade
+    $added = copy-gitignore $environment $environment_files $upgrade
+    $added = copy-pre-commit-config $environment $environment_files $upgrade
 
-    let action = match $update {
-      true => "Updated"
+    let action = match $upgrade {
+      true => "Upgraded"
       false => "Added"
     }
 
     let message = $"($action) ($environment) environment"
 
-    if $update or $added {
+    if $upgrade or $added {
       print $message
     }
   }
@@ -1306,8 +1306,8 @@ def "main remove" [
   }
 }
 
-# Update environments to the latest available version
-def "main update" [
+# Upgrade environments to the latest available version
+def "main upgrade" [
   ...environments: string
 ] {
   let new_environment_command = (
@@ -1320,7 +1320,7 @@ def "main update" [
     get-environments-to-process $environments (get-installed-environments)
   )
 
-  nu $new_environment_command add --update ...$environments
+  nu $new_environment_command add --upgrade ...$environments
   rm $new_environment_command
 }
 
