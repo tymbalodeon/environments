@@ -1084,7 +1084,7 @@ export def get-project-path [path: string] {
 }
 
 export def list-nix-files [] {
-  let nix_directory = (get-project-pat nix)
+  let nix_directory = (get-project-path nix)
 
   mkdir $nix_directory
 
