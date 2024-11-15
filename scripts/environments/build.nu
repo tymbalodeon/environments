@@ -5,7 +5,7 @@ use ../environment.nu merge_justfiles
 use ../environment.nu merge_pre_commit_configs
 use ../environment.nu save-file
 use ../environment.nu save_pre_commit_config
-use ../filesystem.nu get-project-path
+use ../environment.nu get-project-path
 use pre-commit-update.nu
 
 def get-environment-files [] {

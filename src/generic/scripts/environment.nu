@@ -1,7 +1,5 @@
 #!/usr/bin/env nu
 
-use filesystem.nu get-project-path
-
 # Activate installed environments
 def "main activate" [] {
   if (which direnv | is-empty) {
@@ -1076,8 +1074,17 @@ def "main list" [
   list-environment-directory $environment $path $files
 }
 
+def get-project-root [] {
+  echo (git rev-parse --show-toplevel)
+}
+
+export def get-project-path [path: string] {
+  (get-project-root)
+  | path join $path
+}
+
 export def list-nix-files [] {
-  let nix_directory = (get-project-path nix)
+  let nix_directory = (get-project-pat nix)
 
   mkdir $nix_directory
 
@@ -1303,7 +1310,7 @@ def "main update" [
 
 # TODO test me
 def find-environment-file [
-  environment: string 
+  environment: string
   file: string
   environment_files: table<
     name: string,
@@ -1341,17 +1348,17 @@ def find-environment-file [
     )
 
     if ($matching_files | length) == 1 {
-      $matching_files 
-      | first 
+      $matching_files
+      | first
       | get download_url
     } else {
-      print $"Multiple files match \"($file).\"" 
+      print $"Multiple files match \"($file).\""
       print "Please choose which one you mean:\n"
 
       print (
-        $matching_files 
-        | get path 
-        | each {prepend "- " | str join} 
+        $matching_files
+        | get path
+        | each {prepend "- " | str join}
         | to text
       )
 

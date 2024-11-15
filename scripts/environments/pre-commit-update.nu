@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../filesystem.nu get-project-path
+use ../environment.nu get-project-path
 
 export def main [] {
   let src_directory = (get-project-path src)
