@@ -3,17 +3,16 @@ use std assert
 use ../test.nu get-tests
 
 let tests = [
-  test_check__get-pre-commit-hook-names.nu
-  test_deps__merge-flake-dependencies.nu
-  test_domain__parse_git_origin.nu
-  test_environment__merge_gitignores.nu
-  test_environment__merge_justfiles.nu
-  test_environment__merge_pre_commit_configs.nu
-  test_find-script__get-script.nu
-  test_filename__search_term.nu
-  test_history__parse-args.nu
-  test_search_term__function-name.nu
-  test_test__get-test.nu
+  scripts/environments/tests/test_build__get-outdated-files.nu
+  src/generic/scripts/tests/test_check__get-pre-commit-hook-names.nu
+  src/generic/scripts/tests/test_dependencies__merge-flake-dependencies.nu
+  src/generic/scripts/tests/test_domain__parse_git_origin.nu
+  src/generic/scripts/tests/test_environment__merge_gitignores.nu
+  src/generic/scripts/tests/test_environment__merge_justfiles.nu
+  src/generic/scripts/tests/test_environment__merge_pre_commit_configs.nu
+  src/generic/scripts/tests/test_find-script__get-script.nu
+  src/generic/scripts/tests/test_history__parse-args.nu
+  src/generic/scripts/tests/test_test__get-test.nu
 ]
 
 let filters = {
@@ -25,11 +24,13 @@ let filters = {
 assert equal (get-tests $tests $filters) $tests
 
 let expected_tests = [
-  test_filename__search_term.nu
-  test_search_term__function-name.nu
+  src/generic/scripts/tests/test_dependencies__merge-flake-dependencies.nu
+  src/generic/scripts/tests/test_environment__merge_gitignores.nu
+  src/generic/scripts/tests/test_environment__merge_justfiles.nu
+  src/generic/scripts/tests/test_environment__merge_pre_commit_configs.nu
 ]
 
-assert equal (get-tests $tests $filters search_term) $expected_tests
+assert equal (get-tests $tests $filters merge) $expected_tests
 
 let filters = {
   file: environment
@@ -38,9 +39,9 @@ let filters = {
 }
 
 let expected_tests = [
-  test_environment__merge_gitignores.nu
-  test_environment__merge_justfiles.nu
-  test_environment__merge_pre_commit_configs.nu
+  src/generic/scripts/tests/test_environment__merge_gitignores.nu
+  src/generic/scripts/tests/test_environment__merge_justfiles.nu
+  src/generic/scripts/tests/test_environment__merge_pre_commit_configs.nu
 ]
 
 assert equal (get-tests $tests $filters) $expected_tests
@@ -52,10 +53,59 @@ let filters = {
 }
 
 let expected_tests = [
-  test_deps__merge-flake-dependencies.nu
-  test_environment__merge_gitignores.nu
-  test_environment__merge_justfiles.nu
-  test_environment__merge_pre_commit_configs.nu
+  src/generic/scripts/tests/test_dependencies__merge-flake-dependencies.nu
+  src/generic/scripts/tests/test_environment__merge_gitignores.nu
+  src/generic/scripts/tests/test_environment__merge_justfiles.nu
+  src/generic/scripts/tests/test_environment__merge_pre_commit_configs.nu
+]
+
+assert equal (get-tests $tests $filters) $expected_tests
+
+
+let filters = {
+  file: null
+  function: null
+  module: environments
+}
+
+let expected_tests = [
+  scripts/environments/tests/test_build__get-outdated-files.nu
+]
+
+assert equal (get-tests $tests $filters) $expected_tests
+
+let filters = {
+  file: history
+  function: null
+  module: generic
+}
+
+let expected_tests = [
+  src/generic/scripts/tests/test_history__parse-args.nu
+]
+
+assert equal (get-tests $tests $filters) $expected_tests
+
+let filters = {
+  file: null
+  function: parse_git_origin
+  module: generic
+}
+
+let expected_tests = [
+  src/generic/scripts/tests/test_domain__parse_git_origin.nu
+]
+
+assert equal (get-tests $tests $filters) $expected_tests
+
+let filters = {
+  file: dependencies
+  function: merge
+  module: generic
+}
+
+let expected_tests = [
+  src/generic/scripts/tests/test_dependencies__merge-flake-dependencies.nu
 ]
 
 assert equal (get-tests $tests $filters) $expected_tests

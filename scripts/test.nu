@@ -57,22 +57,22 @@ export def get-tests [
 
   let tests = match $module {
     null => $tests
-    _ => ($tests | filter {|test| filter_module $test $module})
+    _ => ($tests | filter {filter_module $in $module})
   }
 
   let $tests = match $file {
     null => $tests
-    _ => ($tests | filter {|test| filter_file $test $file})
+    _ => ($tests | filter {filter_file $in $file})
   }
 
   let $tests = match $function {
     null => $tests
-    _ => ($tests | filter {|test| filter_function $test $function})
+    _ => ($tests | filter {filter_function $in $function})
   }
 
   match $search_term {
     null => $tests
-    _ => ($tests | filter {|test| $test =~ $search_term})
+    _ => ($tests | filter {$in =~ $search_term})
   }
 }
 
