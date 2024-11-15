@@ -487,7 +487,7 @@ def create-environment-comment [environment: string] {
   $"\n# ($environment)"
 }
 
-export def merge_gitignores [
+export def merge-gitignores [
   main_gitignore: string
   new_environment_name: string
   environment_gitignore: string

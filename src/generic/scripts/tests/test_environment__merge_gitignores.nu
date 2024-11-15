@@ -1,6 +1,6 @@
 use std assert
 
-use ../environment.nu merge_gitignores
+use ../environment.nu merge-gitignores
 
 let generic_gitignore = ".config
 .direnv
@@ -15,7 +15,7 @@ build/
 dist/"
 
 let actual_gitignore = (
-  merge_gitignores
+  merge-gitignores
     $generic_gitignore
     python
     $environment_gitignore

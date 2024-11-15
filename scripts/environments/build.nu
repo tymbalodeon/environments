@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../environment.nu merge_gitignores
+use ../environment.nu merge-gitignores
 use ../environment.nu merge-justfiles
 use ../environment.nu merge_pre_commit_configs
 use ../environment.nu save-file
@@ -84,7 +84,7 @@ def copy-justfile [] {
 
 def copy-gitignore [] {
   save-file (
-    merge_gitignores
+    merge-gitignores
       (open .gitignore)
       generic
       (open src/generic/.gitignore)
