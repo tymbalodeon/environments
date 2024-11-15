@@ -1,6 +1,6 @@
 use std assert
 
-use ../environment.nu merge_pre_commit_configs
+use ../environment.nu merge-pre-commit-configs
 
 let generic_pre_commit_config = "repos:
   - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
@@ -100,7 +100,7 @@ let environment_pre_commit_config = "repos:
 "
 
 let actual_pre_commit_conifg = (
-  merge_pre_commit_configs
+  merge-pre-commit-configs
     $generic_pre_commit_config
     python
     $environment_pre_commit_config

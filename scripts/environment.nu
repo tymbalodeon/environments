@@ -274,12 +274,32 @@ def download-environment-file [
   $temporary_file
 }
 
-def get-recipes [justfile: string] {
-  (
-    just
-      --justfile $justfile
-      --summary
-    | split row " "
+def get-recipe-or-alias-name [
+]: [
+  record<
+    deps: record<
+      attributes: list<any>, 
+      name: string, 
+      target: string
+    >
+  >  -> list<string>
+] {
+  $in | transpose | get column0
+}
+
+def get-just-command-names [justfile: string] {
+  let data = (
+    just --dump --dump-format json --justfile $justfile
+    | from json
+  )
+
+  $data 
+  | get recipes 
+  | get-recipe-or-alias-name
+  | append (
+      $data
+      | get aliases 
+      | get-recipe-or-alias-name
   )
 }
 
@@ -336,7 +356,7 @@ export def merge-justfiles [
           open $main_justfile
           | split row "mod"
           | drop nth 0
-          | each {|module| $module | prepend mod | str join}
+          | each {prepend mod | str join}
           | str join
         )
       | to text
@@ -347,18 +367,14 @@ export def merge-justfiles [
 
   open $main_justfile
   | split row "mod "
-  | filter {|module| not ($module | str starts-with $environment)}
+  | filter {not ($in | str starts-with $environment)}
   | str join "mod? "
   | save --force $main_justfile_without_environment
 
   let unique_environment_recipes = (
-    get-recipes $environment_justfile
+    get-just-command-names $environment_justfile
     | filter {
-        |recipe|
-
-        $recipe not-in (
-          get-recipes $main_justfile_without_environment
-        )
+      $in not-in (get-just-command-names $main_justfile_without_environment)
     }
   )
 
@@ -624,7 +640,7 @@ def restore-environment-comment [
     )
 }
 
-export def merge_pre_commit_configs [
+export def merge-pre-commit-configs [
   main_config: string
   new_environment_name: string
   environment_config: string
@@ -718,7 +734,7 @@ export def merge_pre_commit_configs [
   | str join
 }
 
-export def save_pre_commit_config [config: string] {
+export def save-pre-commit-config [config: string] {
   save-file $config .pre-commit-config.yaml
 }
 

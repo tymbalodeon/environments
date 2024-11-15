@@ -2,9 +2,9 @@
 
 use ../environment.nu merge-gitignores
 use ../environment.nu merge-justfiles
-use ../environment.nu merge_pre_commit_configs
+use ../environment.nu merge-pre-commit-configs
 use ../environment.nu save-file
-use ../environment.nu save_pre_commit_config
+use ../environment.nu save-pre-commit-config
 use ../environment.nu get-project-path
 use pre-commit-update.nu
 
@@ -92,8 +92,8 @@ def copy-gitignore [] {
 }
 
 def copy-pre-commit-config [] {
-  save_pre_commit_config (
-    merge_pre_commit_configs
+  save-pre-commit-config (
+    merge-pre-commit-configs
       (open --raw .pre-commit-config.yaml)
       generic
       (open --raw src/generic/.pre-commit-config.yaml)
