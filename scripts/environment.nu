@@ -1307,7 +1307,7 @@ def "main remove" [
 }
 
 # Upgrade environments to the latest available version
-def "main upgrade" [
+export def "main upgrade" [
   ...environments: string
 ] {
   let new_environment_command = (

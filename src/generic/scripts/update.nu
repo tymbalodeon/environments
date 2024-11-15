@@ -1,13 +1,13 @@
 #!/usr/bin/env nu
 
-use environment.nu upgrade
+use environment.nu "main upgrade"
 
 # Update dependencies
 def main [
   --upgrade-environment
 ] {
   if $upgrade_environment {
-    update
+    ugprade
   }
 
   nix flake update
