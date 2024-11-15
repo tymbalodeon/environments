@@ -1287,7 +1287,7 @@ def "main remove" [
 def "main update" [
   ...environments: string
 ] {
-  let new_environment_file = (
+  let new_environment_command = (
     download-environment-file
       (get-environment-files generic)
       scripts/environment.nu
@@ -1297,44 +1297,53 @@ def "main update" [
     get-environments-to-process $environments (get-installed-environments)
   )
 
-  nu $new_environment_file add --update ...$environments
-  rm $new_environment_file
+  nu $new_environment_command add --update ...$environments
+  rm $new_environment_command
 }
 
-# View the contents of a remote environment file
-def "main view" [
-  environment: string
+# TODO test me
+def find-environment-file [
+  environment: string 
   file: string
+  environment_files: table<
+    name: string,
+    path: string,
+    sha: string,
+    size: int,
+    url: string,
+    html_url: string,
+    git_url: string,
+    download_url: string,
+    type: string,
+    self: string,
+    git: string,
+    html: string
+  >
 ] {
-  let files = (
-    get-files (
-      [(get-base-url) $environment]
-      | path join
-    )
-  )
-
   let full_path = (
     [src $environment $file]
     | path join
   )
 
-  if $full_path in ($files | get path) {
+  let file_url = if $full_path in ($environment_files | get path) {
     let file_url = (
-      $files
+      $environment_files
       | where path == $full_path
       | get download_url
       | first
     )
 
-    return (http-get $file_url)
+    $file_url
   } else {
     let matching_files = (
-      $files
+      $environment_files
       | where path =~ $file
     )
 
     if ($matching_files | length) == 1 {
-      return (http-get ($matching_files | first))
+      $matching_files 
+      | first 
+      | get download_url
     } else {
       print $"Multiple files match \"($file).\"" 
       print "Please choose which one you mean:\n"
@@ -1345,7 +1354,32 @@ def "main view" [
         | each {prepend "- " | str join} 
         | to text
       )
+
+      error make {msg: "file not found"}
     }
+  }
+}
+
+# View the contents of a remote environment file
+def "main view" [
+  environment: string
+  file: string
+] {
+  let environment_files = (
+    get-files (
+      [(get-base-url) $environment]
+      | path join
+    )
+  )
+
+  try {
+    let file_url = (
+      find-environment-file $environment $file $environment_files
+    )
+
+    http-get $file_url
+  } catch {
+    exit 1
   }
 }
 
