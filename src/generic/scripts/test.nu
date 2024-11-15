@@ -1,12 +1,12 @@
 #!/usr/bin/env nu
 
-def filter_file [test: string file: string] {
+def filter-file [test: string file: string] {
   try {
     let name = (
       $test
-      | split row "test_"
+      | split row "test-"
       | last
-      | split row "__"
+      | split row "--"
       | first
     )
 
@@ -16,11 +16,11 @@ def filter_file [test: string file: string] {
   }
 }
 
-def filter_function [test: string function: string] {
+def filter-function [test: string function: string] {
   try {
     let name = (
       $test
-      | split row "__"
+      | split row "--"
       | last
     )
 
@@ -30,7 +30,7 @@ def filter_function [test: string function: string] {
   }
 }
 
-def filter_module [test: string module: string] {
+def filter-module [test: string module: string] {
   let parent = (
     $test
     | path parse
@@ -57,17 +57,17 @@ export def get-tests [
 
   let tests = match $module {
     null => $tests
-    _ => ($tests | filter {filter_module $in $module})
+    _ => ($tests | filter {filter-module $in $module})
   }
 
   let $tests = match $file {
     null => $tests
-    _ => ($tests | filter {filter_file $in $file})
+    _ => ($tests | filter {filter-file $in $file})
   }
 
   let $tests = match $function {
     null => $tests
-    _ => ($tests | filter {filter_function $in $function})
+    _ => ($tests | filter {filter-function $in $function})
   }
 
   match $search_term {
@@ -84,7 +84,7 @@ def main [
   --module: string # Run tests for $module only
 ] {
   let tests = try {
-    ls **/tests/**/test_*.nu
+    ls **/tests/**/test-*.nu
     | get name
   } catch {
     return

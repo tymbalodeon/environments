@@ -278,8 +278,8 @@ def get-recipe-or-alias-name [
 ]: [
   record<
     deps: record<
-      attributes: list<any>, 
-      name: string, 
+      attributes: list<any>,
+      name: string,
       target: string
     >
   >  -> list<string>
@@ -293,12 +293,12 @@ def get-just-command-names [justfile: string] {
     | from json
   )
 
-  $data 
-  | get recipes 
+  $data
+  | get recipes
   | get-recipe-or-alias-name
   | append (
       $data
-      | get aliases 
+      | get aliases
       | get-recipe-or-alias-name
   )
 }
