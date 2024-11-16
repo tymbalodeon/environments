@@ -37,4 +37,4 @@
 
 # Update dependencies and score LilyPond version
 @update *help:
-    ../scripts/lilypond/update-deps.nu {{ help }}
+    ../scripts/lilypond/update.nu {{ help }}

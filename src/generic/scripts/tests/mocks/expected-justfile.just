@@ -51,8 +51,8 @@
     ./scripts/stats.nu {{ help }}
 
 # Update dependencies
-@update-deps *help:
-    ./scripts/update-deps.nu {{ help }}
+@update *help:
+    ./scripts/update.nu {{ help }}
 
 # View the source code for a recipe
 [no-cd]

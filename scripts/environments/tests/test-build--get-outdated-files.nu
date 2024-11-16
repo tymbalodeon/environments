@@ -23,7 +23,7 @@ let files = (
     src/generic/scripts/release.nu
     src/generic/scripts/remote.nu
     src/generic/scripts/stats.nu
-    src/generic/scripts/update-deps.nu
+    src/generic/scripts/update.nu
     src/generic/scripts/view-source.nu
   ] | wrap environment
   | merge (
@@ -47,7 +47,7 @@ let files = (
       scripts/release.nu
       scripts/remote.nu
       scripts/stats.nu
-      scripts/update-deps.nu
+      scripts/update.nu
       scripts/view-source.nu
     ] | wrap local
   )

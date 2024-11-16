@@ -35,13 +35,13 @@ let scripts = [
   scripts/python/run.nu
   scripts/python/shell.nu
   scripts/python/test.nu
-  scripts/python/update-deps.nu
+  scripts/python/update.nu
   scripts/python/version.nu
   scripts/release.nu
   scripts/remote.nu
   scripts/stats.nu
   scripts/test.nu
-  scripts/update-deps.nu
+  scripts/update.nu
   scripts/update.nu
   scripts/view-source.nu
 ]

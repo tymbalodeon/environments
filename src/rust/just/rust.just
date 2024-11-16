@@ -43,5 +43,5 @@
     ../scripts/rust/test.nu {{ package }}
 
 # Update dependencies
-@update-deps *help:
-    ../scripts/rust/update-deps.nu {{ help }}
+@update *help:
+    ../scripts/rust/update.nu {{ help }}
