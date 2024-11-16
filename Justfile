@@ -13,7 +13,7 @@
 
 alias deps := dependencies
 
-# List dependencies
+# List dependencies (alias `deps`)
 @dependencies *args:
     ./scripts/dependencies.nu {{ args }}
 
