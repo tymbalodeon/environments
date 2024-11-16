@@ -1306,8 +1306,12 @@ def "main remove" [
   }
 }
 
+def "main update" [] {
+  nix flake update
+}
+
 # Upgrade environments to the latest available version
-export def "main upgrade" [
+def "main upgrade" [
   ...environments: string
 ] {
   let new_environment_command = (

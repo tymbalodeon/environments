@@ -56,10 +56,6 @@ alias deps := dependencies
 @test *args:
     ./scripts/test.nu {{ args }}
 
-# Update dependencies
-@update *help:
-    ./scripts/update.nu {{ help }}
-
 # View the source code for a recipe
 [no-cd]
 @view-source *recipe:
