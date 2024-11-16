@@ -1009,15 +1009,15 @@ def "main diff" [
   }
 
   let $a_files = if $remotes {
-    geget-diff-files --remote $installed_environments $a
+    get-diff-files --remote $installed_environments $a
   } else {
-    geget-diff-files $installed_environments $a
+    get-diff-files $installed_environments $a
   }
 
   let $b_files = if $remotes or $a == $b {
-    geget-diff-files --remote $installed_environments $b
+    get-diff-files --remote $installed_environments $b
   } else {
-    geget-diff-files $installed_environments $b
+    get-diff-files $installed_environments $b
   }
 
   for item in $a_files {
