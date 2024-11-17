@@ -35,7 +35,8 @@ taplo
 tokei
 vscode-langservers-extracted
 yaml-language-server
-yamlfmt"
+yamlfmt
+"
 
 let test_dependencies = [
   {
@@ -66,7 +67,8 @@ taplo
 tokei
 vscode-langservers-extracted
 yaml-language-server
-yamlfmt"
+yamlfmt
+"
   }
 
   {
@@ -101,7 +103,8 @@ taplo
 tokei
 vscode-langservers-extracted
 yaml-language-server
-yamlfmt"
+yamlfmt
+"
   }
 ]
 

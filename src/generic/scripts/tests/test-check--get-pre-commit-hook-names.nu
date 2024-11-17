@@ -23,7 +23,8 @@ check-yaml
 end-of-file-fixer
 pre-commit-update
 sort-simple-yaml
-trailing-whitespace"
+trailing-whitespace
+"
 
 let actual_hooks = (get-pre-commit-hook-names ($config | from yaml))
 
