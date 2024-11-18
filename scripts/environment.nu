@@ -40,7 +40,7 @@ def http-get [url: string --raw] {
 
   try {
     match $raw {
-      null => (http get --headers $headers $url)
+      false => (http get --headers $headers $url)
       _ => (http get --headers $headers --raw $url)
     }
   } catch {
@@ -293,8 +293,7 @@ def download-environment-file [
   $temporary_file
 }
 
-def get-recipe-or-alias-name [
-]: [
+def get-recipe-or-alias-name []: [
   record<
     deps: record<
       attributes: list<any>,
@@ -909,15 +908,15 @@ def color-yellow [text: string] {
 def get-diff-files [
   installed_environments: list<string>
   environment: string
-  --remote
+  --installed
 ] {
   let files = (get-environment-files $environment)
 
-  if not $remote and $environment in $installed_environments {
+  if $installed and $environment in $installed_environments {
     $files
     | filter {|file| $file.path | path exists}
     | wrap file
-    | insert type local
+    | insert type installed
   } else {
     $files
     | wrap file
@@ -939,6 +938,7 @@ def diff-error-with-help [message: string] {
 def get-diff-file [
   type: string
   path: string
+  directory: string
   files: table<
     name: string,
     path: string,
@@ -955,8 +955,17 @@ def get-diff-file [
   >
 ] {
   match $type {
-    "local" => $path
-    "remote" => (download-environment-file $files $path)
+    "installed" => (cp $path $directory)
+
+    "remote" => {
+      let destination = ($directory | path join $path)
+      let parent = ($destination | path parse | get parent)
+
+      mkdir $parent
+
+      (get-environment-file --raw $files $path)
+      | save --force $destination
+    }
   }
 }
 
@@ -1028,51 +1037,61 @@ def "main diff" [
   }
 
   let $a_files = if $remotes {
-    get-diff-files --remote $installed_environments $a
-  } else {
     get-diff-files $installed_environments $a
+  } else {
+    get-diff-files --installed $installed_environments $a
   }
 
   let $b_files = if $remotes or $a == $b {
-    get-diff-files --remote $installed_environments $b
-  } else {
     get-diff-files $installed_environments $b
+  } else {
+    get-diff-files --installed $installed_environments $b
   }
 
-  for item in $a_files {
-    let type = $item.type
-    let path = $item.file.path
-    let a_file = (get-diff-file $type $path $a_files.file)
+  let a_directory = (mktemp --directory)
+  let b_directory = (mktemp --directory)
 
-    let b_file = if $path in $b_files.file.path {
-      get-diff-file ($b_files.type | uniq | first) $path $a_files.file
+  for file in $a_files {
+    let type = $file.type
+    let path = $file.file.path
+
+    get-diff-file $type $path $a_directory $a_files.file
+  }
+
+  for file in $b_files {
+    let type = $file.type
+    let path = $file.file.path
+
+    get-diff-file $type $path $b_directory $b_files.file
+  }
+
+  try {
+    let output = if (tput cols | into int) >= 160 {
+      (
+        delta
+          --diff-so-fancy
+          --paging never
+          --side-by-side
+          $a_directory $b_directory
+      )
     } else {
-      "/dev/null"
+      (
+        delta
+          --diff-so-fancy
+          --paging never
+          $a_directory $b_directory
+      )
     }
 
-    do --ignore-errors {
-      if (tput cols | into int) >= 160 {
-        (
-          delta
-            --diff-so-fancy
-            --paging never
-            --side-by-side
-            $a_file $b_file
-        )
-      } else {
-        (
-          delta
-            --diff-so-fancy
-            --paging never
-            $a_file $b_file
-        )
-      }
-    }
+    print (
+      $output
+      | str replace $a_directory ""
+      | str replace $b_directory ""
+    )
 
-    if $type == "remote" {
-      rm $a_file
-    }
   }
+
+  rm --force --recursive $a_directory $b_directory
 }
 
 # List environment files
