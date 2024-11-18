@@ -908,11 +908,12 @@ def color-yellow [text: string] {
 def get-diff-files [
   installed_environments: list<string>
   environment: string
-  --installed
+  directory: string
+  remotes: bool
 ] {
   let files = (get-environment-files $environment)
 
-  if $installed and $environment in $installed_environments {
+  let files = if not $remotes and $environment in $installed_environments {
     $files
     | filter {|file| $file.path | path exists}
     | wrap file
@@ -921,6 +922,15 @@ def get-diff-files [
     $files
     | wrap file
     | insert type remote
+  }
+
+  let files = (
+    $files
+    | insert directory $directory
+  )
+
+  for file in $files {
+    get-diff-file $file $files.file
   }
 }
 
@@ -936,9 +946,24 @@ def diff-error-with-help [message: string] {
 }
 
 def get-diff-file [
-  type: string
-  path: string
-  directory: string
+  file: record<
+    directory: string,
+    file: record<
+      name: string, 
+      path: string, 
+      sha: string, 
+      size: int,
+       url: string,
+       html_url: string,
+       git_url: string,
+       download_url: string,
+       type: string,
+       self: string,
+       git: string,
+       html: string
+    >,
+     type: string
+  >
   files: table<
     name: string,
     path: string,
@@ -954,6 +979,10 @@ def get-diff-file [
     html: string
   >
 ] {
+  let directory = $file.directory
+  let path = $file.file.path
+  let type = $file.type
+
   match $type {
     "installed" => (cp $path $directory)
 
@@ -1036,37 +1065,19 @@ def "main diff" [
     $a
   }
 
-  let $a_files = if $remotes {
-    get-diff-files $installed_environments $a
-  } else {
-    get-diff-files --installed $installed_environments $a
-  }
-
-  let $b_files = if $remotes or $a == $b {
-    get-diff-files $installed_environments $b
-  } else {
-    get-diff-files --installed $installed_environments $b
-  }
-
   let a_directory = (mktemp --directory)
   let b_directory = (mktemp --directory)
 
-  for file in $a_files {
-    let type = $file.type
-    let path = $file.file.path
+  let $a_files = (
+    get-diff-files $installed_environments $a $a_directory $remotes
+  )
 
-    get-diff-file $type $path $a_directory $a_files.file
-  }
-
-  for file in $b_files {
-    let type = $file.type
-    let path = $file.file.path
-
-    get-diff-file $type $path $b_directory $b_files.file
-  }
+  let $b_files = (
+    get-diff-files $installed_environments $b $b_directory $remotes
+  )
 
   try {
-    let output = if (tput cols | into int) >= 160 {
+    if (tput cols | into int) >= 160 {
       (
         delta
           --diff-so-fancy
@@ -1082,13 +1093,6 @@ def "main diff" [
           $a_directory $b_directory
       )
     }
-
-    print (
-      $output
-      | str replace $a_directory ""
-      | str replace $b_directory ""
-    )
-
   }
 
   rm --force --recursive $a_directory $b_directory
