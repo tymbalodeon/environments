@@ -33,17 +33,15 @@ def get-github-personal-access-token [] {
 def http-get [url: string --raw] {
   let token = (get-github-personal-access-token)
 
-  let headers = if ($token | is-empty) {
-    []
-  } else {
-    [Authorization $"Bearer ($token)" X-GitHub-Api-Version "2022-11-28"]
+  let headers = match $token {
+    null => []
+    _ => [Authorization $"Bearer ($token)" X-GitHub-Api-Version "2022-11-28"]
   }
 
   try {
-    if $raw {
-      http get --headers $headers --raw $url
-    } else {
-      http get --headers $headers $url
+    match $raw {
+      null => (http get --headers $headers $url)
+      _ => (http get --headers $headers --raw $url)
     }
   } catch {
       |error|
@@ -65,7 +63,7 @@ def http-get [url: string --raw] {
         print $error.raw
       }
 
-      # exit 1
+      exit 1
   }
 }
 
