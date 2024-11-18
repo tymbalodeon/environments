@@ -17,12 +17,33 @@ def get-base-url [] {
   "https://api.github.com/repos/tymbalodeon/environments/contents/src"
 }
 
+def get-github-personal-access-token [] {
+  if not (".env" | path exists) {
+    return
+  }
+
+  try {
+    open .env
+    | parse '{key}={value}'
+    | get value
+    | first
+  }
+}
+
 def http-get [url: string --raw] {
+  let token = (get-github-personal-access-token)
+
+  let headers = if ($token | is-empty) {
+    []
+  } else {
+    [Authorization $"Bearer ($token)" X-GitHub-Api-Version "2022-11-28"]
+  }
+
   try {
     if $raw {
-      http get --raw $url
+      http get --headers $headers --raw $url
     } else {
-      http get $url
+      http get --headers $headers $url
     }
   } catch {
       |error|
@@ -44,7 +65,7 @@ def http-get [url: string --raw] {
         print $error.raw
       }
 
-      exit 1
+      # exit 1
   }
 }
 
