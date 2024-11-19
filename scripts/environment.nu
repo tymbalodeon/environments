@@ -949,9 +949,9 @@ def get-diff-file [
   file: record<
     directory: string,
     file: record<
-      name: string, 
-      path: string, 
-      sha: string, 
+      name: string,
+      path: string,
+      sha: string,
       size: int,
        url: string,
        html_url: string,
