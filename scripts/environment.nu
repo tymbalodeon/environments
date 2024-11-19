@@ -907,25 +907,25 @@ def color-yellow [text: string] {
 
 def get-diff-files [
   installed_environments: list<string>
-  environment: string
+  environment: record<environment: string type: string>
   directory: string
-  remotes: bool
+  remote: bool
 ] {
-  let files = (get-environment-files $environment)
+  let files = (get-environment-files $environment.environment)
 
-  let files = if not $remotes and $environment in $installed_environments {
-    $files
-    | filter {|file| $file.path | path exists}
-    | wrap file
-    | insert type installed
-  } else {
-    $files
-    | wrap file
-    | insert type remote
+  let files = match $environment.type {
+    "installed" => (
+      $files
+      | filter {|file| $file.path | path exists}
+    )
+
+    "remote" => $files
   }
 
   let files = (
     $files
+    | wrap file
+    | insert type $environment.type
     | insert directory $directory
   )
 
@@ -1045,7 +1045,7 @@ def "main diff" [
 
   let installed_environments = ("generic" ++ (get-installed-environments))
 
-  let a = if ($environment_a | is-empty) or (
+  let a_environment = if ($environment_a | is-empty) or (
     $environment_b | is-empty
   ) and (
     $environment_a not-in $installed_environments
@@ -1055,14 +1055,40 @@ def "main diff" [
     $environment_a
   }
 
-  let b = if ($remote | is-not-empty) {
+  let a_type = if ($environment_a | is-empty) {
+    "installed"
+  } else if $remotes or ($environment_a not-in $installed_environments) {
+    "remote"
+  } else {
+    "installed"
+  }
+
+  let a = {
+    environment: $a_environment
+    type: $a_type
+  }
+
+  let b_environment = if ($remote | is-not-empty) {
     $remote
   } else if ($environment_b | is-not-empty) {
     $environment_b
   } else if ($environment_a | is-not-empty) {
     $environment_a
   } else {
-    $a
+    $a_environment
+  }
+
+  let b_type = if ($remote | is-not-empty) or $a_environment == $b_environment {
+    "remote"
+  } else if ($b_environment in $installed_environments) {
+    "installed"
+  } else {
+    "remote"
+  }
+
+  let b = {
+    environment: $b_environment
+    type: $b_type
   }
 
   let a_directory = (mktemp --directory)
