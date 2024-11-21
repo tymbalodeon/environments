@@ -96,11 +96,20 @@ def get-environment-files [environment: string] {
 }
 
 def get-comment-character [extension: string] {
-  if $extension == "kdl" {
-    "//"
-  } else {
-    "#"
+  match $extension {
+    "kdl" => "//"
+    _ => "#"
   }
+}
+
+export def get-tagged-contents [
+  environment: string 
+  extension: string 
+  contents: string
+] {
+  $contents
+  | prepend $"(get-comment-character $extension) ($environment)\n"
+  | str join
 }
 
 def copy-files [
@@ -181,12 +190,12 @@ def copy-files [
         $path | path parse | get parent | is-empty
       ) {
         let extension = ($path | path parse | get extension)
-        let comment_character = (get-comment-character $extension)
 
         let tagged_contents = (
-          open --raw $path
-          | prepend $"($comment_character) ($environment)\n"
-          | str join
+          get-tagged-contents 
+            $environment 
+            (get-comment-character $extension) 
+            (open --raw $path)
         )
 
         $tagged_contents
@@ -1182,7 +1191,7 @@ def get-installed-environments [] {
   list-nix-files
   | path parse
   | get stem
-  | filter {|environment| $environment in $available_environments}
+  | filter {$in in $available_environments}
 }
 
 def get-environments-to-process [
@@ -1272,6 +1281,7 @@ def remove-files [environment: string] {
   rm --force --recursive $"scripts/($environment)"
 }
 
+# TODO test me
 def remove-environment-from-justfile [environment: string] {
   let filtered_justfile = try {
     let environment_mod = (
@@ -1302,6 +1312,7 @@ def remove-environment-from-justfile [environment: string] {
   $filtered_justfile
 }
 
+# TODO test me
 def remove-environment-from-gitignore [environment: string] {
   open .gitignore
   | split row "# "
@@ -1319,6 +1330,7 @@ def remove-environment-from-gitignore [environment: string] {
   | str join
 }
 
+# TODO test me
 def remove-environment-from-pre-commit-config [environment: string] {
   open --raw .pre-commit-config.yaml
   | split row "# "
