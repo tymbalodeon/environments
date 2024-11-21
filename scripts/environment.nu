@@ -102,16 +102,6 @@ def get-comment-character [extension: string] {
   }
 }
 
-export def get-tagged-contents [
-  environment: string 
-  extension: string 
-  contents: string
-] {
-  $contents
-  | prepend $"(get-comment-character $extension) ($environment)\n"
-  | str join
-}
-
 def copy-files [
   environment: string
   environment_files: table<
@@ -184,22 +174,6 @@ def copy-files [
 
       if ($path | path parse | get extension) == "nu" {
         chmod +x $path
-      }
-
-      if $environment != "generic" and (
-        $path | path parse | get parent | is-empty
-      ) {
-        let extension = ($path | path parse | get extension)
-
-        let tagged_contents = (
-          get-tagged-contents 
-            $environment 
-            (get-comment-character $extension) 
-            (open --raw $path)
-        )
-
-        $tagged_contents
-        | save --force $path
       }
 
       print $"Downloaded ($path)"
