@@ -1,10 +1,12 @@
 #!/usr/bin/env nu
 
+use ../environment.nu get-project-path
+
 export def get-dependencies [
   --dev
   --prod
 ] {
-  let pyproject_data = (open pyproject.toml)
+  let pyproject_data = (open (get-project-path pyproject.toml))
 
   mut dependencies = {
     dev: []
@@ -33,7 +35,7 @@ export def get-dependencies [
 }
 
 # Show application dependencies
-def show-dependencies [
+def main [
   --dev # Show only development dependencies
   --prod # Show only production dependencies
   --installed # Show installed dependencies (python dependencies only)
@@ -53,8 +55,10 @@ def show-dependencies [
   } else if $prod {
     $dependencies.prod
   } else {
-    $dependencies
+    $dependencies.dev
+    | append $dependencies.prod
+    | sort
   }
 
-  bat --language env ($dependencies | to text)
+  $dependencies | to text | bat --language env
 }
