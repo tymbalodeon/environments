@@ -1,29 +1,18 @@
 #!/usr/bin/env nu
 
-use ./deps.nu list-dependencies
-
-def is-a-dependency [
-    dependency: string
-    --dev
-] {
-    let dependencies = if $dev {
-        list-dependencies --dev
-    } else {
-        list-dependencies
-    }
-
-    $dependency in $dependencies
-}
-
 # Remove dependencies
 def main [
-    ...dependencies: string # Dependencies to remove
+  ...dependencies: string # Dependencies to remove
 ] {
-    for $dependency in $dependencies {
-        if (is-a-dependency $dependency --dev) {
-            uv remove --dev $dependency
-        } else if (is-a-dependency $dependency) {
-            uv remove $dependency
-        }
+  let pyproject_data = (open pyproject.toml)
+  let dependencies = ($pyproject_data | get project.dependencies)
+  let dev_dependencies = ($pyproject_data | get dependency-groups.dev)
+
+  for $dependency in $dependencies {
+    if $dependency in $dev_dependencies {
+      uv remove --dev $dependency
+    } else if $dependency in $dependencies {
+      uv remove $dependency
     }
+  }
 }
