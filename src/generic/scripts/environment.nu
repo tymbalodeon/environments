@@ -1392,8 +1392,7 @@ def "main upgrade" [
   rm $new_environment_command
 }
 
-# TODO test me
-def find-environment-file [
+export def find-environment-file-url [
   environment: string
   file: string
   environment_files: table<
@@ -1416,7 +1415,7 @@ def find-environment-file [
     | path join
   )
 
-  let file_url = if $full_path in ($environment_files | get path) {
+  if $full_path in ($environment_files | get path) {
     let file_url = (
       $environment_files
       | where path == $full_path
@@ -1465,7 +1464,7 @@ def "main view" [
 
   try {
     let file_url = (
-      find-environment-file $environment $file $environment_files
+      find-environment-file-url $environment $file $environment_files
     )
 
     http-get $file_url
