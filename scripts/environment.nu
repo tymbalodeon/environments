@@ -1308,9 +1308,11 @@ export def remove-environment-from-gitignore [
   | str join
 }
 
-# TODO test me
-def remove-environment-from-pre-commit-config [environment: string] {
-  open --raw .pre-commit-config.yaml
+export def remove-environment-from-pre-commit-config [
+  environment: string
+  pre_commit_config: string
+] {
+  $pre_commit_config
   | split row "# "
   | filter {
       |item|
@@ -1357,7 +1359,9 @@ def "main remove" [
     )
 
     save-pre-commit-config (
-      remove-environment-from-pre-commit-config $environment
+      remove-environment-from-pre-commit-config 
+        $environment 
+        (open --raw .pre-commit-config.yaml)
     )
   }
 
