@@ -1255,13 +1255,15 @@ def remove-files [environment: string] {
   rm --force --recursive $"scripts/($environment)"
 }
 
-# TODO test me
-def remove-environment-from-justfile [environment: string] {
+export def remove-environment-from-justfile [
+  environment: string
+  justfile: string
+] {
   let filtered_justfile = try {
     let environment_mod = (
       "mod "
       | append (
-          open Justfile
+          $justfile
           | split row "mod"
           | str trim
           | filter {str starts-with $environment}
@@ -1271,7 +1273,7 @@ def remove-environment-from-justfile [environment: string] {
     )
 
     let filtered_justfile = (
-      open Justfile
+      $justfile
       | str replace $environment_mod ""
     )
 
@@ -1340,7 +1342,9 @@ def "main remove" [
 
     remove-files $environment
 
-    let filtered_justfile = (remove-environment-from-justfile $environment)
+    let filtered_justfile = (
+      remove-environment-from-justfile $environment (open Justfile)
+    )
 
     if $filtered_justfile != null {
       save-justfile $filtered_justfile

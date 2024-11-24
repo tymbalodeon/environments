@@ -10,12 +10,12 @@ export def get-dependencies [
 
   mut dependencies = {
     dev: []
-    prod: [] 
+    prod: []
   }
 
   if $dev or not $prod {
     $dependencies = (
-      $dependencies 
+      $dependencies
       | update dev (
           ($pyproject_data | get dependency-groups.dev)
         )
@@ -24,7 +24,7 @@ export def get-dependencies [
 
   if $prod or not $dev {
     $dependencies = (
-      $dependencies 
+      $dependencies
       | update prod (
           ($pyproject_data | get project.dependencies)
         )

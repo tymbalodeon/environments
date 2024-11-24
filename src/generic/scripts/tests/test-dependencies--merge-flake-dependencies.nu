@@ -3,11 +3,11 @@ use std assert
 use ../dependencies.nu merge-flake-dependencies
 
 let generic_flake = (
-  open ([$env.FILE_PWD ./mocks/generic-flake.nix] | path join)
+  open ([$env.FILE_PWD ./mocks/flake-generic.nix] | path join)
 )
 
 let environment_flake = (
-  open ([$env.FILE_PWD ./mocks/environment-flake.nix] | path join)
+  open ([$env.FILE_PWD ./mocks/flake-environment.nix] | path join)
 )
 
 let expected_dependencies = "alejandra

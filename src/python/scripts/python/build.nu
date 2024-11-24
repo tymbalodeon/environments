@@ -17,7 +17,7 @@ def get-last-modified []: string -> datetime {
 # Build and install the application
 def main [] {
   let build_modified = (
-    fd --extension gz --extension whl --no-ignore    
+    fd --extension gz --extension whl --no-ignore
     | get-last-modified
   )
 
@@ -27,7 +27,7 @@ def main [] {
   )
 
   if ($build_modified | is-empty) or (
-    $source_modified > $build_modified  
+    $source_modified > $build_modified
   ) {
     uv build
   }
