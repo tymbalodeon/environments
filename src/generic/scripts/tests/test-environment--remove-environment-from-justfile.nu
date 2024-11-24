@@ -16,4 +16,4 @@ let expected_justfile = (
   | path join mocks/justfile-generic.just
 )
 
-assert equal $actual_justfile (open $expected_justfile | decode utf-8)
+assert equal $actual_justfile (open $expected_justfile)

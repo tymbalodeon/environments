@@ -1288,9 +1288,11 @@ export def remove-environment-from-justfile [
   $filtered_justfile
 }
 
-# TODO test me
-def remove-environment-from-gitignore [environment: string] {
-  open .gitignore
+export def remove-environment-from-gitignore [
+  environment: string
+  gitignore: string
+] {
+  $gitignore
   | split row "# "
   | filter {
       |item|
@@ -1351,7 +1353,7 @@ def "main remove" [
     }
 
     save-gitignore (
-      remove-environment-from-gitignore $environment
+      remove-environment-from-gitignore $environment (open .gitignore)
     )
 
     save-pre-commit-config (
