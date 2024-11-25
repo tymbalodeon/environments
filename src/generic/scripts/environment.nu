@@ -1141,7 +1141,7 @@ def "main list" [
   list-environment-directory $environment $path $files
 }
 
-def get-project-root [] {
+export def get-project-root [] {
   echo (git rev-parse --show-toplevel)
 }
 
