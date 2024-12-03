@@ -39,7 +39,7 @@ def main [
   --web # Open the remote repository website in the browser
 ] {
   let domain = match $domain {
-    null => (domain)    
+    null => (domain)
     _ => $domain
   }
 

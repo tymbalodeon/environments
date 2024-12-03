@@ -99,12 +99,12 @@ for test in $test_data {
 let new_file = "src/generic/scripts/new-file.nu"
 
 let files = (
-  $environment_files 
-  | append $new_file 
+  $environment_files
+  | append $new_file
   | wrap environment
   | merge ($local_files | wrap local)
 )
- 
+
 let test = {
   files: (
     $files

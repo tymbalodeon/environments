@@ -1359,8 +1359,8 @@ def "main remove" [
     )
 
     save-pre-commit-config (
-      remove-environment-from-pre-commit-config 
-        $environment 
+      remove-environment-from-pre-commit-config
+        $environment
         (open --raw .pre-commit-config.yaml)
     )
   }
