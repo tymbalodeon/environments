@@ -26,8 +26,7 @@ def "main close" [
 }
 
 def get-project-prefix [] {
-  [(get-project-root | path basename) "--"]
-  | str join
+  $"(get-project-root | path basename)/"
 }
 
 # Create issue
@@ -109,7 +108,7 @@ def main [
 
     _ => {
       let repo_issues = (
-        nb todo (get-project-prefix)
+        nb todo $"(get-project-prefix)*"
       )
 
       if ($issue_number | is-empty) {
