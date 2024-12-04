@@ -3,25 +3,57 @@
 use domain.nu
 use environment.nu get-project-root
 
-# Close issue
-def "main close" [issue_number: number] {
-  match (domain) {
-    "github" => (gh issue close $issue_number)
-    "gitlab" => (glab issue close $issue_number)
+def get-service [service: string] {
+  match service {
+    null => (domain)
+    _ => $service
   }
 }
 
+# Close issue
+def "main close" [
+  issue_number: number # The id of the issue to view
+  --service: string # Which service to use (see `list-services`)
+] {
+  let service = (get-service $service)
+
+  match $service {
+    "github" => (gh issue close $issue_number)
+    "gitlab" => (glab issue close $issue_number)
+    _ => (nb do $issue_number)
+  }
+}
+
+def get-project-prefix [] {
+  [(get-project-root | path basename) "--"]
+  | str join
+}
+
 # Create issue
-def "main create" [] {
-  match (domain) {
+def "main create" [
+  --service: string # Which service to use (see `list-services`)
+] {
+  let service = (get-service $service)
+
+  match $service {
     "github" => (gh issue create --editor)
     "gitlab" => (glab issue create)
+    _ => {
+      let title = (input "Enter title: ")
+
+      nb todo add --title $"(get-project-prefix)($title)"
+    }
   }
 }
 
 # Create/open issue and development branch
-def "main develop" [issue_number: number] {
-  match (domain) {
+def "main develop" [
+  issue_number: number # The id of the issue to view
+  --service: string # Which service to use (see `list-services`)
+] {
+  let service = (get-service $service)
+
+  match $service {
     "github" => (gh issue develop --checkout $issue_number)
 
     "gitlab" => (
@@ -32,18 +64,20 @@ def "main develop" [issue_number: number] {
   }
 }
 
+# List available services
+def "main list-services" [] {
+  print ([github gitlab nb] | str join "\n")
+}
+
 # View issues
 def main [
-  issue_number?: number # The number of the issue to view
-  --domain: string
+  issue_number?: number # The id of the issue to view
+  --service: string # Which service to use (see `list-services`)
   --web # Open the remote repository website in the browser
 ] {
-  let domain = match $domain {
-    null => (domain)
-    _ => $domain
-  }
+  let service = (get-service $service)
 
-  match $domain {
+  match $service {
     "github" => {
       if ($issue_number | is-empty) {
         if $web {
@@ -74,7 +108,7 @@ def main [
 
     _ => {
       let repo_issues = (
-        nb todo (get-project-root | path basename)
+        nb todo (get-project-prefix)
       )
 
       if ($issue_number | is-empty) {
