@@ -3,10 +3,11 @@
 use domain.nu
 use environment.nu get-project-root
 
-def get-service [service: string] {
-  match service {
-    null => (domain)
-    _ => $service
+def get-service [service?: string] {
+  if ($service | is-empty) {
+    domain
+  } else {
+    $service
   }
 }
 
