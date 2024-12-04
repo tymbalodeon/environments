@@ -38,6 +38,7 @@ def "main create" [
   match $service {
     "github" => (gh issue create --editor)
     "gitlab" => (glab issue create)
+
     _ => {
       let title = (input "Enter title: ")
 
@@ -56,8 +57,8 @@ def "main develop" [
   match $service {
     "github" => (gh issue develop --checkout $issue_number)
 
-    "gitlab" => (
-      print "Feature not implemented for GitLab."
+    _ => (
+      print $"Feature not implemented for ($service)."
 
       exit 1
     )
