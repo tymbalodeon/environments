@@ -57,11 +57,35 @@ def "main develop" [
   match $service {
     "github" => (gh issue develop --checkout $issue_number)
 
-    _ => (
-      print $"Feature not implemented for ($service)."
+    _ => {
+      let issues = (main $issue_number --service $service)
 
-      exit 1
-    )
+      try {
+        let issue = (
+          $issues
+          | ansi strip
+          | lines
+          | split column "[ ] "
+        )
+
+        let id = (
+          $issue 
+          | get column1
+          | split row "["
+          | split row "]"
+          | get 1
+        )
+
+        let title = (
+            $issue
+            | get column2
+          | first
+          | str replace (get-project-prefix) ""
+        )
+
+        git switch --create $"($id)-($title)"
+      }
+    }
   }
 }
 
@@ -114,7 +138,12 @@ def main [
 
       if ($issue_number | is-empty) {
         $repo_issues
-      } else if ($repo_issues | find $issue_number | is-not-empty) {
+      } else if (
+          $repo_issues 
+          | ansi strip
+          | find $"[($issue_number)]"
+          | is-not-empty
+      ) {
         nb todo $issue_number
       }
     }
