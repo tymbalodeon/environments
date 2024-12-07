@@ -25,10 +25,10 @@ def get-branches [] {
 
 def get-issue-branch [issue_number: number] {
   let branches = (
-    (get-branches) 
+    (get-branches)
     | find $"($issue_number)-"
   )
-  
+
   if ($branches | is-not-empty)  {
     $branches
     | last
@@ -42,7 +42,7 @@ def "main close" [
   --merge # Merge development branch, if one exists, before closing issue
 ] {
   if $merge {
-    git switch (get-issue-branch)    
+    git switch (get-issue-branch)
 
     # TODO
   }
@@ -100,7 +100,7 @@ def "main develop" [
         )
 
         let id = (
-          $issue 
+          $issue
           | get column1
           | split row "["
           | split row "]"
@@ -170,7 +170,7 @@ def main [
       if ($issue_number | is-empty) {
         $repo_issues
       } else if (
-          $repo_issues 
+          $repo_issues
           | ansi strip
           | find $"[($issue_number)]"
           | is-not-empty
