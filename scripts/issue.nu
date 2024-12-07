@@ -41,11 +41,11 @@ def "main close" [
   --service: string # Which service to use (see `list-services`)
   --merge # Merge development branch, if one exists, before closing issue
 ] {
-  if $merge {
-    git switch (get-issue-branch)
+  # if $merge {
+  #   git switch (get-issue-branch)
 
-    # TODO
-  }
+  #   # TODO
+  # }
 
   let service = (get-service $service)
 
@@ -123,6 +123,19 @@ def "main develop" [
 # List available services
 def "main list-services" [] {
   print ([github gitlab nb] | str join "\n")
+}
+
+# View issues
+def "main view" [
+  issue_number?: number # The id of the issue to view
+  --service: string # Which service to use (see `list-services`)
+  --web # Open the remote repository website in the browser
+] {
+  if $web {
+    main $issue_number --service $service --web
+  } else {
+    main $issue_number --service $service 
+  }
 }
 
 # View issues
