@@ -11,11 +11,42 @@ def get-service [service?: string] {
   }
 }
 
+def get-branches [] {
+  git branch --remote
+  | lines
+  | each {|line| $line | split row "/" | last}
+  | append (
+      git for-each-ref --format='%(refname:short)' refs/heads/
+      | lines
+   )
+  | uniq
+  | sort
+}
+
+def get-issue-branch [issue_number: number] {
+  let branches = (
+    (get-branches) 
+    | find $"($issue_number)-"
+  )
+  
+  if ($branches | is-not-empty)  {
+    $branches
+    | last
+  }
+}
+
 # Close issue
 def "main close" [
   issue_number: number # The id of the issue to view
   --service: string # Which service to use (see `list-services`)
+  --merge # Merge development branch, if one exists, before closing issue
 ] {
+  if $merge {
+    git switch (get-issue-branch)    
+
+    # TODO
+  }
+
   let service = (get-service $service)
 
   match $service {
