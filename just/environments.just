@@ -1,5 +1,5 @@
 # View help text
-@help *recipe:
+@_help *recipe:
     ../scripts/environments/help.nu {{ recipe }}
 
 # Build dev environments

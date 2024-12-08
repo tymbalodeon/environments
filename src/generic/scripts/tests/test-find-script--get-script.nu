@@ -47,7 +47,14 @@ let scripts = [
 ]
 
 assert equal (get-script help $scripts scripts) scripts/help.nu
-assert equal (get-script environments/help $scripts scripts) scripts/environments/help.nu
-assert equal (get-script environments::help $scripts scripts) scripts/environments/help.nu
+
+assert equal (
+  get-script environments/help $scripts scripts
+) scripts/environments/help.nu
+
+assert equal (
+  get-script environments::help $scripts scripts
+) scripts/environments/help.nu
+
 assert equal (get-script python/help $scripts scripts) scripts/python/help.nu
 assert equal (get-script python::help $scripts scripts) scripts/python/help.nu
