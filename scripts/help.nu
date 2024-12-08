@@ -38,25 +38,23 @@ export def display-just-help [
   mut recipe_is_module = false
 
   let script = if ($script | is-empty) {
-     let script = (
+    let args = ($recipe ++ $subcommands)
+
+    if ($args | length) > 1 {
+      $recipe_is_module = true
+
       find-script (
-        $recipe ++ $subcommands
+        $args
         | window 2
         | first
         | str join "/"
       )
-    )
-
-    if ($script | is-empty) {
+    } else {
       try {
         return (just --color always --list $recipe --quiet)
       } catch {
         return
       }
-    } else {
-      $recipe_is_module = true
-
-      $script
     }
   } else {
     $script
