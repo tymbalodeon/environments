@@ -62,7 +62,3 @@ mod environments "just/environments.just"
 # Alias for `environments build`
 @build *args:
     just environments build {{ args }}
-
-# Alias for `environments justfile`
-@justfile *args:
-    just environments justfile {{ args }}

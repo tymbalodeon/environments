@@ -134,7 +134,7 @@ def "main view" [
   if $web {
     main $issue_number --service $service --web
   } else {
-    main $issue_number --service $service 
+    main $issue_number --service $service
   }
 }
 

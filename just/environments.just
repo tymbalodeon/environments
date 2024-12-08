@@ -6,8 +6,3 @@
 [no-cd]
 @build *args:
     ./scripts/environments/build.nu {{ args }}
-
-# Run an environment Justfile
-[no-cd]
-@justfile *args:
-    ./scripts/environments/justfile.nu {{ args }}
