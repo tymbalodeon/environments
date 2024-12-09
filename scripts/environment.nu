@@ -799,7 +799,7 @@ def "main add" [
   --upgrade
   --reactivate
 ] {
-  let available_environments = (get-available-environments)
+  let available_environments = (get-available-environments | append generic)
 
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
