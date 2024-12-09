@@ -790,7 +790,7 @@ def get-available-environments [] {
   | lines
   | filter {$in != "generic"}
   | each {$"– ($in)"}
-  | to text
+  | str join "\n"
 }
 
 # Add environments to the project
@@ -799,11 +799,32 @@ def "main add" [
   --upgrade
   --reactivate
 ] {
+  let available_environments = (get-available-environments)
+
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
 
-    return (get-available-environments)
+    return $available_environments
   }
+
+  mut unrecognized_environments = []
+  mut recognized_environments = []
+
+  for environment in $environments {
+    if ($environment not-in $available_environments) {
+      $unrecognized_environments = (
+        $unrecognized_environments
+        | append $environment
+      )
+    } else {
+      $recognized_environments = (
+        $recognized_environments
+        | append $environment
+      )
+    }
+  }
+
+  let environments = $recognized_environments
 
   mut should_reactivate = false
 
@@ -856,6 +877,17 @@ def "main add" [
 
   if $should_reactivate {
     main activate
+  }
+
+  for unrecognized_environment in $unrecognized_environments {
+    let environment = (color-yellow $unrecognized_environment)
+
+    print $"Unrecognized environment \"($environment)\""
+  }
+
+  if ($unrecognized_environments | is-not-empty) {
+    print "\nAvailable environments:"
+    print $available_environments
   }
 }
 
