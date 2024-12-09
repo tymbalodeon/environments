@@ -787,7 +787,6 @@ def copy-pre-commit-config [
 
 def display-available-environments [environments: list<string>] {
   $environments
-  | lines
   | filter {$in != "generic"}
   | each {$"– ($in)"}
   | str join "\n"
