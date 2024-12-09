@@ -166,7 +166,7 @@ def make-comment [command: string type: string] {
 }
 
 def get-command-comments [command: string] {
-  { 
+  {
     start: (make-comment $command start)
     end: (make-comment $command end)
   }
@@ -177,9 +177,9 @@ def get-comment-regex [start: string end: string] {
 }
 
 def get-readme-link [
-  origin: string 
-  command: string 
-  start: string 
+  origin: string
+  command: string
+  start: string
   end: string
 ] {
   let origin = (parse-git-origin $origin)
@@ -205,7 +205,7 @@ def update-readme [] {
     let output = (
       get-readme-link $origin $command $comments.start $comments.end
     )
-    
+
     open README.md
     | str replace --regex $regex $output
     | save --force README.md
