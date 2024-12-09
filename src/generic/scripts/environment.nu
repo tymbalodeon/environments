@@ -785,8 +785,8 @@ def copy-pre-commit-config [
   return true
 }
 
-def get-available-environments [] {
-  main list
+def display-available-environments [environments: list<string>] {
+  $environments
   | lines
   | filter {$in != "generic"}
   | each {$"– ($in)"}
@@ -799,12 +799,12 @@ def "main add" [
   --upgrade
   --reactivate
 ] {
-  let available_environments = (get-available-environments | append generic)
+  let available_environments = (main list | append generic)
 
   if ($environments | is-empty) {
     print "Please specify an environment to add. Available environments:\n"
 
-    return $available_environments
+    return (display-available-environments $available_environments)
   }
 
   mut unrecognized_environments = []
@@ -887,7 +887,8 @@ def "main add" [
 
   if ($unrecognized_environments | is-not-empty) {
     print "\nAvailable environments:"
-    print $available_environments
+
+    display-available-environments $available_environments
   }
 }
 
