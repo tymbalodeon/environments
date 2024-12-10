@@ -1416,6 +1416,7 @@ def "main remove" [
   }
 }
 
+# Update environment dependencies
 def "main update" [] {
   nix flake update
 }
