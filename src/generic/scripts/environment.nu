@@ -772,7 +772,7 @@ def copy-pre-commit-config [
   )
 
   if ($environment_config | is-empty) {
-    return false    
+    return false
   }
 
   let environment_config = (
