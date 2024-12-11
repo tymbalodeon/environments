@@ -19,6 +19,7 @@ def main [environment?: string] {
   let directory = (mktemp --directory)
 
   cd $directory
+  git init
 
   if ($env_file | is-not-empty) {
     $env_file
@@ -32,6 +33,10 @@ def main [environment?: string] {
   }
 
   main init ...$environments
+
+  git add .
+
+  nu scripts/environment.nu activate
 
   $layout_file
   | str replace "[directory]" $directory
