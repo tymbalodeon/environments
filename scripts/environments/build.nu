@@ -86,18 +86,18 @@ def copy-justfile [] {
 def copy-gitignore [] {
   save-file (
     merge-gitignores
-      (open .gitignore)
+      (open  (get-project-path .gitignore))
       generic
-      (open src/generic/.gitignore)
+      (open (get-project-path src/generic/.gitignore))
   ) .gitignore
 }
 
 def copy-pre-commit-config [] {
   save-pre-commit-config (
     merge-pre-commit-configs
-      (open --raw .pre-commit-config.yaml)
+      (open --raw (get-project-path .pre-commit-config.yaml))
       generic
-      (open --raw src/generic/.pre-commit-config.yaml)
+      (open --raw (get-project-path src/generic/.pre-commit-config.yaml))
   )
 }
 

@@ -352,9 +352,9 @@ export def merge-justfiles [
 ] {
   if $environment == "generic" {
     return (
-      open $environment_justfile
+      open (get-project-path $environment_justfile)
       | append (
-          open $main_justfile
+          open (get-project-path $main_justfile)
           | split row "mod"
           | drop nth 0
           | each {prepend mod | str join}
