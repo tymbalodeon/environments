@@ -1,3 +1,5 @@
+use ../scripts/environment.nu "main add"
+
 def get_environments [environments: list<string>] {
   [generic]
   | append $environments
@@ -5,12 +7,12 @@ def get_environments [environments: list<string>] {
   | uniq
 }
 
-def "main init" [
+export def "main init" [
   ...environments: string
 ] {
   let environments = (get_environments $environments)
 
-  environment add ...$environments
+  main add ...$environments
 }
 
 def "main new" [

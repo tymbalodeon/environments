@@ -3,6 +3,9 @@
     ../scripts/environments/help.nu {{ recipe }}
 
 # Build dev environments
-[no-cd]
 @build *args:
-    ./scripts/environments/build.nu {{ args }}
+    ../scripts/environments/build.nu {{ args }}
+
+# Preview dev environments
+@preview *args:
+    ../scripts/environments/preview.nu {{ args }}

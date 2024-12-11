@@ -206,9 +206,11 @@ def update-readme [] {
       get-readme-link $origin $command $comments.start $comments.end
     )
 
-    open README.md
+    let readme = (get-project-path README.md)
+
+    open $readme
     | str replace --regex $regex $output
-    | save --force README.md
+    | save --force $readme
   }
 }
 

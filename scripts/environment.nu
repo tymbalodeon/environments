@@ -803,7 +803,7 @@ def display-available-environments [environments: list<string>] {
 }
 
 # Add environments to the project
-def "main add" [
+export def "main add" [
   ...environments: string
   --upgrade
   --reactivate
