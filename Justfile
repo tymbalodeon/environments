@@ -12,9 +12,13 @@ alias deps := dependencies
 @dependencies *args:
     ./scripts/dependencies.nu {{ args }}
 
+alias env := environment
+
 # Manage environments
 @environment *args:
     ./scripts/environment.nu {{ args }}
+
+alias find := find-recipe
 
 # Search available `just` recipes
 [no-cd]
@@ -46,6 +50,8 @@ alias deps := dependencies
 # Run tests
 @test *args:
     ./scripts/test.nu {{ args }}
+
+alias src := view-source
 
 # View the source code for a recipe
 [no-cd]
