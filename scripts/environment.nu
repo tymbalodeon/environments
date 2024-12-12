@@ -109,7 +109,7 @@ def display-message [action: string message: string] {
     $action = $" ($action)"
   } 
 
-  print $"    (ansi green_bold)($action)(ansi reset) ($message)"
+  print $"  (ansi green_bold)($action)(ansi reset) ($message)"
 }
 
 def copy-files [
