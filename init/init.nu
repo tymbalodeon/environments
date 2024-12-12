@@ -12,7 +12,7 @@ export def "main init" [
 ] {
   let environments = (get_environments $environments)
 
-  main add ...$environments
+  main add --activate ...$environments
 }
 
 def "main new" [

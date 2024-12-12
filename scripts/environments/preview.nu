@@ -34,10 +34,6 @@ def main [environment?: string] {
 
   main init ...$environments
 
-  git add .
-
-  nu scripts/environment.nu activate
-
   $layout_file
   | str replace "[directory]" $directory
   | save preview-layout.kdl
