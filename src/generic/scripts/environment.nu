@@ -876,7 +876,7 @@ export def "main add" [
     }
 
     if $upgrade or $added {
-      display-message $action "($environment) environment"
+      display-message $action $"($environment) environment"
     }
   }
 
