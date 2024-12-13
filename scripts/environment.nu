@@ -1419,8 +1419,6 @@ def "main remove" [
   )
 
   for environment in $environments {
-    print $"Removing ($environment)..."
-
     remove-files $environment
 
     let filtered_justfile = (
@@ -1440,6 +1438,8 @@ def "main remove" [
         $environment
         (open --raw .pre-commit-config.yaml)
     )
+
+    display-message Removed $"($environment) environment"
   }
 
   if $reactivate and ($environments | is-not-empty) {
