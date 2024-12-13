@@ -134,6 +134,24 @@ def copy-files [
     rm --force --recursive ([scripts $environment] | path join)
   }
 
+  let project_name = (get-project-root | path basename)
+
+  let environment_files = (
+    $environment_files
+    | update path {
+        |row|
+
+        if (($row.path | path parse | get parent) == python) {
+          $project_name
+          | path join ($row.path | path basename)
+        } else {
+          $row.path
+        }
+    }
+  )
+
+  print $environment_files.path
+
   let parent_directories = (
     $environment_files
     | get path
@@ -179,7 +197,14 @@ def copy-files [
 
       let path = $file.path
 
-      if ($path in [pyproject.toml README.md .python-version]) {
+      if (
+        $path in [
+          .python-version
+          README.md
+          pyproject.toml 
+          $project_name
+        ]
+      ) {
         if ($path | path exists) {
           return
         }
@@ -1264,7 +1289,7 @@ def get-top-level-files [
 
 def remove-file [file: string] {
   rm --force $file
-  print $"Removed ($file)"
+  display-message Removed $file
 }
 
 def remove-files [environment: string] {

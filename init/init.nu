@@ -21,7 +21,7 @@ def "main new" [
 ] {
   mkdir $path
   cd $path
-
+  git init
   main init ...$environments
 }
 
