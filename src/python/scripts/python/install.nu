@@ -21,20 +21,9 @@ def module-not-installed [command: string] {
 # Install dependencies
 def install [
     --app # (Build and) install the application
-    --dry-run # Display dependencies without installing
     --minimal # Install only dependencies necessary for other commands
     --prod # Install production dependencies only
 ] {
-    if $dry_run {
-        if $app or $prod {
-            deps --prod
-        } else {
-            deps
-        }
-
-        exit
-    }
-
     if not $prod {
         if (module-not-installed pip) {
             uv run python -m ensurepip --upgrade --default-pip

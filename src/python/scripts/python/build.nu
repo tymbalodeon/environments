@@ -16,19 +16,24 @@ def get-last-modified []: string -> datetime {
 
 # Build and install the application
 def main [] {
-  let build_modified = (
-    fd --extension gz --extension whl --no-ignore
-    | get-last-modified
-  )
+  try {
+    open pyproject.toml
+    | get build-system
 
-  let source_modified = (
-    fd --extension py
-    | get-last-modified
-  )
+    let build_modified = (
+      fd --extension gz --extension whl --no-ignore
+      | get-last-modified
+    )
 
-  if ($build_modified | is-empty) or (
-    $source_modified > $build_modified
-  ) {
-    try { uv build }
+    let source_modified = (
+      fd --extension py
+      | get-last-modified
+    )
+
+    if ($build_modified | is-empty) or (
+      $source_modified > $build_modified
+    ) {
+      uv build
+    }
   }
 }

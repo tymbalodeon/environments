@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use environment.nu get-project-path
+use ../environment.nu get-project-path
 
 export def get-dependencies [
   --dev
@@ -60,5 +60,7 @@ def main [
     | sort
   }
 
-  $dependencies | to text | bat --language env
+  $dependencies 
+  | to text 
+  | bat --language env
 }
