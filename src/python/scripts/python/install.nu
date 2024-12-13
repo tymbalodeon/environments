@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
 
-use ./build.nu
-use ./command.nu
-use ./deps.nu
-use ./version.nu
+use build.nu
+use command.nu
+use dependencies.nu
+use version.nu
 
 def not-installed [command: string] {
   (command -v $command | is-empty)

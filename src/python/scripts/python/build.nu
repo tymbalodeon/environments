@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use ./command.nu
-use ./version.nu
+use command.nu
+use version.nu
 
 def get-last-modified []: string -> datetime {
   try {
@@ -29,6 +29,6 @@ def main [] {
   if ($build_modified | is-empty) or (
     $source_modified > $build_modified
   ) {
-    uv build
+    try { uv build }
   }
 }
