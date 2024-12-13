@@ -1,6 +1,5 @@
 #!/usr/bin/env nu
 
-use command.nu
 use version.nu
 
 def get-last-modified []: string -> datetime {
