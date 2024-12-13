@@ -181,7 +181,7 @@ def copy-files [
 
       if ($path in [pyproject.toml README.md]) {
         if ($path | path exists) {
-          continue
+          return
         }
       }
 
