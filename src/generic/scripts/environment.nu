@@ -140,8 +140,8 @@ def get-file-status [contents: string filename: string] {
     set-executable $temporary_file
 
     let action = if (
-      delta $filename $temporary_file 
-      | complete 
+      delta $filename $temporary_file
+      | complete
       | get exit_code
     ) == 0 {
       "Skipped"
@@ -537,7 +537,7 @@ export def merge-justfiles [
 }
 
 export def save-file [contents: string filename: string] {
-  let action = (get-file-status $contents $filename) 
+  let action = (get-file-status $contents $filename)
 
   if $action != Skipped {
     $contents
@@ -1002,10 +1002,10 @@ export def "main add" [
     let color = (get-action-color $action)
 
     (
-      display-message 
+      display-message
         --color-entire-message
-        $action 
-        $"($environment) environment" 
+        $action
+        $"($environment) environment"
         $color
     )
   }
@@ -1558,10 +1558,10 @@ def "main remove" [
     let color = (get-action-color $action)
 
     (
-      display-message 
+      display-message
         --color-entire-message
-        $action 
-        $"($environment) environment" 
+        $action
+        $"($environment) environment"
         $color
     )
   }
