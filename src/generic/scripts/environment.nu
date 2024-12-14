@@ -262,7 +262,7 @@ def copy-files [
         action: (
           match $action {
             "Added" | "Upgraded" => $action
-            _ => "Downloaded"
+            _ => "Skipping"
           }
         )
         color: (
@@ -274,16 +274,19 @@ def copy-files [
         )
       }
 
-      $contents
-      | save --force $path
-
-      if ($path == pyproject.toml) {
-        open $path
-        | update project.name $project_name
+      if ($action != Skipping) {
+        $contents
         | save --force $path
+
+        if ($path == pyproject.toml) {
+          open $path
+          | update project.name $project_name
+          | save --force $path
+        }
+
+        set-executable $path
       }
 
-      set-executable $path
       display-message $action_data.action $path $action_data.color
     }
 
