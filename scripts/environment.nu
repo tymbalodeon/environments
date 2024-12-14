@@ -116,6 +116,11 @@ export def display-message [
   print $"  (ansi $style)($action)(ansi reset) ($message)"
 }
 
+def get-project-name [] {
+  get-project-root 
+  | path basename
+}
+
 def copy-files [
   environment: string
   environment_files: table<
@@ -138,7 +143,7 @@ def copy-files [
     rm --force --recursive ([scripts $environment] | path join)
   }
 
-  let project_name = (get-project-root | path basename)
+  let project_name = (get-project-name)
 
   let environment_files = (
     $environment_files
@@ -1338,6 +1343,18 @@ def remove-files [environment: string] {
   }
 
   rm --force --recursive $"scripts/($environment)"
+
+  if ($environment == python) {
+    let project_name = (get-project-name)
+
+    if ($project_name | path exists) {
+      let init_py_file = ($project_name | path join "__init__.py")
+      
+      if ($init_py_file | path exists) {
+        rm --force --recursive $project_name
+      }
+    }
+  }
 }
 
 export def remove-environment-from-justfile [
