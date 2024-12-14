@@ -106,6 +106,7 @@ export def display-message [
   action: string
   message: string
   style = "green_bold"
+  --color-entire-message
 ] {
   mut action = $action
 
@@ -113,7 +114,13 @@ export def display-message [
     $action = $" ($action)"
   }
 
-  print $"  (ansi $style)($action)(ansi reset) ($message)"
+  let message = if $color_entire_message {
+    $"(ansi $style)($action)(ansi reset) ($message)"
+  } else {
+    $"(ansi $style)($action) ($message)(ansi reset)"
+  }
+
+  print $"  ($message)"
 }
 
 def get-project-name [] {
@@ -150,12 +157,27 @@ def get-file-status [contents: string filename: string] {
   }
 }
 
-def get-action-color [action: string] {
-  match $action {
-    "Upgraded" =>  "cyan_bold"
-    "Added" =>  "green_bold"
-    "Skipped" => "light_gray_dimmed"
-    _ => "white"
+def get-action-color [action: string --bright] {
+  match $bright {
+    true => (
+      match $action {
+        "Added" =>  "light_green_bold"
+        "Removed" => "light_yellow_bold"
+        "Skipped" => "white_bold"
+        "Upgraded" =>  "light_cyan_bold"
+        _ => "white"
+      }
+    )
+
+    false => (
+      match $action {
+        "Added" =>  "green_bold"
+        "Removed" => "yellow_bold"
+        "Skipped" => "light_gray_dimmed"
+        "Upgraded" =>  "cyan_bold"
+        _ => "white"
+      }
+    )
   }
 }
 
@@ -990,7 +1012,13 @@ export def "main add" [
 
     let color = (get-action-color $action)
 
-    display-message $action $"($environment) environment" $color
+    (
+      display-message 
+        --color-entire-message
+        $action 
+        $"($environment) environment" 
+        $color
+    )
   }
 
   try {
@@ -1371,7 +1399,11 @@ def get-top-level-files [
 
 def remove-file [file: string] {
   rm --force $file
-  display-message Removed $file yellow_bold
+
+  let action = "Removed"
+  let color = (get-action-color $action)
+
+  display-message $action $file $color
 }
 
 def remove-files [environment: string] {
@@ -1533,7 +1565,16 @@ def "main remove" [
         (open --raw .pre-commit-config.yaml)
     )
 
-    display-message Removed $"($environment) environment" yellow_bold
+    let action = "Removed"
+    let color = (get-action-color $action)
+
+    (
+      display-message 
+        --color-entire-message
+        $action 
+        $"($environment) environment" 
+        $color
+    )
   }
 
   if $reactivate and ($environments | is-not-empty) {
