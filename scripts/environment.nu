@@ -115,9 +115,9 @@ export def display-message [
   }
 
   let message = if $color_entire_message {
-    $"(ansi $style)($action)(ansi reset) ($message)"
-  } else {
     $"(ansi $style)($action) ($message)(ansi reset)"
+  } else {
+    $"(ansi $style)($action)(ansi reset) ($message)"
   }
 
   print $"  ($message)"
