@@ -102,14 +102,18 @@ def get-comment-character [extension: string] {
   }
 }
 
-export def display-message [action: string message: string] {
+export def display-message [
+  action: string 
+  message: string 
+  style = "green_bold"
+] {
   mut action = $action
 
   while (($action | split chars | length) < 12) {
     $action = $" ($action)"
   }
 
-  print $"  (ansi green_bold)($action)(ansi reset) ($message)"
+  print $"  (ansi $style)($action)(ansi reset) ($message)"
 }
 
 def copy-files [
@@ -1293,7 +1297,7 @@ def get-top-level-files [
 
 def remove-file [file: string] {
   rm --force $file
-  display-message Removed $file
+  display-message Removed $file yellow_bold
 }
 
 def remove-files [environment: string] {
@@ -1443,7 +1447,7 @@ def "main remove" [
         (open --raw .pre-commit-config.yaml)
     )
 
-    display-message Removed $"($environment) environment"
+    display-message Removed $"($environment) environment" yellow_bold
   }
 
   if $reactivate and ($environments | is-not-empty) {
@@ -1459,7 +1463,12 @@ def "main update" [] {
 # Upgrade environments to the latest available version
 def "main upgrade" [
   ...environments: string
+  --use-existing-file # Skip fetching new source for `upgrade` command before running
 ] {
+  if $use_existing_file {
+    return (main add --upgrade ...$environments)
+  }
+
   let new_environment_command = (
     download-environment-file
       (get-environment-files generic)
