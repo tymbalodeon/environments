@@ -2,6 +2,7 @@
 
 use ../domain.nu parse-git-origin
 use ../environment.nu display-message
+use ../environment.nu get-generated-filenames
 use ../environment.nu merge-gitignores
 use ../environment.nu merge-justfiles
 use ../environment.nu merge-pre-commit-configs
@@ -59,18 +60,20 @@ def copy-files [environment_files: list<string>] {
     | filter {
         |file|
 
-        ($file | path basename) not-in [
-          # FIXME review this?
-          .gitignore
-          .pre-commit-config.yaml
-          Justfile
-          README.md
-        ] and ($file | path parse | get extension) != "just"
+        ($file | path basename) not-in (get-generated-filenames) and (
+          $file | path parse | get extension
+        ) != "just"
       }
   )
 
   for source_file in $environment_files {
     let file = (get-build-path $source_file)
+
+    if ($file | path basename) == README.md and (
+      $file | path exists
+    ) {
+      continue
+    }
 
     copy-file $source_file $file
   }
