@@ -60,9 +60,11 @@ def copy-files [environment_files: list<string>] {
         |file|
 
         ($file | path basename) not-in [
+          # FIXME review this?
           .gitignore
           .pre-commit-config.yaml
           Justfile
+          README.md
         ] and ($file | path parse | get extension) != "just"
       }
   )
