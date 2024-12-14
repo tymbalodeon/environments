@@ -150,8 +150,6 @@ def copy-files [
     }
   )
 
-  print $environment_files.path
-
   let parent_directories = (
     $environment_files
     | get path
