@@ -251,7 +251,7 @@ def copy-files [
     | filter {
         |file|
 
-        $file.name not-in (get-generated_filenames)
+        $file.name not-in (get-generated-filenames)
       }
   )
 
