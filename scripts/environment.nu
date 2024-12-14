@@ -255,7 +255,7 @@ def copy-files [
         }
       }
 
-      let contents = (http-get $file.download_url)
+      let contents = (http-get --raw $file.download_url)
       let action = (get-file-status $contents $path)
 
       let action_data = {
