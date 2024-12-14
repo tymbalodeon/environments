@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use ../domain.nu parse-git-origin
+use ../environment.nu display-message
 use ../environment.nu merge-gitignores
 use ../environment.nu merge-justfiles
 use ../environment.nu merge-pre-commit-configs
@@ -45,8 +46,7 @@ def get-environment-directories [environment_files: list<string>] {
 def copy-file [source_file: string file: string] {
   cp $source_file $file
 
-  print $"Updated ($file)"
-
+  display-message Updated $file
 }
 
 def copy-files [environment_files: list<string>] {
