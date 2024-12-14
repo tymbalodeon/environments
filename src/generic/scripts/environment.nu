@@ -211,6 +211,12 @@ def copy-files [
       http-get $file.download_url
       | save --force $path
 
+      if ($path == pyproject.toml) {
+        open $path
+        | update project.name $project_name
+        | save --force $path
+      }
+
       if ($path | path parse | get extension) == "nu" {
         chmod +x $path
       }
