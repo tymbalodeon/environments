@@ -7,3 +7,4 @@
 
 # environments
 init/flake.lock
+src/python/uv.lock

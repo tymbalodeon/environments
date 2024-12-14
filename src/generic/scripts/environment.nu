@@ -356,7 +356,7 @@ def get-environment-file [
   let url = (get-environment-file-url $environment_files $file)
 
   if ($url | is-empty) {
-    return ""
+    return
   }
 
   if $raw {
@@ -392,11 +392,15 @@ def download-environment-file [
   file: string
   extension?: string
 ] {
-  let temporary_file = (get-temporary-file $extension)
-
   let file_contents = (
     get-environment-file --raw $environment_files $file
   )
+
+  if ($file_contents | is-empty) {
+    return
+  }
+
+  let temporary_file = (get-temporary-file $extension)
 
   $file_contents
   | save --force $temporary_file
@@ -596,23 +600,20 @@ def copy-justfile [
       $environment_justfile_name
   )
 
+  if ($environment_justfile_file | is-empty) {
+    return $action
+  }
+
   let environment_justfile = (open $environment_justfile_file)
 
-  let action = if (
-    $environment_justfile
-    | is-not-empty
-  ) {
-    let merged_justfile = (
-      merge-justfiles
-        $environment
-        Justfile
-        $environment_justfile_file
-    )
+  let merged_justfile = (
+    merge-justfiles
+      $environment
+      Justfile
+      $environment_justfile_file
+  )
 
-    save-justfile $merged_justfile
-  } else {
-    $action
-  }
+  let action = (save-justfile $merged_justfile)
 
   rm $environment_justfile_file
 
@@ -640,7 +641,7 @@ export def merge-gitignores [
   let environment_comment = (create-environment-comment $new_environment_name)
 
   if $environment_comment in $main_gitignore {
-    return null
+    return ""
   }
 
   let merged_gitignore = if $new_environment_name == "generic" {
@@ -723,26 +724,20 @@ def copy-gitignore [
     get-environment-file $environment_files ".gitignore"
   )
 
-  let action = if ($environment_gitignore | is-not-empty) {
-    let new_environment_name = (get-environment-name $environment_files)
-
-    let merged_gitignore = (
-      merge-gitignores
-        (open .gitignore)
-        $new_environment_name
-        $environment_gitignore
-    )
-
-    if $merged_gitignore != null {
-      save-gitignore $merged_gitignore
-    } else {
-      $action
-    }
-  } else {
-    $action
+  if ($environment_gitignore | is-empty) {
+    return $action
   }
 
-  return $action
+  let new_environment_name = (get-environment-name $environment_files)
+
+  let merged_gitignore = (
+    merge-gitignores
+      (open .gitignore)
+      $new_environment_name
+      $environment_gitignore
+  )
+
+  save-gitignore $merged_gitignore
 }
 
 def get-pre-commit-config-repos [config: string] {
@@ -792,7 +787,7 @@ export def merge-pre-commit-configs [
       )
 
       if $environment_comment in $main_config {
-        return null
+        return $main_config
       }
 
       $main_config
@@ -924,13 +919,7 @@ def copy-pre-commit-config [
       $environment_config
   )
 
-  let action = if $merged_pre_commit_config != null {
-    save-pre-commit-config $merged_pre_commit_config
-  } else {
-    $action
-  }
-
-  return $action
+  save-pre-commit-config $merged_pre_commit_config
 }
 
 def display-available-environments [environments: list<string>] {
