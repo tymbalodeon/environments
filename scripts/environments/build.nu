@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use ../domain.nu parse-git-origin
+use ../environment.nu display-message
 use ../environment.nu merge-gitignores
 use ../environment.nu merge-justfiles
 use ../environment.nu merge-pre-commit-configs
