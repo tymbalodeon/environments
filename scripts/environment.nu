@@ -1384,7 +1384,7 @@ def remove-file [file: string] {
 
   let action = "Removed"
 
-  display-message $action $file
+  display-message $action $file 
 }
 
 def remove-files [environment: string] {
