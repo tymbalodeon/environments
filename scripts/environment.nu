@@ -105,30 +105,9 @@ def get-comment-character [extension: string] {
 export def display-message [
   action: string
   message: string
+  style = "green_bold"
   --color-entire-message
 ] {
-  let color = match $color_entire_message {
-    true => (
-      match $action {
-        "Added" =>  "light_green_bold"
-        "Removed" => "light_yellow_bold"
-        "Skipped" => "white_bold"
-        "Upgraded" =>  "light_cyan_bold"
-        _ => "white"
-      }
-    )
-
-    false => (
-      match $action {
-        "Added" =>  "green_bold"
-        "Removed" => "yellow_bold"
-        "Skipped" => "light_gray_dimmed"
-        "Upgraded" =>  "cyan_bold"
-        _ => "white"
-      }
-    )
-  }
-
   mut action = $action
 
   while (($action | split chars | length) < 12) {
@@ -136,9 +115,9 @@ export def display-message [
   }
 
   let message = if $color_entire_message {
-    $"(ansi $color)($action) ($message)(ansi reset)"
+    $"(ansi $style)($action) ($message)(ansi reset)"
   } else {
-    $"(ansi $color)($action)(ansi reset) ($message)"
+    $"(ansi $style)($action)(ansi reset) ($message)"
   }
 
   print $"  ($message)"
@@ -175,6 +154,30 @@ def get-file-status [contents: string filename: string] {
     $action
   } else {
     "Added"
+  }
+}
+
+def get-action-color [action: string --bright] {
+  match $bright {
+    true => (
+      match $action {
+        "Added" =>  "light_green_bold"
+        "Removed" => "light_yellow_bold"
+        "Skipped" => "white_bold"
+        "Upgraded" =>  "light_cyan_bold"
+        _ => "white"
+      }
+    )
+
+    false => (
+      match $action {
+        "Added" =>  "green_bold"
+        "Removed" => "yellow_bold"
+        "Skipped" => "light_gray_dimmed"
+        "Upgraded" =>  "cyan_bold"
+        _ => "white"
+      }
+    )
   }
 }
 
@@ -285,6 +288,7 @@ def copy-files [
 
       let contents = (http-get --raw $file.download_url)
       let action = (get-file-status $contents $path)
+      let color = (get-action-color $action)
 
       if $action != Skipped {
         $contents
@@ -299,7 +303,7 @@ def copy-files [
         set-executable $path
       }
 
-      display-message $action $path 
+      display-message $action $path $color
 
       $action
     }
@@ -540,7 +544,9 @@ export def save-file [contents: string filename: string] {
     | save --force $filename
   }
 
-  display-message $action $filename 
+  let color = (get-action-color $action)
+
+  display-message $action $filename $color
 
   $action
 }
@@ -993,11 +999,14 @@ export def "main add" [
       "Skipped"
     }
 
+    let color = (get-action-color $action)
+
     (
       display-message 
         --color-entire-message
         $action 
         $"($environment) environment" 
+        $color
     )
   }
 
@@ -1380,7 +1389,10 @@ def get-top-level-files [
 def remove-file [file: string] {
   rm --force $file
 
-  display-message Removed $file 
+  let action = "Removed"
+  let color = (get-action-color $action)
+
+  display-message $action $file $color
 }
 
 def remove-files [environment: string] {
@@ -1542,11 +1554,15 @@ def "main remove" [
         (open --raw .pre-commit-config.yaml)
     )
 
+    let action = "Removed"
+    let color = (get-action-color $action)
+
     (
       display-message 
         --color-entire-message
-        Removed
+        $action 
         $"($environment) environment" 
+        $color
     )
   }
 

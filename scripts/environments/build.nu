@@ -46,7 +46,7 @@ def get-environment-directories [environment_files: list<string>] {
 def copy-file [source_file: string file: string] {
   cp $source_file $file
 
-  display-message Updated $file
+  display-message Upgraded $file
 }
 
 def copy-files [environment_files: list<string>] {
