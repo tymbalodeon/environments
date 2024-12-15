@@ -60,6 +60,6 @@ alias src := view-source
 
 mod environments "just/environments.just"
 
-# Alias for `environments build`
+# alias for `environments build`
 @build *args:
     just environments build {{ args }}

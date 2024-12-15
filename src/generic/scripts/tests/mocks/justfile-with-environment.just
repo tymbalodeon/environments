@@ -61,42 +61,42 @@
 
 mod python "just/python.just"
 
-# Alias for `python add`
+# alias for `python add`
 @add *args:
     just python add {{ args }}
 
-# Alias for `python build`
+# alias for `python build`
 @build *args:
     just python build {{ args }}
 
-# Alias for `python clean`
+# alias for `python clean`
 @clean *args:
     just python clean {{ args }}
 
-# Alias for `python coverage`
+# alias for `python coverage`
 @coverage *args:
     just python coverage {{ args }}
 
-# Alias for `python install`
+# alias for `python install`
 @install *args:
     just python install {{ args }}
 
-# Alias for `python profile`
+# alias for `python profile`
 @profile *args:
     just python profile {{ args }}
 
-# Alias for `python remove`
+# alias for `python remove`
 @remove *args:
     just python remove {{ args }}
 
-# Alias for `python run`
+# alias for `python run`
 @run *args:
     just python run {{ args }}
 
-# Alias for `python shell`
+# alias for `python shell`
 @shell *args:
     just python shell {{ args }}
 
-# Alias for `python test`
+# alias for `python test`
 @test *args:
     just python test {{ args }}
