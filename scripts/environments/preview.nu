@@ -38,7 +38,10 @@ def main [environment?: string] {
   | str replace "[directory]" $directory
   | save preview-layout.kdl
 
-  zellij --layout preview-layout.kdl
+  let session_name = "environments-preview"
+
+  zellij --layout preview-layout.kdl --session $session_name
+  zeelij delete-session $session_name
 
   rm --force --recursive $directory
 }
