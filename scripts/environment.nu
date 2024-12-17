@@ -233,6 +233,8 @@ def copy-files [
       | filter {|filename| $filename not-in $environment_files.path}
     ) {
       rm --force --recursive $file
+
+      display-message Removed $file
     }
   }
 
