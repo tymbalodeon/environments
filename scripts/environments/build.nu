@@ -224,14 +224,14 @@ def main [
   --force # Build environment even if up-to-date
   --update-pre-commit-configs # Update all pre-commit-conifg files
 ] {
+  if $force or $update_pre_commit_configs {
+    pre-commit-update
+  }
+
   if $force {
     force-copy-files
   } else {
     copy-outdated-files
-  }
-
-  if $force or $update_pre_commit_configs {
-    pre-commit-update
   }
 
   update-readme
