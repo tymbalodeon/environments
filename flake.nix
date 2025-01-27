@@ -15,7 +15,11 @@
 
           modules =
             map (module: (import ./nix/${module} {inherit pkgs;}))
-            (builtins.attrNames (builtins.readDir ./nix));
+            (
+              if (builtins.pathExists ./nix)
+              then (builtins.attrNames (builtins.readDir ./nix))
+              else []
+            );
 
           pkgs = import nixpkgs {inherit system;};
         });
