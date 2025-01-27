@@ -61,6 +61,7 @@
               pre-commit
               python312Packages.pre-commit-hooks
               ripgrep
+              serie
               statix
               stylelint
               taplo
