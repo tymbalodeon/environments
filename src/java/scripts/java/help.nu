@@ -1,6 +1,5 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
 use ../help.nu display-just-help
 
 # View help text
@@ -15,6 +14,6 @@ def main [
       $recipe
       $subcommands
       --environment $environment
-      --justfile (get-project-path $"just/($environment).just")
+      --justfile $"just/($environment).just"
   )
 }

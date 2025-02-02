@@ -1,6 +1,7 @@
 # View help text
+[no-cd]
 @help *recipe:
-    ../scripts/java/help.nu {{ recipe }}
+    ./scripts/java/help.nu {{ recipe }}
 
 # Remove compiled files
 @clean *help:
