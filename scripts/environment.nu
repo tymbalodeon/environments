@@ -588,7 +588,7 @@ export def merge-justfiles [
 }
 
 export def save-file [filename: string contents?: string] {
-  let action = (get-file-status$filename $contents)
+  let action = (get-file-status $filename $contents)
 
   if $action != Skipped {
     $contents
