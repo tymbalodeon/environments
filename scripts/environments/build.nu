@@ -80,21 +80,21 @@ def copy-files [environment_files: list<string>] {
 }
 
 def copy-justfile [] {
-  save-file (
+  save-file Justfile (
     merge-justfiles
       generic
       Justfile
       src/generic/Justfile
-  ) Justfile
+  )
 }
 
 def copy-gitignore [] {
-  save-file (
+  save-file .gitignore (
     merge-gitignores
       (open  (get-project-path .gitignore))
       generic
       (open (get-project-path src/generic/.gitignore))
-  ) .gitignore
+  )
 }
 
 def copy-pre-commit-config [] {

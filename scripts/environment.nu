@@ -601,7 +601,7 @@ export def save-file [filename: string contents?: string] {
 }
 
 def save-justfile [justfile?: string] {
-  save-file Justfile $justfile 
+  save-file Justfile $justfile
 }
 
 def initialize-generic-file [filename: string] {
@@ -740,7 +740,7 @@ def get-environment-name [
 }
 
 def save-gitignore [gitignore: string] {
-  save-file .gitignore $gitignore 
+  save-file .gitignore $gitignore
 }
 
 def is-up-to-date [
@@ -928,7 +928,7 @@ export def merge-pre-commit-configs [
 }
 
 export def save-pre-commit-config [config: string] {
-  save-file .pre-commit-config.yaml $config 
+  save-file .pre-commit-config.yaml $config
 }
 
 def copy-pre-commit-config [
