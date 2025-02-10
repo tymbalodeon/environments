@@ -493,8 +493,6 @@ def get-environment-recipe [environment: string recipe: string] {
   let declaration = $"@($recipe) *args:"
   let content = $"    just ($environment) ($recipe) {{ args }}"
 
-  print HEEEEEEEEEEEEERE
-
   [$documentation $group $declaration $content]
   | str join "\n"
 }
