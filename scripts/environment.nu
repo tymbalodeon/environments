@@ -489,10 +489,13 @@ def get-just-command-names [justfile: string] {
 
 def get-environment-recipe [environment: string recipe: string] {
   let documentation = $"# alias for `($environment) ($recipe)`"
+  let group = "[group(\"aliases\")]"
   let declaration = $"@($recipe) *args:"
   let content = $"    just ($environment) ($recipe) {{ args }}"
 
-  [$documentation $declaration $content]
+  print HEEEEEEEEEEEEERE
+
+  [$documentation $group $declaration $content]
   | str join "\n"
 }
 

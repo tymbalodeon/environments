@@ -6,7 +6,7 @@
 @check *args:
     ./scripts/check.nu {{ args }}
 
-# List dependencies (alias: `deps`)
+# List dependencies
 @dependencies *args:
     ./scripts/dependencies.nu {{ args }}
 
@@ -61,5 +61,6 @@ alias src := view-source
 mod environments "just/environments.just"
 
 # alias for `environments build`
+[group("aliases")]
 @build *args:
     just environments build {{ args }}
