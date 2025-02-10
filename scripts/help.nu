@@ -85,18 +85,28 @@ export def display-just-help [
 def main [
   recipe?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
-  --no-aliases
+  --aliases
 ] {
   let output = (display-just-help $recipe $subcommands)
 
   print (
-    if $no_aliases {
+    if $aliases {
       $output
-      | lines
-      | filter {"alias for" not-in $in}
-      | str join "\n"
     } else {
       $output
+      | split row "[aliases]"
+      | first
+      | lines
+      | filter {
+          |line|
+
+          $line
+          | ansi strip
+          | rg '[^\s]'
+          | is-not-empty
+
+        }
+      | str join "\n"
     }
   )
 }
