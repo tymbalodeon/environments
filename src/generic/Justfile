@@ -6,7 +6,7 @@
 @check *args:
     ./scripts/check.nu {{ args }}
 
-# List dependencies (alias: `deps`)
+# List dependencies
 @dependencies *args:
     ./scripts/dependencies.nu {{ args }}
 
