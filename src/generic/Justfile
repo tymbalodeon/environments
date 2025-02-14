@@ -1,6 +1,6 @@
-# View help text
-@help *recipe:
-    ./scripts/help.nu {{ recipe }}
+# View full help text, or for a specific recipe
+@help *args:
+    ./scripts/help.nu {{ args }}
 
 # Check flake and run pre-commit hooks
 @check *args:
