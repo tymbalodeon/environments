@@ -99,16 +99,8 @@ def main [
       $output
       | split row "[aliases]"
       | first
-      | lines
-      | filter {
-          |line|
-
-          $line
-          | ansi strip
-          | rg '[^\s]'
-          | is-not-empty
-        }
-      | str join "\n"
+      | split row "\n\n"
+      | first
     } else {
       $output
     }
