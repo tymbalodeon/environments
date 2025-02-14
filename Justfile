@@ -1,7 +1,7 @@
 @default:
     just help --default
 
-# View help text
+# View full help text, or for a specific recipe
 @help *args:
     ./scripts/help.nu {{ args }}
 
