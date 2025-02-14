@@ -1,23 +1,25 @@
-# View help text
-@help *recipe:
-    ./scripts/help.nu {{ recipe }}
+@default:
+    just help --default
 
-# View file annotated with version control information
-[no-cd]
-@annotate *filename:
-    ./scripts/annotate.nu {{ filename }}
+# View help text
+@help *args:
+    ./scripts/help.nu {{ args }}
 
 # Check flake and run pre-commit hooks
 @check *args:
     ./scripts/check.nu {{ args }}
 
 # List dependencies
-@deps *args:
-    ./scripts/deps.nu {{ args }}
+@dependencies *args:
+    ./scripts/dependencies.nu {{ args }}
 
-# View the diff between environments
-@diff-env *args:
-    ./scripts/diff-env.nu {{ args }}
+alias deps := dependencies
+
+# Manage environments
+@environment *args:
+    ./scripts/environment.nu {{ args }}
+
+alias env := environment
 
 # Search available `just` recipes
 [no-cd]
@@ -25,14 +27,12 @@
 @find-recipe *search_term:
     ./scripts/find-recipe.nu {{ search_term }}
 
+alias find := find-recipe
+
 # View project history
 [no-cd]
 @history *args:
     ./scripts/history.nu {{ args }}
-
-# Initialize direnv environment
-@init *help:
-    ./scripts/init.nu {{ help }}
 
 # View issues
 @issue *args:
@@ -50,53 +50,65 @@
 @stats *help:
     ./scripts/stats.nu {{ help }}
 
-# Update dependencies
-@update *help:
-    ./scripts/update.nu {{ help }}
+# Run tests
+@test *args:
+    ./scripts/test.nu {{ args }}
 
 # View the source code for a recipe
 [no-cd]
 @view-source *recipe:
     ./scripts/view-source.nu {{ recipe }}
 
+alias src := view-source
+
 mod python "just/python.just"
 
 # alias for `python add`
+[group("aliases")]
 @add *args:
     just python add {{ args }}
 
 # alias for `python build`
+[group("aliases")]
 @build *args:
     just python build {{ args }}
 
 # alias for `python clean`
+[group("aliases")]
 @clean *args:
     just python clean {{ args }}
 
 # alias for `python coverage`
+[group("aliases")]
 @coverage *args:
     just python coverage {{ args }}
 
 # alias for `python install`
+[group("aliases")]
 @install *args:
     just python install {{ args }}
 
 # alias for `python profile`
+[group("aliases")]
 @profile *args:
     just python profile {{ args }}
 
 # alias for `python remove`
+[group("aliases")]
 @remove *args:
     just python remove {{ args }}
 
 # alias for `python run`
+[group("aliases")]
 @run *args:
     just python run {{ args }}
 
 # alias for `python shell`
+[group("aliases")]
 @shell *args:
     just python shell {{ args }}
 
-# alias for `python test`
-@test *args:
-    just python test {{ args }}
+# alias for `python update`
+[group("aliases")]
+@update *args:
+    just python update {{ args }}

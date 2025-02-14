@@ -1,6 +1,6 @@
 # View help text
 @help *recipe:
-    ../scripts/python/help.nu {{ recipe }}
+    ./scripts/help.nu {{ recipe }}
 
 # Add dependencies
 @add *args:

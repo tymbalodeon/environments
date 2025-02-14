@@ -1,6 +1,9 @@
+@default:
+    just help --default
+
 # View help text
-@help *recipe:
-    ./scripts/help.nu {{ recipe }}
+@help *args:
+    ./scripts/help.nu {{ args }}
 
 # Check flake and run pre-commit hooks
 @check *args:
