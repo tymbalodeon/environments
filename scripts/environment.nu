@@ -460,15 +460,11 @@ def download-environment-file [
 }
 
 def get-recipe-or-alias-name []: [
-  record<
-    deps: record<
-      attributes: list<any>,
-      name: string,
-      target: string
-    >
-  >  -> list<string>
+  record -> list<string>
 ] {
-  $in | transpose | get column0
+  $in
+  | transpose
+  | get column0
 }
 
 def get-just-command-names [justfile: string] {
