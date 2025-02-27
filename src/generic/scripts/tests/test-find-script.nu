@@ -46,15 +46,39 @@ let scripts = [
   scripts/view-source.nu
 ]
 
-assert equal (get-script help $scripts scripts) scripts/help.nu
+#[test]
+def test-get-script-help [] {
+  assert equal (get-script help $scripts scripts) scripts/help.nu
+}
 
-assert equal (
-  get-script environments/help $scripts scripts
-) scripts/environments/help.nu
+#[test]
+def test-get-script-environments-help [] {
+  assert equal (
+    get-script environments/help $scripts scripts
+  ) scripts/environments/help.nu
+}
 
-assert equal (
-  get-script environments::help $scripts scripts
-) scripts/environments/help.nu
+#[test]
+def test-get-script-environments-help-colons [] {
+  assert equal (
+    get-script environments::help $scripts scripts
+  ) scripts/environments/help.nu
+}
 
-assert equal (get-script python/help $scripts scripts) scripts/python/help.nu
-assert equal (get-script python::help $scripts scripts) scripts/python/help.nu
+#[test]
+def test-get-script-python [] {
+  (
+    assert equal
+      (get-script python/help $scripts scripts)
+      scripts/python/help.nu
+  )
+}
+
+#[test]
+def test-get-script-python-colons [] {
+  (
+    assert equal
+      (get-script python::help $scripts scripts)
+      scripts/python/help.nu
+  )
+}

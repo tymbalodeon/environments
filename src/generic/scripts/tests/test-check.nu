@@ -3,7 +3,7 @@ use std assert
 use ../check.nu get-pre-commit-hook-names
 
 #[test]
-def test-check [] {
+def test-get-pre-commit-hook-names [] {
   let config = "
   repos:
     - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update

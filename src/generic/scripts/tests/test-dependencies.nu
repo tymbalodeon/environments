@@ -38,10 +38,11 @@ yaml-language-server
 yamlfmt
 "
 
-let test_dependencies = [
-  {
-    actual: (merge-flake-dependencies $generic_flake)
-    expected: "alejandra
+#[test]
+def test-merge-flake-dependencies-generic [] {
+  let actual = (merge-flake-dependencies $generic_flake)
+
+  let expected = "alejandra
 ansible-language-server
 bat
 cocogitto
@@ -69,11 +70,15 @@ vscode-langservers-extracted
 yaml-language-server
 yamlfmt
 "
-  }
 
-  {
-    actual: (merge-flake-dependencies $generic_flake $environment_flake)
-    expected: "alejandra
+  assert equal $actual $expected
+}
+
+#[test]
+def test-merge-flake-dependencies-environment [] {
+  let actual = (merge-flake-dependencies $generic_flake $environment_flake)
+
+  let expected = "alejandra
 ansible-language-server
 bat
 cocogitto
@@ -105,9 +110,6 @@ vscode-langservers-extracted
 yaml-language-server
 yamlfmt
 "
-  }
-]
 
-for dependencies in $test_dependencies {
-  assert equal $dependencies.actual $dependencies.expected
+  assert equal $actual $expected
 }

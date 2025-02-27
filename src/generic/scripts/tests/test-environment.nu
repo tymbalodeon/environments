@@ -1,8 +1,91 @@
 use std assert
 
+use ../environment.nu find-environment-file-url
+use ../environment.nu merge-gitignores
+use ../environment.nu merge-justfiles
 use ../environment.nu merge-pre-commit-configs
+use ../environment.nu remove-environment-from-gitignore
+use ../environment.nu remove-environment-from-justfile
+use ../environment.nu remove-environment-from-pre-commit-config
 
-let generic_pre_commit_config = "repos:
+def get-mock-file [filename: string] {
+  [$env.FILE_PWD tests mocks $filename]
+  | path join
+}
+
+#[test]
+def test-find-environment-file-url [] {
+  let environment_files = (
+    open (get-mock-file environment-files.nuon)
+  )
+
+  let actual_url = (
+    find-environment-file-url
+      python
+      .gitignore
+      $environment_files
+  )
+
+  let expected_url = "https://raw.githubusercontent.com/tymbalodeon/environments/trunk/src/python/.gitignore"
+
+  assert equal $actual_url $expected_url
+}
+
+#[test]
+def test-merge-gitignores [] {
+  let generic_gitignore = ".config
+.direnv
+.envrc
+.pdm-python
+.venv"
+
+  let environment_gitignore = "*.pyc
+.coverage
+__pycache__/
+build/
+dist/"
+
+  let actual_gitignore = (
+    merge-gitignores
+      $generic_gitignore
+      python
+      $environment_gitignore
+  )
+
+  let expected_gitignore = ".config
+.direnv
+.envrc
+.pdm-python
+.venv
+
+# python
+*.pyc
+.coverage
+__pycache__/
+build/
+dist/
+"
+
+  assert equal $actual_gitignore $expected_gitignore
+}
+
+#[test]
+def test-merge-justfiles [] {
+  let generic_justfile = (get-mock-file justfile-generic.just)
+  let environment_justfile = (get-mock-file justfile-environment.just)
+
+  let actual_justfile = (
+    merge-justfiles python $generic_justfile $environment_justfile
+  )
+
+  let expected_justfile = (get-mock-file justfile-with-environment.just)
+
+  assert equal $actual_justfile (open $expected_justfile | decode utf-8)
+}
+
+#[test]
+def test-merge-pre-commit-configs [] {
+  let generic_pre_commit_config = "repos:
   - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
     rev: v0.5.0
     hooks:
@@ -76,7 +159,7 @@ let generic_pre_commit_config = "repos:
           - commit-msg
 "
 
-let environment_pre_commit_config = "repos:
+  let environment_pre_commit_config = "repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -99,14 +182,14 @@ let environment_pre_commit_config = "repos:
         language: system
 "
 
-let actual_pre_commit_conifg = (
-  merge-pre-commit-configs
-    $generic_pre_commit_config
-    python
-    $environment_pre_commit_config
-)
+  let actual_pre_commit_conifg = (
+    merge-pre-commit-configs
+      $generic_pre_commit_config
+      python
+      $environment_pre_commit_config
+  )
 
-let expected_pre_commit_config = "repos:
+  let expected_pre_commit_config = "repos:
   - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
     rev: v0.5.0
     hooks:
@@ -201,4 +284,50 @@ let expected_pre_commit_config = "repos:
         language: system
 "
 
-assert equal $actual_pre_commit_conifg $expected_pre_commit_config
+  assert equal $actual_pre_commit_conifg $expected_pre_commit_config
+}
+
+#[test]
+def test-remove-environment-from-gitignore [] {
+  let source_gitignore = (get-mock-file .gitignore-with-environment)
+
+  let actual_gitignore = (
+    remove-environment-from-gitignore python (open $source_gitignore)
+  )
+
+  let expected_gitignore = (get-mock-file .gitignore-generic)
+
+  assert equal $actual_gitignore (open $expected_gitignore)
+}
+
+#[test]
+def test-remove-environment-from-justfile [] {
+  let source_justfile = (get-mock-file justfile-with-environment.just)
+
+  let actual_justfile = (
+    remove-environment-from-justfile python (open $source_justfile)
+  )
+
+  let expected_justfile = (get-mock-file justfile-generic.just)
+
+  assert equal $actual_justfile (open $expected_justfile)
+}
+
+#[test]
+def test-remove-environment-from-pre-commit-config [] {
+  let source_pre_commit_config = (
+    get-mock-file .pre-commit-config-with-environment.yaml
+  )
+
+  let actual_pre_commit_config = (
+    remove-environment-from-pre-commit-config
+      python
+      (open --raw $source_pre_commit_config)
+  )
+
+  let expected_pre_commit_config = (
+    get-mock-file .pre-commit-config-generic.yaml
+    )
+
+  assert equal $actual_pre_commit_config (open --raw $expected_pre_commit_config)
+}
