@@ -8,15 +8,27 @@ use ../environment.nu remove-environment-from-gitignore
 use ../environment.nu remove-environment-from-justfile
 use ../environment.nu remove-environment-from-pre-commit-config
 
-def get-mock-file [filename: string] {
-  [$env.FILE_PWD tests mocks $filename]
-  | path join
+#[before-all]
+def get-mock-files [] {
+  {
+    mocks: (fd --hidden "" (fd mocks) | lines)
+  }
+}
+
+def get-mock-file [mocks: list<string> filename: string] {
+  $mocks
+  | filter {
+      |file|
+
+      ($file | path basename) == $filename
+    } 
+  | first
 }
 
 #[test]
 def test-find-environment-file-url [] {
   let environment_files = (
-    open (get-mock-file environment-files.nuon)
+    open (get-mock-file $in.mocks environment-files.nuon)
   )
 
   let actual_url = (
@@ -71,14 +83,14 @@ dist/
 
 #[test]
 def test-merge-justfiles [] {
-  let generic_justfile = (get-mock-file justfile-generic.just)
-  let environment_justfile = (get-mock-file justfile-environment.just)
+  let generic_justfile = (get-mock-file $in.mocks justfile-generic.just)
+  let environment_justfile = (get-mock-file $in.mocks justfile-environment.just)
 
   let actual_justfile = (
     merge-justfiles python $generic_justfile $environment_justfile
   )
 
-  let expected_justfile = (get-mock-file justfile-with-environment.just)
+  let expected_justfile = (get-mock-file $in.mocks justfile-with-environment.just)
 
   assert equal $actual_justfile (open $expected_justfile | decode utf-8)
 }
@@ -289,26 +301,26 @@ def test-merge-pre-commit-configs [] {
 
 #[test]
 def test-remove-environment-from-gitignore [] {
-  let source_gitignore = (get-mock-file .gitignore-with-environment)
+  let source_gitignore = (get-mock-file $in.mocks .gitignore-with-environment)
 
   let actual_gitignore = (
     remove-environment-from-gitignore python (open $source_gitignore)
   )
 
-  let expected_gitignore = (get-mock-file .gitignore-generic)
+  let expected_gitignore = (get-mock-file $in.mocks .gitignore-generic)
 
   assert equal $actual_gitignore (open $expected_gitignore)
 }
 
 #[test]
 def test-remove-environment-from-justfile [] {
-  let source_justfile = (get-mock-file justfile-with-environment.just)
+  let source_justfile = (get-mock-file $in.mocks justfile-with-environment.just)
 
   let actual_justfile = (
     remove-environment-from-justfile python (open $source_justfile)
   )
 
-  let expected_justfile = (get-mock-file justfile-generic.just)
+  let expected_justfile = (get-mock-file $in.mocks justfile-generic.just)
 
   assert equal $actual_justfile (open $expected_justfile)
 }
@@ -316,7 +328,7 @@ def test-remove-environment-from-justfile [] {
 #[test]
 def test-remove-environment-from-pre-commit-config [] {
   let source_pre_commit_config = (
-    get-mock-file .pre-commit-config-with-environment.yaml
+    get-mock-file $in.mocks .pre-commit-config-with-environment.yaml
   )
 
   let actual_pre_commit_config = (
@@ -326,7 +338,7 @@ def test-remove-environment-from-pre-commit-config [] {
   )
 
   let expected_pre_commit_config = (
-    get-mock-file .pre-commit-config-generic.yaml
+    get-mock-file $in.mocks .pre-commit-config-generic.yaml
     )
 
   assert equal $actual_pre_commit_config (open --raw $expected_pre_commit_config)
