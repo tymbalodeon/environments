@@ -78,14 +78,26 @@ export def get-tests [
 
 # Run tests
 def main [
-  search_term?: string # Run tests matching $search_term only
-  --file: string  # Run tests for $file only
-  --function: string # Run tests for $function only
-  --module: string # Run tests for $module only
+  --match-suites: string # Regular expression to match against suite names (defaults to all)
+  --match-tests: string # Regular expression to match against test names (defaults to all)
 ] {
+  let command = "use nutest; nutest run-tests"
+
+  let command = if ($match_suites | is-not-empty) {
+    $"($command) --match-suites ($match_suites)"
+  } else {
+    $command
+  }
+
+  let command = if ($match_tests | is-not-empty) {
+    $"($command) --match-tests ($match_tests)"
+  } else {
+    $command
+  }
+
   (
     nu
-      --commands "use nutest; nutest run-tests"
+      --commands $command
       --include-path $env.NUTEST
   )
 }
