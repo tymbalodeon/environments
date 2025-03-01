@@ -33,6 +33,10 @@ def main [] {
       $source_modified > $build_modified
     ) {
       uv build
+
+      let wheel = (fd --extension whl --no-ignore | lines | last)
+
+      pipx install $wheel --force
     }
   }
 }
