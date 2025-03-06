@@ -878,22 +878,20 @@ export def merge-pre-commit-configs [
           | first
         }
 
-        let yaml = {
-          let yaml = if ($first_line | is-empty) {
-            $config
-          } else {
-            $config
-            | lines
-            | drop nth 0
-            | to text
-          }
+        let yaml = if ($first_line | is-empty) {
+          $config
+        } else {
+          $config
+          | lines
+          | drop nth 0
+          | to text
+        }
 
-          if (which yamlfmt | is-not-empty) {
-            $yaml
-            | yamlfmt -
-          } else {
-            $yaml
-          }
+        let yaml = if (which yamlfmt | is-not-empty) {
+          $yaml
+          | yamlfmt -
+        } else {
+          $yaml
         }
 
         if ($first_line | is-empty) {
