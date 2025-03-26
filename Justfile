@@ -51,10 +51,6 @@ alias find := find-recipe
 @stats *help:
     ./scripts/stats.nu {{ help }}
 
-# Run tests
-@test *args:
-    ./scripts/test.nu {{ args }}
-
 # View the source code for a recipe
 [no-cd]
 @view-source *recipe:
@@ -64,7 +60,5 @@ alias src := view-source
 
 mod environments "just/environments.just"
 
-# alias for `environments build`
-[group("aliases")]
-@build *args:
-    just environments build {{ args }}
+alias build := environments::build
+alias preview := environments::preview

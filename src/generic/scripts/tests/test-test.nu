@@ -1,6 +1,6 @@
 use std assert
 
-use ../test.nu get-tests
+use ../environment.nu get-tests
 
 let tests = [
   scripts/environments/tests/test-build--get-outdated-files.nu

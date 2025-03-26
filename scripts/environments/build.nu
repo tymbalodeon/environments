@@ -80,7 +80,7 @@ def copy-files [environment_files: list<string>] {
 }
 
 def copy-justfile [] {
-  save-file Justfile (
+  save-file Justfile true (
     merge-justfiles
       generic
       Justfile
@@ -89,7 +89,7 @@ def copy-justfile [] {
 }
 
 def copy-gitignore [] {
-  save-file .gitignore (
+  save-file .gitignore true (
     merge-gitignores
       (open  (get-project-path .gitignore))
       generic
