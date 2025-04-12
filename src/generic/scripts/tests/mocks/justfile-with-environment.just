@@ -63,52 +63,13 @@ alias src := view-source
 
 mod python "just/python.just"
 
-# alias for `python add`
-[group("aliases")]
-@add *args:
-    just python add {{ args }}
-
-# alias for `python build`
-[group("aliases")]
-@build *args:
-    just python build {{ args }}
-
-# alias for `python clean`
-[group("aliases")]
-@clean *args:
-    just python clean {{ args }}
-
-# alias for `python coverage`
-[group("aliases")]
-@coverage *args:
-    just python coverage {{ args }}
-
-# alias for `python install`
-[group("aliases")]
-@install *args:
-    just python install {{ args }}
-
-# alias for `python profile`
-[group("aliases")]
-@profile *args:
-    just python profile {{ args }}
-
-# alias for `python remove`
-[group("aliases")]
-@remove *args:
-    just python remove {{ args }}
-
-# alias for `python run`
-[group("aliases")]
-@run *args:
-    just python run {{ args }}
-
-# alias for `python shell`
-[group("aliases")]
-@shell *args:
-    just python shell {{ args }}
-
-# alias for `python update`
-[group("aliases")]
-@update *args:
-    just python update {{ args }}
+alias add := python::add
+alias build := python::build
+alias clean := python::clean
+alias coverage := python::coverage
+alias install := python::install
+alias profile := python::profile
+alias remove := python::remove
+alias run := python::run
+alias shell := python::shell
+alias update := python::update
