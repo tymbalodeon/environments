@@ -1,4 +1,4 @@
-\version "2.25.16"
+\version "2.25.24"
 
 \include "add-articulations.ily"
 
