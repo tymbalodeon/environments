@@ -1,4 +1,6 @@
 [[language]]
 name = "haskell"
 auto-format = true
-formatter = { command = "sh", args = ["-c", "fourmolu", "--stdin-input-file $(pwd)" ] }
+
+[language-server.haskell-language-server.config]
+formattingProvider = "fourmolu"
