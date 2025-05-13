@@ -34,5 +34,5 @@
         )
     );
 
-  RUST_BACKTRACE = 1;
+  shellHook = "export RUST_BACKTRACE=1";
 }

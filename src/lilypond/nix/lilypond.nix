@@ -1,9 +1,4 @@
 {pkgs}: {
-  FONTCONFIG_FILE = with pkgs;
-    makeFontsConf {
-      fontDirectories = [freefont_ttf];
-    };
-
   packages = with pkgs; [
     deadnix
     fd
@@ -23,4 +18,11 @@
     zathura
     zellij
   ];
+
+  shellHook = ''
+    export FONTCONFIG_FILE=${with pkgs;
+      makeFontsConf {
+        fontDirectories = [freefont_ttf];
+      }}
+  '';
 }
