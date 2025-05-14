@@ -10,3 +10,5 @@
 # Preview dev environments
 @preview *args:
     ../scripts/environments/preview.nu {{ args }}
+
+    # testing

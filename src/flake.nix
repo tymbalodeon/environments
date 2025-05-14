@@ -18,7 +18,7 @@
           (
             environment:
               pkgs.mkShellNoCC (
-                import ./${environment}/nix/${environment}.nix {inherit pkgs;}
+                import ./${environment}/flake.nix {inherit pkgs;}
               )
           )
       );

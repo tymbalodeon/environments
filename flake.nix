@@ -25,6 +25,28 @@
         "x86_64-linux"
       ] (
         system: let
+          activeEnvironments = (
+            if (builtins.pathExists ./.environments.toml)
+            then
+              (
+                builtins.fromTOML (builtins.readFile ./.environments.toml)
+              ).environments
+            else []
+          );
+
+          inactiveEnvironments = (
+            builtins.filter
+            (environment: !(builtins.elem environment activeEnvironments))
+            (let
+              srcDirectory = builtins.readDir environments;
+              srcDirectoryItems = builtins.attrNames srcDirectory;
+            in (
+              builtins.filter
+              (item: srcDirectory.${item} == "directory")
+              srcDirectoryItems
+            ))
+          );
+
           mergeModuleAttrs = {
             attr,
             nullValue,
@@ -45,12 +67,12 @@
             inherit system;
           };
         in {
+          inherit inactiveEnvironments;
           default = pkgs.mkShellNoCC ({
               inputsFrom =
                 builtins.map
                 (environment: environments.devShells.${system}.${environment})
-                # TODO: read this from a local dotfile so that the file can easily be updated via a script
-                ["lilypond"];
+                activeEnvironments;
 
               packages = with pkgs;
                 [
@@ -97,9 +119,39 @@
               shellHook = with pkgs;
                 lib.concatLines (
                   [
-                    "pre-commit install --hook-type commit-msg"
                     "export NUTEST=${nutest}"
+                    "pre-commit install --hook-type commit-msg --overwrite"
+                    ''
+                      for environment in ${
+                        lib.concatStringsSep " " inactiveEnvironments
+                      }
+                      do
+                        justfile=./just/''\${environment}.just
+                        [[ -f $justfile ]] && rm --force $justfile
+
+                        scripts_directory=./scripts/''\${environment}
+
+                        [[ -d $scripts_directory ]] &&
+                        sudo rm --force --recursive $scripts_directory
+                      done''
                   ]
+                  ++ map
+                  (environment: let
+                    environmentPath = "${environments}/${environment}";
+                  in ''
+                    cp \
+                      --recursive \
+                      --update \
+                      ${environmentPath}/Justfile \
+                      ./just/${environment}.just
+
+                    cp \
+                      --recursive \
+                      --update \
+                      ${environmentPath}/scripts/${environment} \
+                      ./scripts
+                  '')
+                  activeEnvironments
                   ++ mergeModuleAttrs {
                     attr = "shellHook";
                     nullValue = "";
