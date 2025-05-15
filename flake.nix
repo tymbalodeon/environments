@@ -25,14 +25,20 @@
         "x86_64-linux"
       ] (
         system: let
-          activeEnvironments = (
-            if (builtins.pathExists ./.environments.toml)
-            then
-              (
-                builtins.fromTOML (builtins.readFile ./.environments.toml)
-              ).environments
-            else []
-          );
+          activeEnvironments =
+            [
+              "generic"
+              "nix"
+              "yaml"
+            ]
+            ++ (
+              if (builtins.pathExists ./.environments.toml)
+              then
+                (
+                  builtins.fromTOML (builtins.readFile ./.environments.toml)
+                ).environments
+              else []
+            );
 
           inactiveEnvironments = (
             builtins.filter
@@ -67,54 +73,16 @@
             inherit system;
           };
         in {
-          inherit inactiveEnvironments;
           default = pkgs.mkShellNoCC ({
               inputsFrom =
                 builtins.map
                 (environment: environments.devShells.${system}.${environment})
                 activeEnvironments;
 
-              packages = with pkgs;
-                [
-                  alejandra
-                  ansible-language-server
-                  bash
-                  bat
-                  cocogitto
-                  deadnix
-                  delta
-                  eza
-                  fd
-                  flake-checker
-                  fzf
-                  gh
-                  git
-                  glab
-                  jujutsu
-                  just
-                  lychee
-                  markdown-oxide
-                  marksman
-                  nb
-                  nil
-                  nodePackages.prettier
-                  nushell
-                  pre-commit
-                  python312Packages.pre-commit-hooks
-                  ripgrep
-                  serie
-                  statix
-                  stylelint
-                  taplo
-                  tokei
-                  vscode-langservers-extracted
-                  yaml-language-server
-                  yamlfmt
-                ]
-                ++ mergeModuleAttrs {
-                  attr = "packages";
-                  nullValue = [];
-                };
+              packages = mergeModuleAttrs {
+                attr = "packages";
+                nullValue = [];
+              };
 
               shellHook = with pkgs;
                 lib.concatLines (
@@ -139,12 +107,18 @@
                   (environment: let
                     environmentPath = "${environments}/${environment}";
                   in ''
+                    justfile=${environmentPath}/Justfile
+
+                    [[ -f $justfile ]] && \
                     cp \
                       --recursive \
                       --update \
                       ${environmentPath}/Justfile \
                       ./just/${environment}.just
 
+                    scripts_directory=${environmentPath}/scripts/${environment}
+
+                    [[ -d $scripts_directory ]] && \
                     cp \
                       --recursive \
                       --update \
