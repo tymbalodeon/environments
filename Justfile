@@ -57,8 +57,4 @@ alias find := find-recipe
     ./scripts/view-source.nu {{ recipe }}
 
 alias src := view-source
-
 mod environments "just/environments.just"
-
-alias build := environments::build
-alias preview := environments::preview

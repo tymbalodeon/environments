@@ -32,7 +32,7 @@
               "yaml"
             ]
             ++ (
-              if (builtins.pathExists ./.environments.toml)
+              if builtins.pathExists ./.environments.toml
               then
                 (
                   builtins.fromTOML (builtins.readFile ./.environments.toml)
@@ -40,17 +40,24 @@
               else []
             );
 
+          getFilenames = dir: (
+            if builtins.pathExists dir
+            then builtins.attrNames (builtins.readDir dir)
+            else []
+          );
+
           inactiveEnvironments = (
             builtins.filter
             (environment: !(builtins.elem environment activeEnvironments))
-            (let
-              srcDirectory = builtins.readDir environments;
-              srcDirectoryItems = builtins.attrNames srcDirectory;
-            in (
-              builtins.filter
-              (item: srcDirectory.${item} == "directory")
-              srcDirectoryItems
-            ))
+            (
+              let
+                srcDirectory = builtins.readDir environments;
+                srcDirectoryItems = builtins.attrNames srcDirectory;
+              in
+                builtins.filter
+                (item: srcDirectory.${item} == "directory")
+                srcDirectoryItems
+            )
           );
 
           mergeModuleAttrs = {
@@ -61,18 +68,16 @@
             (map (module: module.${attr} or nullValue) modules);
 
           modules =
-            map (module: (import ./nix/${module} {inherit pkgs;}))
-            (
-              if (builtins.pathExists ./nix)
-              then (builtins.attrNames (builtins.readDir ./nix))
-              else []
-            );
+            map
+            (module: (import ./nix/${module} {inherit pkgs;}))
+            (getFilenames ./nix);
 
           pkgs = import nixpkgs {
             config.allowUnfree = true;
             inherit system;
           };
         in {
+          inherit getFilenames;
           default = pkgs.mkShellNoCC ({
               inputsFrom =
                 builtins.map
@@ -85,11 +90,13 @@
               };
 
               shellHook = with pkgs;
+              # TODO: handle aliases
                 lib.concatLines (
                   [
-                    "export NUTEST=${nutest}"
-                    "pre-commit install --hook-type commit-msg --overwrite"
                     ''
+                      export NUTEST=${nutest}
+                      pre-commit install --hook-type commit-msg --overwrite
+
                       for environment in ${
                         lib.concatStringsSep " " inactiveEnvironments
                       }
@@ -101,7 +108,40 @@
 
                         [[ -d $scripts_directory ]] &&
                         sudo rm --force --recursive $scripts_directory
-                      done''
+                      done
+
+                      cat "${environments}/generic/Justfile" > Justfile
+
+                      for environment in ${
+                        lib.concatStringsSep " " activeEnvironments
+                      }
+                      do
+                        [[ ''\${environment} != "generic" ]] && \
+                        [[
+                          -f \${environments}/''\${environment}/Justfile
+                        ]] && \
+                        echo \
+                          "mod ''\${environment} \"just/''\${environment}.just\"" >> \
+                          Justfile
+                      done
+
+                      for environment in ${
+                        lib.concatStringsSep " "
+                        (
+                          map
+                          (filename:
+                            builtins.elemAt
+                            (lib.strings.splitString "." filename)
+                            0)
+                          (getFilenames ./just)
+                        )
+                      }
+                      do
+                        echo \
+                          "mod ''\${environment} \"just/''\${environment}.just\"" >> \
+                          Justfile
+                      done
+                    ''
                   ]
                   ++ map
                   (environment: let
@@ -109,6 +149,7 @@
                   in ''
                     justfile=${environmentPath}/Justfile
 
+                    [[ ${environment} != "generic" ]] && \
                     [[ -f $justfile ]] && \
                     cp \
                       --recursive \

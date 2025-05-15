@@ -2,6 +2,7 @@
 .direnv
 .env
 .envrc
+Justfile
 just/*
 scripts/*
 
