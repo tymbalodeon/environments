@@ -77,7 +77,6 @@
             inherit system;
           };
         in {
-          inherit getFilenames;
           default = pkgs.mkShellNoCC ({
               inputsFrom =
                 builtins.map
@@ -91,6 +90,9 @@
 
               shellHook = with pkgs;
               # TODO: handle aliases
+              # TODO: use nushell scripts to do the following, calling pkgs.nu
+              # on the scripts instead of inlining bash?
+              # `${pkgs.nushell}/bin/nu ./scripts/environment.nu`, etc...
                 lib.concatLines (
                   [
                     ''
@@ -111,6 +113,7 @@
                       done
 
                       cat "${environments}/generic/Justfile" > Justfile
+                      printf "\n" >> Justfile
 
                       for environment in ${
                         lib.concatStringsSep " " activeEnvironments
