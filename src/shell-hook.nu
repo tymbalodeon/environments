@@ -33,10 +33,19 @@ def main [
       }
   )
 
+  mut index = 0
+
   for environment in (
     $active_environments ++ ($local_justfiles | split row " ")
   ) {
-    $"mod ($environment) \"just/($environment).just\"" 
+    $"mod ($environment) \"just/($environment).just\"\n" 
+    | save --append Justfile
+
+    $index += 1
+  }
+
+  if $index > 0 {
+    "\n"
     | save --append Justfile
   }
 
@@ -55,11 +64,47 @@ def main [
     let scripts_directory = $"($environment_path)/scripts/($environment)"
 
     (
-      cp
+      ^cp
         --recursive
         --update
         $"($environment_path)/scripts/($environment)"
         ./scripts
     )
+  }
+
+  let generic_recipes = (
+    just --summary
+    | split row " "
+    | filter {|recipe| "::" not-in $recipe}
+  )
+
+  let submodule_recipes = (
+    ls just
+    | get name
+    | each {
+        |justfile|
+
+        {
+          environment: ($justfile | path parse | get stem)
+
+          recipe: (
+            just --justfile $justfile --summary
+            | split row " "
+          )
+        }
+      }
+    | flatten
+    | sort-by recipe
+  )
+
+  for recipe in $submodule_recipes {
+    if (
+      $generic_recipes ++ $submodule_recipes
+      | find $recipe.recipe
+      | length
+    ) == 1 {
+      $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)\n"
+      | save --append Justfile
+    }
   }
 }
