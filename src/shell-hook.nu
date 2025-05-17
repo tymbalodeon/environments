@@ -5,18 +5,9 @@ def main [
   --inactive-environments: string
   --local-justfiles: string
 ] {
-  for environment in $inactive_environments {
-    let justfile = $"./just/($environment).just"
-
-    if ($justfile | path exists) {
-      rm --force $justfile
-    }
-
-    let scripts_directory = $"./scripts/($environment)"
-
-    if ($scripts_directory | path exists) {
-      sudo rm --force --recursive $scripts_directory
-    }
+  for environment in ($inactive_environments | split row " ") {
+    rm --force $"just/($environment).just"
+    sudo rm --force --recursive $"scripts/($environment)"
   }
 
   open $"($environments_directory)/generic/Justfile"
