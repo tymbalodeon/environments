@@ -7,7 +7,12 @@ def main [
 ] {
   for environment in ($inactive_environments | split row " ") {
     rm --force $"just/($environment).just"
-    sudo rm --force --recursive $"scripts/($environment)"
+
+    let scripts_directory = $"scripts/($environment)"
+
+    if ($scripts_directory | path exists) {
+      sudo rm --force --recursive $"scripts/($environment)"
+    }
   }
 
   open $"($environments_directory)/generic/Justfile"
@@ -50,7 +55,7 @@ def main [
     let scripts_directory = $"($environment_path)/scripts/($environment)"
 
     (
-      ^cp
+      cp
         --recursive
         --update
         $"($environment_path)/scripts/($environment)"

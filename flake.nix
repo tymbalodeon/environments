@@ -90,7 +90,6 @@
 
               shellHook = with pkgs;
                 lib.concatLines (
-                  # TODO: can/should the first two lines be in the nu script?
                   # TODO: handle .gitignore, .pre-commit, copying files
                   [
                     ''
