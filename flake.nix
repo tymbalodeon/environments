@@ -89,7 +89,6 @@
               };
 
               shellHook = with pkgs;
-              # TODO: handle aliases
                 lib.concatLines (
                   [
                     ''

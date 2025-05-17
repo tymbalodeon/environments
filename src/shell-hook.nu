@@ -1,3 +1,4 @@
+# TODO: add submodule aliases to main Justfile when they don't conflict
 def main [
   --active-environments: string
   --environments-directory: string
