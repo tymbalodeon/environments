@@ -117,30 +117,6 @@
                       }"
                     ''
                   ]
-                  ++ map
-                  (environment: let
-                    environmentPath = "${environments}/${environment}";
-                  in ''
-                    justfile=${environmentPath}/Justfile
-
-                    [[ ${environment} != "generic" ]] && \
-                    [[ -f $justfile ]] && \
-                    cp \
-                      --recursive \
-                      --update \
-                      ${environmentPath}/Justfile \
-                      ./just/${environment}.just
-
-                    scripts_directory=${environmentPath}/scripts/${environment}
-
-                    [[ -d $scripts_directory ]] && \
-                    cp \
-                      --recursive \
-                      --update \
-                      ${environmentPath}/scripts/${environment} \
-                      ./scripts
-                  '')
-                  activeEnvironments
                   ++ mergeModuleAttrs {
                     attr = "shellHook";
                     nullValue = "";

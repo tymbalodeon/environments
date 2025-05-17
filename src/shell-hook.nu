@@ -23,20 +23,46 @@ def main [
   | str join
   | save --force Justfile
 
-  for environment in (
-    (
-      ($active_environments | split row " ")
-      | filter {
-          |file|
+  let active_environments = (
+    $active_environments
+    | split row " "
+    | filter {
+        |environment|
 
-          $file != generic and (
-            $"($environments_directory)/($file)/Justfille"
-            | path exists
-          )
-        }
-    ) ++ ($local_justfiles | split row " ")
+        $environment != generic and (
+          $"($environments_directory)/($environment)/Justfile"
+          | path exists
+        )
+      }
+  )
+
+  for environment in (
+    $active_environments ++ ($local_justfiles | split row " ")
   ) {
     $"mod ($environment) \"just/($environment).just\"" 
     | save --append Justfile
+  }
+
+  for environment in $active_environments {
+    let environment_path = $"($environments_directory)/($environment)";
+    let justfile = $"($environment_path)/Justfile"
+
+    (
+      cp 
+        --recursive 
+        --update 
+        $"($environment_path)/Justfile"
+        $"./just/($environment).just"
+    )
+
+    let scripts_directory = $"($environment_path)/scripts/($environment)"
+
+    (
+      ^cp
+        --recursive
+        --update
+        $"($environment_path)/scripts/($environment)"
+        ./scripts
+    )
   }
 }
