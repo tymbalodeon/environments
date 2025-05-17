@@ -1,7 +1,8 @@
 def main [
-  --active_environments: list<string>
-  --environments_directory: string
-  --inactive_environments: list<string>
+  --active-environments: string
+  --environments-directory: string
+  --inactive-environments: string
+  --local-justfiles: string
 ] {
   for environment in $inactive_environments {
     let justfile = $"./just/($environment).just"
@@ -18,16 +19,24 @@ def main [
   }
 
   open $"($environments_directory)/generic/Justfile"
-  | save Justfile
+  | append "\n"
+  | str join
+  | save --force Justfile
 
-  for environment in $active_environments {
-    if ($environment != generic) and (
-      $"($environments_directory)/($environment)/Justfille"
-      | path exists
-    ) {
-      
-      $"mod ($environment) \"just/($environment).just\"" 
-      | save --append Justfile
-    }
+  for environment in (
+    (
+      ($active_environments | split row " ")
+      | filter {
+          |file|
+
+          $file != generic and (
+            $"($environments_directory)/($file)/Justfille"
+            | path exists
+          )
+        }
+    ) ++ ($local_justfiles | split row " ")
+  ) {
+    $"mod ($environment) \"just/($environment).just\"" 
+    | save --append Justfile
   }
 }

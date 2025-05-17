@@ -90,45 +90,21 @@
 
               shellHook = with pkgs;
               # TODO: handle aliases
-              # TODO: use nushell scripts to do the following, calling pkgs.nu
-              # on the scripts instead of inlining bash?
-              # `${pkgs.nushell}/bin/nu ./scripts/environment.nu`, etc...
                 lib.concatLines (
                   [
                     ''
                       export NUTEST=${nutest}
                       pre-commit install --hook-type commit-msg --overwrite
 
-                      for environment in ${
-                        lib.concatStringsSep " " inactiveEnvironments
-                      }
-                      do
-                        justfile=./just/''\${environment}.just
-                        [[ -f $justfile ]] && rm --force $justfile
-
-                        scripts_directory=./scripts/''\${environment}
-
-                        [[ -d $scripts_directory ]] &&
-                        sudo rm --force --recursive $scripts_directory
-                      done
-
-                      cat "${environments}/generic/Justfile" > Justfile
-                      printf "\n" >> Justfile
-
-                      for environment in ${
+                      ${pkgs.nushell}/bin/nu ${environments}/shell-hook.nu \
+                        --active-environments "${
                         lib.concatStringsSep " " activeEnvironments
-                      }
-                      do
-                        [[ ''\${environment} != "generic" ]] && \
-                        [[
-                          -f \${environments}/''\${environment}/Justfile
-                        ]] && \
-                        echo \
-                          "mod ''\${environment} \"just/''\${environment}.just\"" >> \
-                          Justfile
-                      done
-
-                      for environment in ${
+                      }" \
+                        --environments-directory "${environments}" \
+                        --inactive-environments "${
+                        lib.concatStringsSep " " inactiveEnvironments
+                      }" \
+                        --local-justfiles "${
                         lib.concatStringsSep " "
                         (
                           map
@@ -138,12 +114,7 @@
                             0)
                           (getFilenames ./just)
                         )
-                      }
-                      do
-                        echo \
-                          "mod ''\${environment} \"just/''\${environment}.just\"" >> \
-                          Justfile
-                      done
+                      }"
                     ''
                   ]
                   ++ map
