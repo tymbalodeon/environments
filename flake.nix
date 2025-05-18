@@ -28,6 +28,7 @@
           activeEnvironments =
             [
               "generic"
+              "git"
               "nix"
               "yaml"
             ]
@@ -94,7 +95,10 @@
                   [
                     ''
                       export NUTEST=${nutest}
-                      pre-commit install --hook-type commit-msg --overwrite
+
+                      ${pkgs.pre-commit}/bin/pre-commit install \
+                        --hook-type commit-msg \
+                        --overwrite
 
                       ${pkgs.nushell}/bin/nu ${environments}/shell-hook.nu \
                         --active-environments "${

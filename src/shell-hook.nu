@@ -1,10 +1,10 @@
-# TODO: add submodule aliases to main Justfile when they don't conflict
 def main [
   --active-environments: string
   --environments-directory: string
   --inactive-environments: string
   --local-justfiles: string
 ] {
+  # TODO: remove submodules and aliases for inactive environments
   for environment in ($inactive_environments | split row " ") {
     rm --force $"just/($environment).just"
 
@@ -12,6 +12,14 @@ def main [
 
     if ($scripts_directory | path exists) {
       sudo rm --force --recursive $"scripts/($environment)"
+    }
+
+    let files_directory = $"($environments_directory)/($environment)/files"
+
+    if ($files_directory | path exists) {
+      for file in (ls $files_directory) {
+        sudo rm --force --recursive ($file.name | path basename)
+      }
     }
   }
 
@@ -70,6 +78,16 @@ def main [
         $"($environment_path)/scripts/($environment)"
         ./scripts
     )
+
+    let files_directory = $"($environment_path)/files"
+
+    # TODO: is it possible to distinguish between files that should always
+    # be updated (like the lilypond helpers) and ones that shouldn't (like
+    # pyproject.toml)? Should only the ones that can be overwritten be included
+    # in this project, or is it worth distinguishing?
+    if ($files_directory | path exists) {
+      ^cp --recursive ($"($files_directory)/*" | into glob) ./
+    }
   }
 
   let generic_recipes = (
