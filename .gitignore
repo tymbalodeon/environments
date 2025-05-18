@@ -2,11 +2,7 @@
 .direnv
 .env
 .envrc
-just/*
-scripts/*
 
 # environments
-!just/environments.just
-!scripts/environments
 init/flake.lock
 src/**/uv.lock
