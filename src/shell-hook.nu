@@ -3,19 +3,21 @@ def main [
   --environments-directory: string
   --inactive-environments: string
   --local-justfiles: string
+  # TODO/FIXME: what to do here??
+  --sudo
 ] {
   for environment in ($inactive_environments | split row " ") {
     rm --force $"just/($environment).just"
 
     let scripts_directory = $"scripts/($environment)"
 
-    if ($scripts_directory | path exists) {
+    if $sudo and ($scripts_directory | path exists) {
       sudo rm --force --recursive $"scripts/($environment)"
     }
 
     let files_directory = $"($environments_directory)/($environment)/files"
 
-    if ($files_directory | path exists) {
+    if $sudo and ($files_directory | path exists) {
       for file in (ls $files_directory) {
         sudo rm --force --recursive ($file.name | path basename)
       }
