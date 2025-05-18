@@ -4,7 +4,6 @@ def main [
   --inactive-environments: string
   --local-justfiles: string
 ] {
-  # TODO: remove submodules and aliases for inactive environments
   for environment in ($inactive_environments | split row " ") {
     rm --force $"just/($environment).just"
 
