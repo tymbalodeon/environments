@@ -3,23 +3,21 @@ def main [
   --environments-directory: string
   --inactive-environments: string
   --local-justfiles: string
-  # TODO/FIXME: what to do here??
-  --sudo
 ] {
   for environment in ($inactive_environments | split row " ") {
     rm --force $"just/($environment).just"
-
-    let scripts_directory = $"scripts/($environment)"
-
-    if $sudo and ($scripts_directory | path exists) {
-      sudo rm --force --recursive $"scripts/($environment)"
-    }
+    rm --force --recursive $"scripts/($environment)"
 
     let files_directory = $"($environments_directory)/($environment)/files"
 
-    if $sudo and ($files_directory | path exists) {
+    if ($files_directory | path exists) {
       for file in (ls $files_directory) {
-        sudo rm --force --recursive ($file.name | path basename)
+        # FIXME 
+        if ($file.name | path basename) == "pyproject.toml" {
+          continue
+        }
+
+        rm --force --recursive ($file.name | path basename)
       }
     }
   }
@@ -70,15 +68,19 @@ def main [
         $"./just/($environment).just"
     )
 
+    chmod +w $"./just/($environment).just"
+
     let scripts_directory = $"($environment_path)/scripts/($environment)"
 
     (
-      ^cp
+      cp
         --recursive
         --update
         $"($environment_path)/scripts/($environment)"
         ./scripts
     )
+
+    chmod --recursive +w ./scripts
 
     let files_directory = $"($environment_path)/files"
 
@@ -87,7 +89,10 @@ def main [
     # pyproject.toml)? Should only the ones that can be overwritten be included
     # in this project, or is it worth distinguishing?
     if ($files_directory | path exists) {
-      ^cp --recursive ($"($files_directory)/*" | into glob) ./
+      for file in (ls $files_directory) {
+        ^cp --recursive $file.name ./
+        chmod --recursive +w ($file.name | path basename)
+      }
     }
   }
 
