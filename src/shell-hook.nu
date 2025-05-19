@@ -1,10 +1,28 @@
+def get-environment-gitignore [
+  environment: string
+  environments_directory: string
+] {
+    let gitignore_file = $"($environments_directory)/($environment)/.gitignore"
+
+    if not ($gitignore_file | path exists) {
+      return
+    }
+    
+    $"# ($environment)"
+    | append (open $gitignore_file | str trim)
+    | to text
+}
+
 def main [
   --active-environments: string
   --environments-directory: string
   --inactive-environments: string
   --local-justfiles: string
 ] {
-  for environment in ($inactive_environments | split row " ") {
+  let active_environments = ($active_environments | split row " ")
+  let inactive_environments = ($inactive_environments | split row " ")
+
+  for environment in $inactive_environments {
     rm --force $"just/($environment).just"
     rm --force --recursive $"scripts/($environment)"
 
@@ -29,7 +47,6 @@ def main [
 
   let active_environments = (
     $active_environments
-    | split row " "
     | filter {
         |environment|
 
@@ -44,6 +61,8 @@ def main [
 
   for environment in (
     $active_environments ++ ($local_justfiles | split row " ")
+    | uniq
+    | sort
   ) {
     $"mod ($environment) \"just/($environment).just\"\n" 
     | save --append Justfile
@@ -129,6 +148,45 @@ def main [
     ) == 1 {
       $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)\n"
       | save --append Justfile
+    }
+  }
+
+  let local_gitignore = (
+    open .gitignore
+    | split row "\n\n"
+    | filter {
+        |section|
+
+        ($section | str starts-with  "#") and (
+          ($section | lines | first | str replace "# " "") not-in (
+            $active_environments ++ $inactive_environments
+            | append generic
+          )
+        )
+      }
+  )
+
+  get-environment-gitignore generic $environments_directory
+  | save --force .gitignore
+
+  if ($local_gitignore | is-not-empty) {
+    "\n"
+    | append $local_gitignore
+    | append "\n"
+    | str join
+    | save --append .gitignore
+  }
+
+  for environment in $active_environments {
+    let environment_gitignore = (
+      get-environment-gitignore $environment $environments_directory
+    )
+
+    if ($environment_gitignore | is-not-empty) {
+      "\n"
+      | append $environment_gitignore
+      | str join
+      | save --append .gitignore
     }
   }
 }

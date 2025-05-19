@@ -59,6 +59,16 @@ alias find := find-recipe
 alias src := view-source
 
 mod environments "just/environments.just"
+mod lilypond "just/lilypond.just"
 
 alias build := environments::build
+alias clean := lilypond::clean
+alias compile := lilypond::compile
+alias create := lilypond::create
+alias edit := lilypond::edit
+alias info := lilypond::info
+alias open-pdf := lilypond::open-pdf
 alias preview := environments::preview
+alias settings := lilypond::settings
+alias templates := lilypond::templates
+alias update := lilypond::update

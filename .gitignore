@@ -1,4 +1,4 @@
-.config
+# generic
 .direnv
 .env
 .envrc
@@ -6,3 +6,10 @@
 # environments
 init/flake.lock
 src/**/uv.lock
+
+# lilypond
+*.log
+*.midi
+*.pdf
+*~
+settings.toml
