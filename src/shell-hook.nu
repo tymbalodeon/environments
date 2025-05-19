@@ -59,7 +59,7 @@ def main [
 
     if ($files_directory | path exists) {
       for file in (ls $files_directory) {
-        # FIXME 
+        # FIXME
         if ($file.name | path basename) == "pyproject.toml" {
           continue
         }
@@ -93,7 +93,7 @@ def main [
     | uniq
     | sort
   ) {
-    $"mod ($environment) \"just/($environment).just\"\n" 
+    $"mod ($environment) \"just/($environment).just\"\n"
     | save --append Justfile
 
     $index += 1
@@ -109,9 +109,9 @@ def main [
     let justfile = $"($environment_path)/Justfile"
 
     (
-      cp 
-        --recursive 
-        --update 
+      cp
+        --recursive
+        --update
         $"($environment_path)/Justfile"
         $"./just/($environment).just"
     )

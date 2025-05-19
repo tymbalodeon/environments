@@ -47,7 +47,7 @@
             else []
           );
 
-          inactiveEnvironments = (
+          inactiveEnvironments =
             builtins.filter
             (environment: !(builtins.elem environment activeEnvironments))
             (
@@ -58,8 +58,7 @@
                 builtins.filter
                 (item: srcDirectory.${item} == "directory")
                 srcDirectoryItems
-            )
-          );
+            );
 
           mergeModuleAttrs = {
             attr,
