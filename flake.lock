@@ -1,0 +1,66 @@
+{
+  "nodes": {
+    "environments": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dir": "src",
+        "lastModified": 1747654787,
+        "narHash": "sha256-nFEtyoDfIJzXJjGNsvnErtNk/AJlxPQa3iTPUDUXEzE=",
+        "rev": "d9ffa9b1e90c7c16c4e1ab55b3dd7539ba321c2e",
+        "revCount": 797,
+        "type": "git",
+        "url": "file:./."
+      },
+      "original": {
+        "dir": "src",
+        "type": "git",
+        "url": "file:./."
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1747542820,
+        "narHash": "sha256-GaOZntlJ6gPPbbkTLjbd8BMWaDYafhuuYRNrxCGnPJw=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "292fa7d4f6519c074f0a50394dbbe69859bb6043",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nutest": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1745000154,
+        "narHash": "sha256-z8/6NqBbk/VoVjvRl80mZn48edoggCUJfQK6zq+L1JU=",
+        "owner": "vyadh",
+        "repo": "nutest",
+        "rev": "f5b251469aa51c3a95fd1caeac8acbcbccb91a27",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vyadh",
+        "repo": "nutest",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "environments": "environments",
+        "nixpkgs": "nixpkgs",
+        "nutest": "nutest"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
