@@ -7,10 +7,39 @@ def get-environment-gitignore [
     if not ($gitignore_file | path exists) {
       return
     }
-    
-    $"# ($environment)"
-    | append (open $gitignore_file | str trim)
-    | to text
+
+    if $environment == generic {
+      open $gitignore_file
+    } else {
+      $"# ($environment)"
+      | append (open $gitignore_file | str trim)
+      | to text
+    }
+}
+
+def get-environment-pre-commit-hooks [
+  environment: string
+  environments_directory: string
+] {
+    let pre_commit_config = $"(
+      $environments_directory
+    )/($environment)/.pre-commit-config.yaml"
+
+    if not ($pre_commit_config | path exists) {
+      return
+    }
+
+    if $environment == generic {
+      open --raw $pre_commit_config
+    } else {
+      $"# ($environment)"
+      | append (
+          open $pre_commit_config
+          | get repos
+          | to yaml
+        )
+      | to text
+    }
 }
 
 def main [
@@ -189,4 +218,55 @@ def main [
       | save --append .gitignore
     }
   }
+
+  let local_pre_commit_config = (
+    open --raw .pre-commit-config.yaml
+    | split row "# "
+    | drop nth 0
+    | filter {
+        |section|
+
+        ($section | lines | first) not-in (
+          $active_environments ++ $inactive_environments
+          | append generic
+        )
+      }
+    | each {
+        |section|
+
+        let lines = ($section | lines)
+
+        $"# ($lines | first)\n(
+          $lines
+          | drop nth 0
+          | to text
+          | from yaml
+          | to yaml
+        )"
+      }
+  )
+
+  get-environment-pre-commit-hooks generic $environments_directory
+  | save --force .pre-commit-config.yaml
+
+  if ($local_pre_commit_config | is-not-empty) {
+    $local_pre_commit_config
+    | str join
+    | save --append .pre-commit-config.yaml
+  }
+
+  for environment in $active_environments {
+    let environment_pre_commit_config = (
+      get-environment-pre-commit-hooks $environment $environments_directory
+    )
+
+    if ($environment_pre_commit_config | is-not-empty) {
+      "\n"
+      | append $environment_pre_commit_config
+      | str join
+      | save --append .pre-commit-config.yaml
+    }
+  }
+
+  yamlfmt .pre-commit-config.yaml
 }
