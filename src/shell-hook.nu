@@ -130,7 +130,7 @@ def main [
     chmod +w $"just/($environment).just"
 
     (
-      cp
+      ^cp
         --recursive
         --update
         $"($environment_path)/scripts/($environment)"
