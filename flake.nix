@@ -90,7 +90,6 @@
 
               shellHook = with pkgs;
                 lib.concatLines (
-                  # TODO: handle .gitignore, .pre-commit, copying files
                   [
                     ''
                       export NUTEST=${nutest}

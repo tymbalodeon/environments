@@ -69,6 +69,17 @@ def main [
     }
   }
 
+  for file in (ls ("scripts/*" | into glob) | where type == file) {
+    rm $file.name
+  }
+
+  for file in (
+    fd --exclude tests --type file "" $"($environments_directory)/generic/scripts"
+    | lines
+  ) {
+    cp $file scripts
+  }
+
   open $"($environments_directory)/generic/Justfile"
   | append "\n"
   | str join
@@ -113,22 +124,20 @@ def main [
         --recursive
         --update
         $"($environment_path)/Justfile"
-        $"./just/($environment).just"
+        $"just/($environment).just"
     )
 
-    chmod +w $"./just/($environment).just"
-
-    let scripts_directory = $"($environment_path)/scripts/($environment)"
+    chmod +w $"just/($environment).just"
 
     (
       cp
         --recursive
         --update
         $"($environment_path)/scripts/($environment)"
-        ./scripts
+        scripts
     )
 
-    chmod --recursive +w ./scripts
+    chmod --recursive +w scripts
 
     let files_directory = $"($environment_path)/files"
 
@@ -138,7 +147,7 @@ def main [
     # in this project, or is it worth distinguishing?
     if ($files_directory | path exists) {
       for file in (ls $files_directory) {
-        ^cp --recursive $file.name ./
+        ^cp --recursive $file.name .
         chmod --recursive +w ($file.name | path basename)
       }
     }

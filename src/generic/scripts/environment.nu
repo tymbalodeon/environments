@@ -1,5 +1,14 @@
 #!/usr/bin/env nu
 
+def get-project-root [] {
+  echo (git rev-parse --show-toplevel)
+}
+
+export def get-project-path [path: string] {
+  (get-project-root)
+  | path join $path
+}
+
 # Activate installed environments
 def "main activate" [] {
   if (which direnv | is-empty) {
@@ -98,27 +107,27 @@ def "main update" [] {
 }
 
 # View the contents of a remote environment file
-def "main view" [
+def "main source" [
   environment: string
   file: string
 ] {
-  let environment_files = (
-    get-files (
-      [(get-base-url) $environment]
-      | path join
-    )
-  )
+  let files = (^fd $file $"($env.ENVIRONMENTS)/($environment)")
 
-  try {
-    let file_url = (
-      find-environment-file-url $environment $file $environment_files
-    )
-
-    http-get $file_url
-  } catch {
-    exit 1
+  if ($files | is-empty) {
+    return
   }
+
+  let file = if ($files | lines | length) > 1 {
+    $files
+    | fzf
+  } else {
+    $files
+  }
+
+  bat $file
 }
+
+alias "main src" = main source
 
 def main [
   environment?: string
