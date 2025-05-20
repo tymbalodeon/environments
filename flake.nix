@@ -94,6 +94,7 @@
                   [
                     ''
                       export NUTEST=${nutest}
+                      export ENVIRONMENTS=${environments}
 
                       ${pkgs.pre-commit}/bin/pre-commit install \
                         --hook-type commit-msg \
