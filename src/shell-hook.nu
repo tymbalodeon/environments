@@ -127,8 +127,6 @@ def main [
         $"just/($environment).just"
     )
 
-    chmod +w $"just/($environment).just"
-
     (
       ^cp
         --recursive
@@ -136,8 +134,6 @@ def main [
         $"($environment_path)/scripts/($environment)"
         scripts
     )
-
-    chmod --recursive +w scripts
 
     let files_directory = $"($environment_path)/files"
 
@@ -152,6 +148,9 @@ def main [
       }
     }
   }
+
+  chmod --recursive +w just
+  chmod --recursive +w scripts
 
   let generic_recipes = (
     just --summary

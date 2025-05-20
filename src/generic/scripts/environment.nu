@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-def get-project-root [] {
+export def get-project-root [] {
   echo (git rev-parse --show-toplevel)
 }
 
 export def get-project-path [path: string] {
-  (get-project-root)
+  get-project-root
   | path join $path
 }
 
@@ -19,7 +19,7 @@ def "main activate" [] {
   }
 
   "use flake"
-  | save --force .envrc
+  | save --force (get-project-path .envrc)
 
   direnv allow
 }
@@ -38,7 +38,7 @@ export def "main add" [...environments: string] {
   main activate
 }
 
-# List environment files
+# List environments and files
 def "main list" [
   environment?: string
   path?: string
@@ -60,6 +60,13 @@ def "main list" [
   }
 }
 
+# List installed environments
+def "main list installed" [] {
+  # TODO: show local environments
+  (open .environments.toml).environments
+  | str join "\n"
+}
+
 # Remove environments from the project
 def "main remove" [
   ...environments: string
@@ -75,42 +82,12 @@ def "main remove" [
   main activate
 }
 
-# Run tests
-def "main test" [
-  --match-suites: string # Regular expression to match against suite names (defaults to all)
-  --match-tests: string # Regular expression to match against test names (defaults to all)
-] {
-  let command = "use nutest; nutest run-tests"
-
-  let command = if ($match_suites | is-not-empty) {
-    $"($command) --match-suites ($match_suites)"
-  } else {
-    $command
-  }
-
-  let command = if ($match_tests | is-not-empty) {
-    $"($command) --match-tests ($match_tests)"
-  } else {
-    $command
-  }
-
-  (
-    nu
-      --commands $command
-      --include-path $env.NUTEST
-  )
-}
-
-# Update environment dependencies
-def "main update" [] {
-  nix flake update
-}
-
 # View the contents of a remote environment file
 def "main source" [
   environment: string
   file: string
 ] {
+  # TODO: make env and file optional and use fzf in those cases
   let files = (^fd $file $"($env.ENVIRONMENTS)/($environment)")
 
   if ($files | is-empty) {
@@ -129,14 +106,27 @@ def "main source" [
 
 alias "main src" = main source
 
-def main [
-  environment?: string
+# Run tests
+def "main test" [
+  --match-suites: string # Regular expression to match against suite names (defaults to all)
+  --match-tests: string # Regular expression to match against test names (defaults to all)
 ] {
-  if ($environment | is-empty) {
-    return (help main)
+  let command = "use nutest; nutest run-tests"
+
+  let command = if ($match_suites | is-not-empty) {
+    $"($command) --match-suites ($match_suites)"
+  } else {
+    $command
   }
 
-  get-installed-environments
-  | sort
-  | str join
+  nu --commands $command --include-path $env.NUTEST
+}
+
+# Update environment dependencies
+def "main update" [] {
+  nix flake update
+}
+
+def main [] {
+  main list installed
 }

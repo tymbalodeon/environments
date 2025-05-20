@@ -1,6 +1,15 @@
 #!/usr/bin/env nu
 
-use environment.nu list-nix-files
+use environment.nu get-project-path
+
+def list-nix-files [] {
+  let nix_directory = (get-project-path nix)
+
+  mkdir $nix_directory
+
+  ls $nix_directory
+  | get name
+}
 
 def get-flake-dependencies []: string -> list<string> {
   $in
@@ -25,6 +34,8 @@ def main [
   dependency?: string # Search for a dependency
   --environment: string # List only dependencies for $environment
 ] {
+  # TODO: either find a way to make this work with the new system, or else
+  # remove entirely
   let nix_files = ["flake.nix"] ++ (list-nix-files)
 
   let nix_files = match $environment {
