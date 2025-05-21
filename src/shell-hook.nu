@@ -106,7 +106,11 @@ def main [
   }
 
   for environment in (
-    $active_environments ++ ($local_justfiles | split row " ")
+    $active_environments ++ (
+      $local_justfiles
+      | split row " "
+      | where {is-not-empty}
+    )
     | uniq
     | sort
   ) {
