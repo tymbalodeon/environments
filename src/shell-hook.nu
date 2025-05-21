@@ -251,6 +251,9 @@ def main [
           | from yaml
           | to yaml
         )"
+        | lines
+        | each {|line| $"  ($line)"}
+        | to text
       }
   )
 
