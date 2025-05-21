@@ -2,7 +2,6 @@
 
 use ../domain.nu parse-git-origin
 use ../environment.nu get-project-path
-use pre-commit-update.nu
 
 def make-comment [command: string type: string] {
   $"<!-- `($command)` ($type) -->"

@@ -1,14 +1,9 @@
+set working-directory := "../"
+
 # View help text
 @help *recipe:
-    ../scripts/environments/help.nu {{ recipe }}
+    ./scripts/environments/help.nu {{ recipe }}
 
-# Build dev environments
-[no-cd]
-@build *args:
-    ./scripts/environments/build.nu {{ args }}
-
-# Preview dev environments
-@preview *args:
-    ../scripts/environments/preview.nu {{ args }}
-
-    # testing
+# Update
+@readme *args:
+    ./scripts/environments/readme.nu {{ args }}

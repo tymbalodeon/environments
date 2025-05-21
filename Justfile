@@ -60,5 +60,4 @@ alias src := view-source
 
 mod environments "just/environments.just"
 
-alias build := environments::build
-alias preview := environments::preview
+alias readme := environments::readme
