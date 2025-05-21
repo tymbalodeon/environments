@@ -99,6 +99,12 @@ def main [
 
   mut index = 0
 
+  let local_justfiles = if $local_justfiles == none {
+    ""
+  } else {
+    $local_justfiles
+  }
+
   for environment in (
     $active_environments ++ ($local_justfiles | split row " ")
     | uniq

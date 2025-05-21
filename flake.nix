@@ -108,15 +108,19 @@
                         lib.concatStringsSep " " inactiveEnvironments
                       }" \
                         --local-justfiles "${
-                        lib.concatStringsSep " "
-                        (
-                          map
-                          (filename:
-                            builtins.elemAt
-                            (lib.strings.splitString "." filename)
-                            0)
-                          (getFilenames ./just)
-                        )
+                        let
+                          localJustfiles = (
+                            map
+                            (filename:
+                              builtins.elemAt
+                              (lib.strings.splitString "." filename)
+                              0)
+                            (getFilenames ./just)
+                          );
+                        in
+                          if localJustfiles == []
+                          then "none"
+                          else lib.concatStringsSep " " localJustfiles
                       }"
                     ''
                   ]
