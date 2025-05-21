@@ -138,5 +138,7 @@
               modules));
         }
       );
+
+    inherit nutest;
   };
 }
