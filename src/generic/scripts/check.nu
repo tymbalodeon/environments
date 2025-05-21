@@ -14,7 +14,6 @@ export def get-pre-commit-hook-names [config: record<repos: list<any>>] {
 
 # Run `nix flake check`
 def --wrapped "main flake" [...$args] {
-  # TODO: should this just be an entry in the pre-commit conifg?
   cd (get-project-root)
   nix flake check ...$args
 }
