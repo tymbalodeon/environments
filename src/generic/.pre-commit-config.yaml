@@ -58,14 +58,15 @@ repos:
         entry: yamlfmt
         language: system
         pass_filenames: false
-  - repo: https://github.com/lycheeverse/lychee.git
-    rev: v0.15.1
-    hooks:
-      - id: lychee
-        args:
-          - --no-progress
-          - .
-        pass_filenames: false
+  # FIXME: this fails with "Bad Request" for URLs that are known to be valid
+  # - repo: https://github.com/lycheeverse/lychee.git
+  #   rev: v0.15.1
+  #   hooks:
+  #     - id: lychee
+  #       args:
+  #         - --no-progress
+  #         - .
+  #       pass_filenames: false
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.2.0
     hooks:

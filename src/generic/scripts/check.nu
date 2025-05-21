@@ -37,6 +37,7 @@ def "main pre-commit" [hooks: list<string>] {
 # Update all pre-commit hooks
 def "main update" [] {
   pre-commit run pre-commit-update --all-files
+  yamlfmt .pre-commit-config.yaml
 }
 
 # Check flake and run pre-commit hooks

@@ -23,12 +23,11 @@ def test-get-pre-commit-hook-names [] {
   let expected_hooks = "check-merge-conflict
 check-yaml
 end-of-file-fixer
+flake
 pre-commit-update
 sort-simple-yaml
-trailing-whitespace
-"
+trailing-whitespace"
 
   let actual_hooks = (get-pre-commit-hook-names ($config | from yaml))
-
   assert equal $actual_hooks $expected_hooks
 }
