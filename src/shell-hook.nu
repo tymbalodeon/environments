@@ -137,11 +137,14 @@ def main [
         $"just/($environment).just"
     )
 
+    let scripts_directory = $"scripts/($environment)"
+    mkdir $scripts_directory
+
     (
       ^cp
         --recursive
         --update
-        $"($environment_path)/scripts/*"
+        ($"($environment_path)/scripts/*" | into glob)
         $"scripts/($environment)"
     )
 
