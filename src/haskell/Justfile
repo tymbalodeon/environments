@@ -1,2 +1,4 @@
+set working-directory := ".."
+
 @help:
     just --list --justfile haskell.just
