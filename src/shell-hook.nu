@@ -141,7 +141,7 @@ def main [
       ^cp
         --recursive
         --update
-        $"($environment_path)/scripts"
+        $"($environment_path)/scripts/*"
         $"scripts/($environment)"
     )
 
