@@ -147,7 +147,7 @@ def main [
 
     let scripts = ($"($environment_path)/scripts/*" | into glob)
 
-    if (ls $scripts | is-not-empty) {
+    try {
       (
         ^cp
           --recursive
@@ -156,7 +156,6 @@ def main [
           $"scripts/($environment)"
       )
     }
-
 
     let files_directory = $"($environment_path)/files"
 
