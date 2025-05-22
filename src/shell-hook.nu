@@ -244,7 +244,9 @@ def main [
     | filter {
         |section|
 
-        ($section | lines | first) not-in (
+        let first_line = ($section | lines | first)
+
+        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
           $active_environments ++ $inactive_environments
           | append generic
         )
