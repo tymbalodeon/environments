@@ -138,6 +138,11 @@ def main [
     )
 
     let scripts_directory = $"scripts/($environment)"
+
+    if ($scripts_directory | path exists) {
+      rm --force --recursive $scripts_directory
+    }
+
     mkdir $scripts_directory
 
     (
