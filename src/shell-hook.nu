@@ -141,8 +141,8 @@ def main [
       ^cp
         --recursive
         --update
-        $"($environment_path)/scripts/($environment)"
-        scripts
+        $"($environment_path)/scripts"
+        $"scripts/($environment)"
     )
 
     let files_directory = $"($environment_path)/files"
