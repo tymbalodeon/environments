@@ -192,6 +192,7 @@ def main [
         }
       }
     | flatten
+    | where {$in.recipe | is-not-empty}
     | sort-by recipe
   )
 
