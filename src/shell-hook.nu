@@ -145,12 +145,14 @@ def main [
 
     mkdir $scripts_directory
 
-    try {
+    let source_directory = $"($environment_path)/scripts"
+
+    if ($source_directory | path exists) {
       (
         ^cp
           --recursive
           --update
-          ($"($environment_path)/scripts/*" | into glob)
+          ($"($source_directory)/*" | into glob)
           $"scripts/($environment)"
       )
     }
