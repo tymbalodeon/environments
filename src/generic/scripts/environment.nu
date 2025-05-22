@@ -71,7 +71,11 @@ def "main activate" [] {
 
 # Add environments to the project
 export def "main add" [...environments: string] {
-  touch .environments.toml
+  if not (".environments.toml" | path exists) {
+    {environments: []}
+    | to toml
+    | save .environments.toml
+  }
 
   open .environments.toml
   | update environments (
@@ -119,7 +123,11 @@ def "main remove" [
   ...environments: string
   --reactivate
 ] {
-  touch .environments.toml
+  if not (".environments.toml" | path exists) {
+    {environments: []}
+    | to toml
+    | save .environments.toml
+  }
 
   open .environments.toml
   | update environments (
