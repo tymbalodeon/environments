@@ -71,6 +71,8 @@ def "main activate" [] {
 
 # Add environments to the project
 export def "main add" [...environments: string] {
+  touch .environments.toml
+
   open .environments.toml
   | update environments (
       (open .environments.toml).environments
@@ -117,6 +119,8 @@ def "main remove" [
   ...environments: string
   --reactivate
 ] {
+  touch .environments.toml
+
   open .environments.toml
   | update environments (
       (open .environments.toml).environments
