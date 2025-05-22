@@ -145,13 +145,18 @@ def main [
 
     mkdir $scripts_directory
 
-    (
-      ^cp
-        --recursive
-        --update
-        ($"($environment_path)/scripts/*" | into glob)
-        $"scripts/($environment)"
-    )
+    let scripts = ($"($environment_path)/scripts/*" | into glob)
+
+    if (ls $scripts | is-not-empty) {
+      (
+        ^cp
+          --recursive
+          --update
+          $scripts
+          $"scripts/($environment)"
+      )
+    }
+
 
     let files_directory = $"($environment_path)/files"
 
