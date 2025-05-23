@@ -5,3 +5,10 @@
 # environments
 init/flake.lock
 src/**/uv.lock
+
+# python
+*.pyc
+.coverage
+__pycache__/
+build/
+dist/
