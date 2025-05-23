@@ -17,6 +17,13 @@ def get-environment-gitignore [
     }
 }
 
+def indent-lines []: string -> string  {
+  $in
+  | lines
+  | each {|line| $"  ($line)"}
+  | to text
+}
+
 def get-environment-pre-commit-hooks [
   environment: string
   environments_directory: string
@@ -39,6 +46,7 @@ def get-environment-pre-commit-hooks [
           | to yaml
         )
       | to text
+      | indent-lines
     }
 }
 
@@ -276,9 +284,7 @@ def main [
           | from yaml
           | to yaml
         )"
-        | lines
-        | each {|line| $"  ($line)"}
-        | to text
+        | indent-lines
       }
   )
 
