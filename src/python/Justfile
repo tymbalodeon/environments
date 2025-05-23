@@ -1,6 +1,7 @@
 set working-directory := ".."
 
-@_help:
+# View help text
+@help:
     just --list --justfile python.just
 
 # Add dependencies
