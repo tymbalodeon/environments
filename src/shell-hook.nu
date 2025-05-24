@@ -59,6 +59,71 @@ def main [
   let active_environments = ($active_environments | split row " ")
   let inactive_environments = ($inactive_environments | split row " ")
 
+  let local_gitignore = (
+    open .gitignore
+    | split row "\n\n"
+    | filter {
+        |section|
+
+        ($section | str starts-with  "#") and (
+          ($section | lines | first | str replace "# " "") not-in (
+            $active_environments ++ $inactive_environments
+            | append generic
+          )
+        )
+      }
+  )
+
+  get-environment-gitignore generic $environments_directory
+  | save --force .gitignore
+
+  if ($local_gitignore | is-not-empty) {
+    "\n"
+    | append $local_gitignore
+    | append "\n"
+    | str join
+    | save --append .gitignore
+  }
+
+  let local_pre_commit_config = (
+    open --raw .pre-commit-config.yaml
+    | split row "# "
+    | drop nth 0
+    | filter {
+        |section|
+
+        let first_line = ($section | lines | first)
+
+        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
+          $active_environments ++ $inactive_environments
+          | append generic
+        )
+      }
+    | each {
+        |section|
+
+        let lines = ($section | lines)
+
+        $"# ($lines | first)\n(
+          $lines
+          | drop nth 0
+          | to text
+          | from yaml
+          | to yaml
+        )"
+        | indent-lines
+      }
+  )
+
+  get-environment-pre-commit-hooks generic $environments_directory
+  | save --force .pre-commit-config.yaml
+
+  if ($local_pre_commit_config | is-not-empty) {
+    $local_pre_commit_config
+    | str join
+    | save --append .pre-commit-config.yaml
+  }
+
   for environment in $inactive_environments {
     rm --force $"just/($environment).just"
     rm --force --recursive $"scripts/($environment)"
@@ -67,22 +132,23 @@ def main [
 
     if ($files_directory | path exists) {
       for file in (ls $files_directory) {
-        # FIXME
-        if ($file.name | path basename) == "pyproject.toml" {
-          continue
-        }
-
         rm --force --recursive ($file.name | path basename)
       }
     }
   }
 
-  for file in (ls ("scripts/*" | into glob) | where type == file) {
-    rm $file.name
+  try {
+    for file in (ls ("scripts/*" | into glob) | where type == file) {
+      rm $file.name
+    }
   }
 
   for file in (
-    fd --exclude tests --type file "" $"($environments_directory)/generic/scripts"
+    fd
+      --exclude tests
+      --type file
+      ""
+      $"($environments_directory)/generic/scripts"
     | lines
   ) {
     cp $file scripts
@@ -92,6 +158,23 @@ def main [
   | append "\n"
   | str join
   | save --force Justfile
+
+  mkdir .helix
+
+  $active_environments
+  | each {
+      |environment|
+
+      let languages_file = (
+        $"($environments_directory)/($environment)/.helix/languages.toml"
+      )
+
+      if ($languages_file | path exists) {
+        open --raw $languages_file
+      }
+    }
+  | str join "\n\n"
+  | save --force .helix/languages.toml
 
   let active_environments = (
     $active_environments
@@ -134,6 +217,28 @@ def main [
   }
 
   for environment in $active_environments {
+    let environment_gitignore = (
+      get-environment-gitignore $environment $environments_directory
+    )
+
+    if ($environment_gitignore | is-not-empty) {
+      "\n"
+      | append $environment_gitignore
+      | str join
+      | save --append .gitignore
+    }
+
+    let environment_pre_commit_config = (
+      get-environment-pre-commit-hooks $environment $environments_directory
+    )
+
+    if ($environment_pre_commit_config | is-not-empty) {
+      "\n"
+      | append $environment_pre_commit_config
+      | str join
+      | save --append .pre-commit-config.yaml
+    }
+
     let environment_path = $"($environments_directory)/($environment)";
     let justfile = $"($environment_path)/Justfile"
 
@@ -179,8 +284,11 @@ def main [
     }
   }
 
-  chmod --recursive +w just
-  chmod --recursive +w scripts
+  yamlfmt .pre-commit-config.yaml
+
+  for directory in [just scripts] {
+    chmod --recursive +w $directory
+  }
 
   let generic_recipes = (
     just --summary
@@ -218,97 +326,4 @@ def main [
       | save --append Justfile
     }
   }
-
-  let local_gitignore = (
-    open .gitignore
-    | split row "\n\n"
-    | filter {
-        |section|
-
-        ($section | str starts-with  "#") and (
-          ($section | lines | first | str replace "# " "") not-in (
-            $active_environments ++ $inactive_environments
-            | append generic
-          )
-        )
-      }
-  )
-
-  get-environment-gitignore generic $environments_directory
-  | save --force .gitignore
-
-  if ($local_gitignore | is-not-empty) {
-    "\n"
-    | append $local_gitignore
-    | append "\n"
-    | str join
-    | save --append .gitignore
-  }
-
-  for environment in $active_environments {
-    let environment_gitignore = (
-      get-environment-gitignore $environment $environments_directory
-    )
-
-    if ($environment_gitignore | is-not-empty) {
-      "\n"
-      | append $environment_gitignore
-      | str join
-      | save --append .gitignore
-    }
-  }
-
-  let local_pre_commit_config = (
-    open --raw .pre-commit-config.yaml
-    | split row "# "
-    | drop nth 0
-    | filter {
-        |section|
-
-        let first_line = ($section | lines | first)
-
-        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
-          $active_environments ++ $inactive_environments
-          | append generic
-        )
-      }
-    | each {
-        |section|
-
-        let lines = ($section | lines)
-
-        $"# ($lines | first)\n(
-          $lines
-          | drop nth 0
-          | to text
-          | from yaml
-          | to yaml
-        )"
-        | indent-lines
-      }
-  )
-
-  get-environment-pre-commit-hooks generic $environments_directory
-  | save --force .pre-commit-config.yaml
-
-  if ($local_pre_commit_config | is-not-empty) {
-    $local_pre_commit_config
-    | str join
-    | save --append .pre-commit-config.yaml
-  }
-
-  for environment in $active_environments {
-    let environment_pre_commit_config = (
-      get-environment-pre-commit-hooks $environment $environments_directory
-    )
-
-    if ($environment_pre_commit_config | is-not-empty) {
-      "\n"
-      | append $environment_pre_commit_config
-      | str join
-      | save --append .pre-commit-config.yaml
-    }
-  }
-
-  yamlfmt .pre-commit-config.yaml
 }
