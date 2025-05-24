@@ -125,8 +125,8 @@ def main [
   }
 
   for environment in $inactive_environments {
-    rm --force $"just/($environment).just"
-    rm --force --recursive $"scripts/($environment)"
+    try { rm --force $"just/($environment).just" }
+    try { rm --force --recursive $"scripts/($environment)" }
 
     let files_directory = $"($environments_directory)/($environment)/files"
 
@@ -135,6 +135,13 @@ def main [
         rm --force --recursive ($file.name | path basename)
       }
     }
+  }
+
+  if not ("scripts" | path exists) {
+    ^mkdir scripts
+  } else if ("scripts" | path type) == file {
+    rm scripts
+    ^mkdir scripts
   }
 
   try {
@@ -151,7 +158,7 @@ def main [
       $"($environments_directory)/generic/scripts"
     | lines
   ) {
-    cp $file scripts
+    ^cp $file scripts
   }
 
   open $"($environments_directory)/generic/Justfile"
