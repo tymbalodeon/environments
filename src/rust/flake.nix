@@ -1,12 +1,13 @@
 {pkgs}: {
   packages = with pkgs;
     [
-      libiconv
+      cargo
       cargo-bloat
       cargo-edit
       cargo-outdated
       cargo-udeps
       cargo-watch
+      libiconv
       rust-analyzer
       zellij
     ]
@@ -27,8 +28,8 @@
           if stdenv.isLinux
           then
             with pkgs; [
-              pkg-config
               openssl
+              pkg-config
             ]
           else []
         )
