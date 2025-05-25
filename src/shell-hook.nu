@@ -125,8 +125,17 @@ def main [
   }
 
   for environment in $inactive_environments {
-    try { rm --force $"just/($environment).just" }
-    try { rm --force --recursive $"scripts/($environment)" }
+    let environment_justfile = $"just/($environment).just"
+
+    if ($environment_justfile | path exists) {
+      rm --force $environment_justfile
+    }
+
+    let environment_scripts = $"scripts/($environment)"
+
+    if ($environment_scripts | path exists) {
+      rm --force --recursive $environment_scripts
+    }
 
     let files_directory = $"($environments_directory)/($environment)/files"
 
@@ -259,10 +268,6 @@ def main [
 
     let scripts_directory = $"scripts/($environment)"
 
-    if ($scripts_directory | path exists) {
-      rm --force --recursive $scripts_directory
-    }
-
     mkdir $scripts_directory
 
     let source_directory = $"($environment_path)/scripts"
@@ -273,7 +278,7 @@ def main [
           --recursive
           --update
           ($"($source_directory)/*" | into glob)
-          $"scripts/($environment)"
+          $scripts_directory
       )
     }
 
