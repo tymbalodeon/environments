@@ -173,7 +173,7 @@ def main [
       |environment|
 
       let languages_file = (
-        $"($environments_directory)/($environment)/.helix/languages.toml"
+        $"($environments_directory)/($environment)/languages.toml"
       )
 
       if ($languages_file | path exists) {
@@ -279,10 +279,6 @@ def main [
 
     let files_directory = $"($environment_path)/files"
 
-    # TODO: is it possible to distinguish between files that should always
-    # be updated (like the lilypond helpers) and ones that shouldn't (like
-    # pyproject.toml)? Should only the ones that can be overwritten be included
-    # in this project, or is it worth distinguishing?
     if ($files_directory | path exists) {
       for file in (ls $files_directory) {
         ^cp --recursive $file.name .
