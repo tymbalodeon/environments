@@ -26,26 +26,17 @@
       ] (
         system: let
           activeEnvironments =
-            [
-              "generic"
-              "git"
-              "nix"
-              "yaml"
-            ]
-            ++ (
-              if builtins.pathExists ./.environments.toml
-              then
-                (
-                  builtins.fromTOML (builtins.readFile ./.environments.toml)
-                ).environments
-              else []
-            );
+            if builtins.pathExists ./.environments.toml
+            then
+              (
+                builtins.fromTOML (builtins.readFile ./.environments.toml)
+              ).environments
+            else [];
 
-          getFilenames = dir: (
+          getFilenames = dir:
             if builtins.pathExists dir
             then builtins.attrNames (builtins.readDir dir)
-            else []
-          );
+            else [];
 
           inactiveEnvironments =
             builtins.filter

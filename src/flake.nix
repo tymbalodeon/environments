@@ -43,7 +43,7 @@
                   toolchain =
                     pkgs.rust-bin.fromRustupToolchainFile
                     ./rust/toolchain.toml;
-                in (
+                in
                   if environment == "rust"
                   then
                     shell
@@ -58,7 +58,6 @@
                       '';
                     }
                   else shell
-                )
               )
           )
       );

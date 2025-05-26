@@ -112,9 +112,29 @@ def "main list" [
 }
 
 # List installed environments
-def "main list installed" [] {
+def "main list installed" [
+  --all # Show all installed environments
+  --default # Show only default installed environments
+  --user # Show only user installed environments [default]
+] {
   # TODO: show local environments
-  (open .environments.toml).environments
+  let default_environments = (
+    open $"($env.ENVIRONMENTS)/generic/.environments.toml"
+  ).environments
+
+  let environments = (open .environments.toml).environments
+
+  let environments = if $all {
+    $environments
+  } else if $default {
+    $environments
+    | where {$in in $default_environments}
+  } else {
+    $environments
+    | where {$in not-in $default_environments}
+  }
+
+  $environments
   | str join "\n"
 }
 
@@ -191,5 +211,5 @@ def "main update" [] {
 }
 
 def main [] {
-  main list installed
+  help main
 }

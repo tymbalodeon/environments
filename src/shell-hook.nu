@@ -56,6 +56,25 @@ def main [
   --inactive-environments: string
   --local-justfiles: string
 ] {
+  if (".environments.toml" | path exists) {
+    {
+      environments: (
+        open $"($environments_directory)/generic/.environments.toml"
+        | get environments
+        | append (
+          open .environments.toml
+          | get environments
+        )
+        | uniq
+        | sort
+      )
+    }
+    | save --force .environments.toml
+  } else {
+    cp $"($environments_directory)/generic/.environments.toml" .
+    chmod +w .environments.toml
+  }
+
   let active_environments = ($active_environments | split row " ")
   let inactive_environments = ($inactive_environments | split row " ")
 
