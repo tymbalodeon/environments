@@ -123,6 +123,8 @@
                             (getFilenames ./just)
                           ))
                         }"
+
+                        ${yamlfmt}/bin/yamlfmt .pre-commit-conifg.yaml
                       ''
                     ]
                     ++ mergeModuleAttrs {

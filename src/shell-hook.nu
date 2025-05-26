@@ -249,9 +249,7 @@ def main [
     )
 
     if ($environment_pre_commit_config | is-not-empty) {
-      "\n"
-      | append $environment_pre_commit_config
-      | str join
+      $environment_pre_commit_config
       | save --append .pre-commit-config.yaml
     }
 
@@ -291,8 +289,6 @@ def main [
       }
     }
   }
-
-  yamlfmt .pre-commit-config.yaml
 
   for directory in [just scripts] {
     chmod --recursive +w $directory
