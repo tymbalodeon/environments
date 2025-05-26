@@ -13,16 +13,7 @@
     ]
     ++ (
       if stdenv.isDarwin
-      then
-        with pkgs; [
-          zlib.dev
-          (with darwin.apple_sdk.frameworks; [
-            CoreFoundation
-            CoreServices
-            SystemConfiguration
-          ])
-          darwin.IOKit
-        ]
+      then [pkgs.zlib.dev]
       else
         (
           if stdenv.isLinux
