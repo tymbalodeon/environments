@@ -293,7 +293,6 @@ def main [
       (
         ^cp
           --recursive
-          --update
           ($"($source_directory)/*" | into glob)
           $scripts_directory
       )

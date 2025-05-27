@@ -2,6 +2,5 @@ environments = [
     "generic",
     "git",
     "nix",
-    "python",
     "yaml",
 ]

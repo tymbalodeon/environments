@@ -115,7 +115,7 @@ def "main list" [
 def "main list installed" [
   --all # Show all installed environments
   --default # Show only default installed environments
-  --user # Show only user installed environments
+  --user # Show only user installed environments [default]
 ] {
   # TODO: show local environments
   let default_environments = (

@@ -53,16 +53,6 @@ alias find := find-recipe
 alias src := view-source
 
 mod environments "just/environments.just"
-mod python "just/python.just"
 
-alias add := python::add
-alias build := python::build
-alias dependencies := python::dependencies
-alias pin := python::pin
-alias profile := python::profile
+alias help := environments::help
 alias readme := environments::readme
-alias remove := python::remove
-alias run := python::run
-alias shell := python::shell
-alias test := python::test
-alias update := python::update
