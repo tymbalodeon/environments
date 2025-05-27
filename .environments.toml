@@ -3,5 +3,6 @@ environments = [
     "git",
     "nix",
     "python",
+    "toml",
     "yaml",
 ]
