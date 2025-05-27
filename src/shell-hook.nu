@@ -144,6 +144,14 @@ def main [
   }
 
   for environment in $inactive_environments {
+    let files_directory = $"($environments_directory)/($environment)/files"
+
+    if ($files_directory | path exists) {
+      for file in (ls $files_directory) {
+        rm --force --recursive ($file.name | path basename)
+      }
+    }
+
     let environment_justfile = $"just/($environment).just"
 
     if ($environment_justfile | path exists) {
@@ -156,10 +164,10 @@ def main [
       rm --force --recursive $environment_scripts
     }
 
-    let files_directory = $"($environments_directory)/($environment)/files"
+    let templates_directory = $"($environments_directory)/($environment)/templates"
 
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
+    if ($templates_directory | path exists) {
+      for file in (ls $templates_directory) {
         rm --force --recursive ($file.name | path basename)
       }
     }
@@ -273,6 +281,15 @@ def main [
     }
 
     let environment_path = $"($environments_directory)/($environment)";
+    let files_directory = $"($environment_path)/files"
+
+    if ($files_directory | path exists) {
+      for file in (ls $files_directory) {
+        ^cp --recursive $file.name .
+        chmod --recursive +w ($file.name | path basename)
+      }
+    }
+
     let justfile = $"($environment_path)/Justfile"
 
     (
@@ -298,12 +315,14 @@ def main [
       )
     }
 
-    let files_directory = $"($environment_path)/files"
+    let templates_directory = $"($environment_path)/templates"
 
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
-        ^cp --recursive $file.name .
-        chmod --recursive +w ($file.name | path basename)
+    if ($templates_directory | path exists) {
+      for file in (ls $templates_directory) {
+        if not ($file.name | path basename | path exists) {
+          ^cp --recursive $file.name .
+          chmod --recursive +w ($file.name | path basename)
+        }
       }
     }
   }
