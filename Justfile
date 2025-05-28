@@ -58,6 +58,7 @@ mod python "just/python.just"
 alias add := python::add
 alias build := python::build
 alias dependencies := python::dependencies
+alias list := python::list
 alias pin := python::pin
 alias pre-commit-update := environments::pre-commit-update
 alias profile := python::profile

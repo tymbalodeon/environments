@@ -1,3 +1,5 @@
+#!/usr/bin/env nu
+
 use project.nu get-project-path
 
 # Activate installed environments

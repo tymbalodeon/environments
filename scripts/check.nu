@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use environment.nu get-project-root
+use project.nu get-project-root
 
 export def get-pre-commit-hook-names [config: record<repos: list<any>>] {
   $config
