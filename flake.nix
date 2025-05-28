@@ -17,120 +17,117 @@
     environments,
     nixpkgs,
     nutest,
+    systems,
     ...
   }: {
-    devShells =
-      nixpkgs.lib.genAttrs [
-        "x86_64-darwin"
-        "x86_64-linux"
-      ] (
-        system: let
-          activeEnvironments =
-            if builtins.pathExists ./.environments.toml
-            then
-              (
-                builtins.fromTOML (builtins.readFile ./.environments.toml)
-              ).environments
-            else [];
-
-          getFilenames = dir:
-            if builtins.pathExists dir
-            then builtins.attrNames (builtins.readDir dir)
-            else [];
-
-          inactiveEnvironments =
-            builtins.filter
-            (environment: !(builtins.elem environment activeEnvironments))
+    devShells = nixpkgs.lib.genAttrs (import systems) (
+      system: let
+        activeEnvironments =
+          if builtins.pathExists ./.environments.toml
+          then
             (
-              let
-                srcDirectory = builtins.readDir environments;
-                srcDirectoryItems = builtins.attrNames srcDirectory;
-              in
-                builtins.filter
-                (item: srcDirectory.${item} == "directory")
-                srcDirectoryItems
-            );
+              builtins.fromTOML (builtins.readFile ./.environments.toml)
+            ).environments
+          else [];
 
-          mergeModuleAttrs = {
-            attr,
-            nullValue,
-          }:
-            pkgs.lib.lists.flatten
-            (map (module: module.${attr} or nullValue) modules);
+        getFilenames = dir:
+          if builtins.pathExists dir
+          then builtins.attrNames (builtins.readDir dir)
+          else [];
 
-          modules =
-            map
-            (module: (import ./nix/${module} {inherit pkgs;}))
-            (getFilenames ./nix);
+        inactiveEnvironments =
+          builtins.filter
+          (environment: !(builtins.elem environment activeEnvironments))
+          (
+            let
+              srcDirectory = builtins.readDir environments;
+              srcDirectoryItems = builtins.attrNames srcDirectory;
+            in
+              builtins.filter
+              (item: srcDirectory.${item} == "directory")
+              srcDirectoryItems
+          );
 
-          pkgs = import nixpkgs {
-            config.allowUnfree = true;
-            inherit system;
-          };
-        in {
-          default = pkgs.mkShellNoCC ({
-              inputsFrom =
-                builtins.map
-                (environment: environments.devShells.${system}.${environment})
-                activeEnvironments;
+        mergeModuleAttrs = {
+          attr,
+          nullValue,
+        }:
+          pkgs.lib.lists.flatten
+          (map (module: module.${attr} or nullValue) modules);
 
-              packages = mergeModuleAttrs {
-                attr = "packages";
-                nullValue = [];
-              };
+        modules =
+          map
+          (module: (import ./nix/${module} {inherit pkgs;}))
+          (getFilenames ./nix);
 
-              shellHook = let
-                getArgsOrNone = args:
-                  if args == ""
-                  then "none"
-                  else args;
-              in
-                with pkgs;
-                  lib.concatLines (
-                    [
-                      ''
-                        export NUTEST=${nutest}
-                        export ENVIRONMENTS=${environments}
+        pkgs = import nixpkgs {
+          config.allowUnfree = true;
+          inherit system;
+        };
+      in {
+        default = pkgs.mkShellNoCC ({
+            inputsFrom =
+              builtins.map
+              (environment: environments.devShells.${system}.${environment})
+              activeEnvironments;
 
-                        ${pre-commit}/bin/pre-commit install \
-                          --hook-type commit-msg \
-                          --overwrite
+            packages = mergeModuleAttrs {
+              attr = "packages";
+              nullValue = [];
+            };
 
-                        ${nushell}/bin/nu ${environments}/shell-hook.nu \
-                          --active-environments "${
-                          getArgsOrNone (lib.concatStringsSep " " activeEnvironments)
-                        }" \
-                          --environments-directory "${environments}" \
-                          --inactive-environments "${
-                          getArgsOrNone (lib.concatStringsSep " " inactiveEnvironments)
-                        }" \
-                          --local-justfiles "${
-                          getArgsOrNone (lib.concatStringsSep " " (
-                            map
-                            (filename:
-                              builtins.elemAt
-                              (lib.strings.splitString "." filename)
-                              0)
-                            (getFilenames ./just)
-                          ))
-                        }"
+            shellHook = let
+              getArgsOrNone = args:
+                if args == ""
+                then "none"
+                else args;
+            in
+              with pkgs;
+                lib.concatLines (
+                  [
+                    ''
+                      export NUTEST=${nutest}
+                      export ENVIRONMENTS=${environments}
 
-                        ${yamlfmt}/bin/yamlfmt .pre-commit-conifg.yaml
-                      ''
-                    ]
-                    ++ mergeModuleAttrs {
-                      attr = "shellHook";
-                      nullValue = "";
-                    }
-                  );
-            }
-            // builtins.foldl'
-            (a: b: a // b)
-            {}
-            (map
-              (module: builtins.removeAttrs module ["packages" "shellHook"])
-              modules));
-        }
-      );
+                      ${pre-commit}/bin/pre-commit install \
+                        --hook-type commit-msg \
+                        --overwrite
+
+                      ${nushell}/bin/nu ${environments}/shell-hook.nu \
+                        --active-environments "${
+                        getArgsOrNone (lib.concatStringsSep " " activeEnvironments)
+                      }" \
+                        --environments-directory "${environments}" \
+                        --inactive-environments "${
+                        getArgsOrNone (lib.concatStringsSep " " inactiveEnvironments)
+                      }" \
+                        --local-justfiles "${
+                        getArgsOrNone (lib.concatStringsSep " " (
+                          map
+                          (filename:
+                            builtins.elemAt
+                            (lib.strings.splitString "." filename)
+                            0)
+                          (getFilenames ./just)
+                        ))
+                      }"
+
+                      ${yamlfmt}/bin/yamlfmt .pre-commit-conifg.yaml
+                    ''
+                  ]
+                  ++ mergeModuleAttrs {
+                    attr = "shellHook";
+                    nullValue = "";
+                  }
+                );
+          }
+          // builtins.foldl'
+          (a: b: a // b)
+          {}
+          (map
+            (module: builtins.removeAttrs module ["packages" "shellHook"])
+            modules));
+      }
+    );
   };
 }
