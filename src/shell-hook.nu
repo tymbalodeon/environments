@@ -2,19 +2,19 @@ def get-environment-gitignore [
   environment: string
   environments_directory: string
 ] {
-    let gitignore_file = $"($environments_directory)/($environment)/.gitignore"
+  let gitignore_file = $"($environments_directory)/($environment)/.gitignore"
 
-    if not ($gitignore_file | path exists) {
-      return
-    }
+  if not ($gitignore_file | path exists) {
+    return
+  }
 
-    if $environment == generic {
-      open $gitignore_file
-    } else {
-      $"# ($environment)"
-      | append (open $gitignore_file | str trim)
-      | to text
-    }
+  if $environment == generic {
+    open $gitignore_file
+  } else {
+    $"# ($environment)"
+    | append (open $gitignore_file | str trim)
+    | to text
+  }
 }
 
 def indent-lines []: string -> string  {
@@ -28,26 +28,26 @@ def get-environment-pre-commit-hooks [
   environment: string
   environments_directory: string
 ] {
-    let pre_commit_config = $"(
-      $environments_directory
-    )/($environment)/.pre-commit-config.yaml"
+  let pre_commit_config = $"(
+    $environments_directory
+  )/($environment)/.pre-commit-config.yaml"
 
-    if not ($pre_commit_config | path exists) {
-      return
-    }
+  if not ($pre_commit_config | path exists) {
+    return
+  }
 
-    if $environment == generic {
-      open --raw $pre_commit_config
-    } else {
-      $"# ($environment)"
-      | append (
-          open $pre_commit_config
-          | get repos
-          | to yaml
-        )
-      | to text
-      | indent-lines
-    }
+  if $environment == generic {
+    open --raw $pre_commit_config
+  } else {
+    $"# ($environment)"
+    | append (
+        open $pre_commit_config
+        | get repos
+        | to yaml
+      )
+    | to text
+    | indent-lines
+  }
 }
 
 def main [
@@ -61,10 +61,7 @@ def main [
       environments: (
         open $"($environments_directory)/generic/.environments.toml"
         | get environments
-        | append (
-          open .environments.toml
-          | get environments
-        )
+        | append (open .environments.toml).environments
         | uniq
         | sort
       )
@@ -338,10 +335,19 @@ def main [
   )
 
   let submodule_recipes = (
-    ls just
-    | get name
+    (ls just).name
     | each {
         |justfile|
+
+        let system_specific_recipes = (
+          rg --multiline '\[macos\][^#]*' $justfile
+          | rg --invert-match "^ {4}"
+          | split row --regex '\[.*\]'
+          | str trim
+          | where {is-not-empty}
+          | str replace "@" ""
+          | each {|recipe| $recipe | split row " " | first}
+        )
 
         {
           environment: ($justfile | path parse | get stem)
@@ -349,11 +355,12 @@ def main [
           recipe: (
             just --justfile $justfile --summary
             | split row " "
+            | where {$in not-in $system_specific_recipes}
           )
         }
       }
     | flatten
-    | where {$in.recipe | is-not-empty}
+    | where {($in.recipe | is-not-empty)}
     | sort-by recipe
   )
 
