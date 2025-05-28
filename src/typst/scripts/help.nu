@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
 use ../help.nu display-just-help
+use ../project.nu get-project-path
 
 # View help text
 def main [

@@ -1,12 +1,56 @@
 #!/usr/bin/env nu
 
-use ../environment.nu display-message
-use ../environment.nu get-project-path
-use ./files.nu get_compilation_status
-use ./files.nu get_files
-use ./files.nu get_lilypond_output_path
-use ./info.nu
-use ./settings.nu get_pdfs_directory
+use files.nu get_compilation_status
+use files.nu get_files
+use files.nu get_lilypond_output_path
+use info.nu
+use ../project.nu get-project-path
+use settings.nu get_pdfs_directory
+
+def display-message [
+  action: string
+  message: string
+  --color-entire-message
+  --color: string
+] {
+  let color = if ($color | is-not-empty) {
+    $color
+  } else match $color_entire_message {
+    true => (
+      match $action {
+        "Added" =>  "light_green_bold"
+        "Removed" => "light_yellow_bold"
+        "Skipped" => "light_gray_bold"
+        "Upgraded" =>  "light_cyan_bold"
+        _ => "white"
+      }
+    )
+
+    false => (
+      match $action {
+        "Added" =>  "green_bold"
+        "Removed" => "yellow_bold"
+        "Skipped" => "light_gray_dimmed"
+        "Upgraded" =>  "cyan_bold"
+        _ => "white"
+      }
+    )
+  }
+
+  mut action = $action
+
+  while (($action | split chars | length) < 8) {
+    $action = $" ($action)"
+  }
+
+  let message = if $color_entire_message {
+    $"(ansi $color)($action) ($message)(ansi reset)"
+  } else {
+    $"(ansi $color)($action)(ansi reset) ($message)"
+  }
+
+  print $"  ($message)"
+}
 
 def run-lilypond [file: path, force: bool] {
   let should_compile = if $force {
