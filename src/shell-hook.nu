@@ -75,7 +75,7 @@ def main [
   let active_environments = ($active_environments | split row " ")
   let inactive_environments = ($inactive_environments | split row " ")
 
-  let local_gitignore = (
+  let local_gitignore = if (".gitignore" | path exists) {
     open .gitignore
     | split row "\n\n"
     | filter {
@@ -88,7 +88,9 @@ def main [
           )
         )
       }
-  )
+  } else {
+    []
+  }
 
   get-environment-gitignore generic $environments_directory
   | save --force .gitignore
@@ -101,7 +103,7 @@ def main [
     | save --append .gitignore
   }
 
-  let local_pre_commit_config = (
+  let local_pre_commit_config = if (".pre-commit-config.yaml" | path exists) {
     open --raw .pre-commit-config.yaml
     | split row "# "
     | drop nth 0
@@ -129,7 +131,9 @@ def main [
         )"
         | indent-lines
       }
-  )
+  } else {
+    []
+  }
 
   get-environment-pre-commit-hooks generic $environments_directory
   | save --force .pre-commit-config.yaml
