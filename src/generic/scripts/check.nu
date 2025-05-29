@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use project.nu get-project-root
+use environment.nu get-project-root
 
 # Clean pre-commit cache
 def "main clean" [] {

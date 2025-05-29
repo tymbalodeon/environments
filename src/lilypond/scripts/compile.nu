@@ -1,10 +1,10 @@
 #!/usr/bin/env nu
 
+use ../environment.nu get-project-path
 use files.nu get_compilation_status
 use files.nu get_files
 use files.nu get_lilypond_output_path
 use info.nu
-use ../project.nu get-project-path
 use settings.nu get_pdfs_directory
 
 def display-message [

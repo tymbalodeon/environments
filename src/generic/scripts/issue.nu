@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 use domain.nu
-use project.nu get-project-root
+use environment.nu get-project-root
 
 def get-service [service?: string] {
   if ($service | is-empty) {

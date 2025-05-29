@@ -1,13 +1,13 @@
 #!/usr/bin/env nu
 
 use compile.nu
+use ../environment.nu get-project-path
+use ../environment.nu get-project-root
 use files.nu get_files
 use files.nu get_lilypond_output_path
 use files.nu get_title
 use info.nu
 use open-pdf.nu
-use ../project.nu get-project-path
-use ../project.nu get-project-root
 
 # Open <score> in $EDITOR and pdf viewer, recompiling on file changes
 def main [

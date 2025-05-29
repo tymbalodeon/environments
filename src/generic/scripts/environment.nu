@@ -1,6 +1,13 @@
 #!/usr/bin/env nu
 
-use project.nu get-project-path
+export def get-project-root [] {
+  echo (git rev-parse --show-toplevel)
+}
+
+export def get-project-path [path: string] {
+  get-project-root
+  | path join $path
+}
 
 # Activate installed environments
 def "main activate" [] {
@@ -18,16 +25,20 @@ def "main activate" [] {
 }
 
 def initialize [] {
-  if not (".environments.toml" | path exists) {
-    cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
-  }
+  try {
+    if not (".environments.toml" | path exists) {
+      cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
+    }
 
-  cp $"($env.ENVIRONMENTS)/generic/flake.nix" .
-  chmod +w flake.nix
+    cp $"($env.ENVIRONMENTS)/generic/flake.nix" .
+    chmod +w flake.nix
+  }
 }
 
 # Add environments to the project
-export def "main add" [...environments: string] {
+export def "main add" [
+  ...environments: string # Environments to add
+] {
   initialize
 
   open .environments.toml
@@ -44,8 +55,8 @@ export def "main add" [...environments: string] {
 
 # List environments and files
 def "main list" [
-  environment?: string
-  path?: string
+  environment?: string # An environment whose files to lise
+  path?: string # An environment path whose files to list
 ] {
   if ($environment | is-empty) {
     ls --short-names $env.ENVIRONMENTS
@@ -93,8 +104,7 @@ def "main list installed" [
 
 # Remove environments from the project
 def "main remove" [
-  ...environments: string
-  --reactivate
+  ...environments: string # Environments to remove
 ] {
   initialize
 
@@ -108,10 +118,10 @@ def "main remove" [
   main activate
 }
 
-# View the contents of a remote environment file
+# View the contents of an environment file
 def "main source" [
-  environment: string
-  file: string
+  environment: string # The environment whose file to view
+  file: string # The file to view
 ] {
   # TODO: make env and file optional and use fzf in those cases
   let files = (^fd $file $"($env.ENVIRONMENTS)/($environment)")
