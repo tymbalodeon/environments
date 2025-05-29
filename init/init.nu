@@ -3,18 +3,14 @@ def main [...environments: string] {
     "https://raw.githubusercontent.com/tymbalodeon/environments/trunk"
   )
 
-  let flake_file = $"(git rev-parse --show-toplevel)/flake.nix"
-
-  if not ($flake_file | path exists) {
-    http get $"($base_url)/src/generic/flake.nix"
-    | save $"(git rev-parse --show-toplevel)/flake.nix"
-  }
+  http get $"($base_url)/src/generic/flake.nix"
+  | save --force $"(git rev-parse --show-toplevel)/flake.nix"
 
   let environments_file = $"(git rev-parse --show-toplevel)/.environments.toml"
 
   if not ($environments_file | path exists) {
     http get $"($base_url)/src/generic/.environments.toml"
-    | save $"(git rev-parse --show-toplevel)/.environments.toml"
+    | save $environments_file
   }
 
   environment add ...$environments
