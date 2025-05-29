@@ -26,7 +26,7 @@ def main [
     []
   }
 
-  $prod_dependencies 
+  $prod_dependencies
   | append $dev_dependencies
   | to text --no-newline
 }
