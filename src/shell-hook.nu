@@ -50,6 +50,15 @@ def get-environment-pre-commit-hooks [
   }
 }
 
+def ensure-directory [name: string] {
+  if not ($name | path exists) {
+    ^mkdir $name
+  } else if ($name | path type) == file {
+    rm $name
+    ^mkdir $name
+  }
+}
+
 def main [
   --active-environments: string
   --environments-directory: string
@@ -68,7 +77,7 @@ def main [
     }
     | save --force .environments.toml
   } else {
-    cp $"($environments_directory)/generic/.environments.toml" .
+    ^cp $"($environments_directory)/generic/.environments.toml" .
     chmod +w .environments.toml
   }
 
@@ -174,12 +183,7 @@ def main [
     }
   }
 
-  if not ("scripts" | path exists) {
-    ^mkdir scripts
-  } else if ("scripts" | path type) == file {
-    rm scripts
-    ^mkdir scripts
-  }
+  ensure-directory scripts
 
   try {
     for file in (ls ("scripts/*" | into glob) | where type == file) {
@@ -203,7 +207,7 @@ def main [
   | str join
   | save --force Justfile
 
-  mkdir .helix
+  ensure-directory .helix
 
   $active_environments
   | each {
@@ -260,6 +264,8 @@ def main [
     | save --append Justfile
   }
 
+  ensure-directory just
+
   for environment in $active_environments {
     let environment_gitignore = (
       get-environment-gitignore $environment $environments_directory
@@ -292,10 +298,9 @@ def main [
     }
 
     let justfile = $"($environment_path)/Justfile"
-    mkdir just
 
     (
-      cp
+      ^cp
         --recursive
         --update
         $"($environment_path)/Justfile"
@@ -303,9 +308,7 @@ def main [
     )
 
     let scripts_directory = $"scripts/($environment)"
-
-    mkdir $scripts_directory
-
+    ensure-directory $scripts_directory
     let source_directory = $"($environment_path)/scripts"
 
     if ($source_directory | path exists) {
