@@ -4,10 +4,10 @@ set working-directory := ".."
 @help *recipe:
     ./scripts/environments/help.nu {{ recipe }}
 
-# Update pre-commit hooks
-@pre-commit-update *verbose:
-    ./scripts/environments/pre-commit-update.nu {{ verbose }}
+# Update init flake and pre-commit hooks
+@update *verbose:
+    ./scripts/environments/update.nu {{ verbose }}
 
-# Update
+# Update README
 @readme *help:
     ./scripts/environments/readme.nu {{ help }}

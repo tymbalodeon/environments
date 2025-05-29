@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use project.nu get-project-path
+use environment.nu get-project-path
 
 export def get-script [
   recipe: string
