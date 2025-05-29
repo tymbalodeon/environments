@@ -292,6 +292,7 @@ def main [
     }
 
     let justfile = $"($environment_path)/Justfile"
+    mkdir just
 
     (
       cp
