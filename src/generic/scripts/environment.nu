@@ -17,13 +17,18 @@ def "main activate" [] {
   direnv allow
 }
 
+def initialize [] {
+  if not (".environments.toml" | path exists) {
+    cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
+  }
+
+  cp $"($env.ENVIRONMENTS)/generic/flake.nix" .
+  chmod +w flake.nix
+}
+
 # Add environments to the project
 export def "main add" [...environments: string] {
-  if not (".environments.toml" | path exists) {
-    {environments: []}
-    | to toml
-    | save .environments.toml
-  }
+  initialize
 
   open .environments.toml
   | update environments (
@@ -91,11 +96,7 @@ def "main remove" [
   ...environments: string
   --reactivate
 ] {
-  if not (".environments.toml" | path exists) {
-    {environments: []}
-    | to toml
-    | save .environments.toml
-  }
+  initialize
 
   open .environments.toml
   | update environments (
