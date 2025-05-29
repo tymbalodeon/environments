@@ -302,7 +302,6 @@ def main [
     (
       ^cp
         --recursive
-        --update
         $"($environment_path)/Justfile"
         $"just/($environment).just"
     )

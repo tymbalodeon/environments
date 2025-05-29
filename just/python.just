@@ -18,10 +18,6 @@ set working-directory := ".."
 
 alias deps := dependencies
 
-# List python dependencies
-@list *args:
-    ./scripts/python/list.nu {{ args }}
-
 # Manage python version
 @pin *version:
     ./scripts/python/pin.nu {{ version }}
