@@ -10,7 +10,7 @@ export def get-project-path [path: string] {
 }
 
 # Activate installed environments
-export def "main activate" [] {
+def "main activate" [] {
   if (which direnv | is-empty) {
     print "Direnv (https://direnv.net/) is not installed."
     print "Please install and try again."
