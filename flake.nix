@@ -112,7 +112,7 @@
                         ))
                       }"
 
-                      ${yamlfmt}/bin/yamlfmt .pre-commit-conifg.yaml
+                      # ${yamlfmt}/bin/yamlfmt .pre-commit-conifg.yaml
                     ''
                   ]
                   ++ mergeModuleAttrs {

@@ -45,7 +45,7 @@ def get-environment-pre-commit-hooks [
         | get repos
         | to yaml
       )
-    | to text
+    | to text --no-newline
     | indent-lines
   }
 }
@@ -330,6 +330,8 @@ def main [
       }
     }
   }
+
+  yamlfmt .pre-commit-config.yaml
 
   for directory in [just scripts] {
     chmod --recursive +w $directory
