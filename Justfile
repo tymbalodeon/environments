@@ -65,6 +65,7 @@ alias dependencies := python::dependencies
 alias pin := python::pin
 alias profile := python::profile
 alias readme := environments::readme
+alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run
 alias shell := python::shell

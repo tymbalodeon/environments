@@ -11,3 +11,7 @@ set working-directory := ".."
 # Update README
 @readme *help:
     ./scripts/environments/readme.nu {{ help }}
+
+# Reload environment
+@reload *help:
+    ./scripts/environments/reload.nu {{ help }}

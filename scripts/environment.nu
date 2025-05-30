@@ -10,7 +10,7 @@ export def get-project-path [path: string] {
 }
 
 # Activate installed environments
-def "main activate" [] {
+export def "main activate" [] {
   if (which direnv | is-empty) {
     print "Direnv (https://direnv.net/) is not installed."
     print "Please install and try again."
@@ -176,6 +176,7 @@ def "main update" [] {
   | save --force $"($project_root)/flake.nix"
 
   nix flake update
+  main activate
 }
 
 def main [] {
