@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
 use ../environment.nu get-project-path
-use files.nu get_compilation_status
-use files.nu get_files
-use files.nu get_lilypond_output_path
+use files.nu get-compilation-status
+use files.nu get-files
+use files.nu get-lilypond-output-path
 use info.nu
-use settings.nu get_pdfs_directory
+use settings.nu get-pdfs-directory
 
 def display-message [
   action: string
@@ -56,7 +56,7 @@ def run-lilypond [file: path, force: bool] {
   let should_compile = if $force {
     true
   } else {
-    (get_compilation_status $file) in ["missing" "outdated"]
+    (get-compilation-status $file) in ["missing" "outdated"]
   }
 
   if $should_compile {
@@ -65,7 +65,7 @@ def run-lilypond [file: path, force: bool] {
     (
       lilypond
         --include (get-project-path helpers)
-        --output (get_lilypond_output_path $file)
+        --output (get-lilypond-output-path $file)
         $file
     )
   }
@@ -79,7 +79,7 @@ export def main [
   --missing # Only compile scores that are missing a pdf
 ] {
 
-  let pdfs_directory = (get_pdfs_directory)
+  let pdfs_directory = (get-pdfs-directory)
   mkdir $pdfs_directory
 
   if $is_file {
@@ -88,7 +88,7 @@ export def main [
     let files = if $missing {
       info --missing-files
     } else {
-      get_files "ly" $score
+      get-files "ly" $score
     }
 
     let errors = (
