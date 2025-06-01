@@ -20,9 +20,8 @@
   ];
 
   shellHook = ''
-    export FONTCONFIG_FILE=${with pkgs;
-      makeFontsConf {
-        fontDirectories = [freefont_ttf];
-      }}
+    export FONTCONFIG_FILE=${
+      with pkgs; makeFontsConf {fontDirectories = [freefont_ttf];}
+    }
   '';
 }
