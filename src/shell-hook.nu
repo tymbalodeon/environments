@@ -59,6 +59,17 @@ def ensure-directory [name: string] {
   }
 }
 
+def copy-files [directory: string] {
+  if not ($directory | path exists) {
+    return
+  }
+
+  for file in (ls $directory) {
+    ^cp --recursive $file.name .
+    chmod --recursive +w ($file.name | path basename)
+  }
+}
+
 def main [
   --active-environments: string
   --environments-directory: string
@@ -80,6 +91,8 @@ def main [
     ^cp $"($environments_directory)/generic/.environments.toml" .
     chmod +w .environments.toml
   }
+
+  taplo format .environments.toml
 
   let active_environments = ($active_environments | split row " ")
   let inactive_environments = ($inactive_environments | split row " ")
@@ -183,6 +196,29 @@ def main [
     }
   }
 
+  copy-files $"($environments_directory)/generic/files"
+  ensure-directory .helix
+
+  $active_environments
+  | each {
+      |environment|
+
+      let languages_file = (
+        $"($environments_directory)/($environment)/languages.toml"
+      )
+
+      if ($languages_file | path exists) {
+        open --raw $languages_file
+      }
+    }
+  | str join "\n\n"
+  | save --force .helix/languages.toml
+
+  open $"($environments_directory)/generic/Justfile"
+  | append "\n"
+  | str join
+  | save --force Justfile
+
   ensure-directory scripts
 
   try {
@@ -202,38 +238,9 @@ def main [
     ^cp $file scripts
   }
 
-  open $"($environments_directory)/generic/Justfile"
-  | append "\n"
-  | str join
-  | save --force Justfile
-
-  ensure-directory .helix
-
-  $active_environments
-  | each {
-      |environment|
-
-      let languages_file = (
-        $"($environments_directory)/($environment)/languages.toml"
-      )
-
-      if ($languages_file | path exists) {
-        open --raw $languages_file
-      }
-    }
-  | str join "\n\n"
-  | save --force .helix/languages.toml
-
   let active_environments = (
     $active_environments
-    | filter {
-        |environment|
-
-        $environment != generic and (
-          $"($environments_directory)/($environment)/Justfile"
-          | path exists
-        )
-      }
+    | where {$in != generic}
   )
 
   mut index = 0
@@ -253,7 +260,13 @@ def main [
     | uniq
     | sort
   ) {
-    $"mod ($environment) \"just/($environment).just\"\n"
+    let justfile = $"just/($environment).just"
+
+    if not ($justfile | path exists) {
+      continue
+    }
+
+    $"mod ($environment) \"($justfile)\"\n"
     | save --append Justfile
 
     $index += 1
@@ -288,29 +301,24 @@ def main [
     }
 
     let environment_path = $"($environments_directory)/($environment)";
-    let files_directory = $"($environment_path)/files"
-
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
-        ^cp --recursive $file.name .
-        chmod --recursive +w ($file.name | path basename)
-      }
-    }
-
+    copy-files $"($environment_path)/files"
     let justfile = $"($environment_path)/Justfile"
 
-    (
-      ^cp
-        --recursive
-        $"($environment_path)/Justfile"
-        $"just/($environment).just"
-    )
+    if ($justfile | path exists) {
+      (
+        ^cp
+          --recursive
+          $"($environment_path)/Justfile"
+          $"just/($environment).just"
+      )
+    }
 
     let scripts_directory = $"scripts/($environment)"
-    ensure-directory $scripts_directory
     let source_directory = $"($environment_path)/scripts"
 
     if ($source_directory | path exists) {
+      ensure-directory $scripts_directory
+
       (
         ^cp
           --recursive
