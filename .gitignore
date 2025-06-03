@@ -9,6 +9,7 @@ src/**/uv.lock
 # python
 *.pyc
 .coverage
+.venv
 __pycache__/
 build/
 dist/
