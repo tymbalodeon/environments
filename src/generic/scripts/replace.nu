@@ -14,7 +14,14 @@ def main [
     $path
   }
 
-  for file in (fd --exclude *.lock --type file "" $path | lines) {
+  let files = if ($path | path type) == dir {
+    fd --exclude *.lock --type file "" $path
+    | lines
+  } else {
+    [$path]
+  }
+
+  for file in $files {
     if $preview {
       sd --preview $find $replace $file
     } else {
