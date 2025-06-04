@@ -14,6 +14,6 @@ def main [
   }
 
   for file in (fd --exclude *.lock --type file "" $path | lines) {
-    sd $find $replace $file.name
+    sd $find $replace $file
   }
 }
