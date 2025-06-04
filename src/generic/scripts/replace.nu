@@ -6,6 +6,7 @@ def main [
   find: string # The text to match and replace
   replace: string # The text to replace with
   path?: string # Limit to a specific path
+  --preview # Preview changes without writing
 ] {
   let path = if ($path | is-empty) {
     get-project-root
@@ -14,6 +15,10 @@ def main [
   }
 
   for file in (fd --exclude *.lock --type file "" $path | lines) {
-    sd $find $replace $file
+    if $preview {
+      sd --preview $find $replace $file
+    } else {
+      sd $find $replace $file
+    }
   }
 }
