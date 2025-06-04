@@ -1,15 +1,14 @@
 #!/usr/bin/env nu
 
-# TODO: add help text
-
 # TODO: align indices to the right (and add color?)
 
+# Open comment at $index in $EDITOR
 def "main open" [
   index: int
-  sort_by_tag: bool
   path?: string
+  --sort-by-tag
 ] {
-  hx (
+  ^$env.EDITOR (
     get-todos $sort_by_tag $path
     | get $index
     | get file
@@ -62,6 +61,7 @@ def get-todos [sort_by_tag: bool path?: string] {
     }
 }
 
+# List TODO-style comments
 def main [
   path?: string # A path to search for keywords
   --sort-by-tag # Sort by todo tag
