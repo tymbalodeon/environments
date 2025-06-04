@@ -384,7 +384,7 @@ def main [
   for recipe in $submodule_recipes {
     if (
       $generic_recipes ++ $submodule_recipes
-      | find $recipe.recipe
+      | where recipe == $recipe.recipe
       | length
     ) == 1 {
       $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)\n"
