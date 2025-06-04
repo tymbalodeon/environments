@@ -383,7 +383,11 @@ def main [
 
   for recipe in $submodule_recipes {
     if (
-      $generic_recipes ++ $submodule_recipes
+      (
+        $generic_recipes
+        | wrap recipe
+        | insert environment generic
+      ) ++ $submodule_recipes
       | where recipe == $recipe.recipe
       | length
     ) == 1 {
