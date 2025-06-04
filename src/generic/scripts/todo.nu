@@ -25,7 +25,15 @@ def color [target: string color: string]: string -> string {
 }
 
 def get-todos [path?: string] {
-  rg "# (FIXME|NOTE|TODO)" --json
+  let pattern = "# (FIXME|NOTE|TODO)"
+
+  let matches = if ($path | is-empty) {
+    rg $pattern --json
+  } else {
+    rg $pattern --json $path
+  }
+
+  $matches
   | lines
   | each {|line| $line | from json}
   | flatten
