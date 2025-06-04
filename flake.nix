@@ -2,7 +2,7 @@
   inputs = {
     environments = {
       inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:tymbalodeon/environments?dir=src";
+      url = "git+file:.?dir=src";
     };
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
