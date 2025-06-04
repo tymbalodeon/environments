@@ -40,6 +40,7 @@ def get-todos [sort_by_tag: bool path?: string] {
   | str trim
   | select line_number path.text lines.text
   | rename line_number file comment
+  | where {not ($in.file | str starts-with scripts)}
   | sort-by {$in | get (if $sort_by_tag { "comment" } else { "file" })}
   | update comment {
       |row|
