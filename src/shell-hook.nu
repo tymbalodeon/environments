@@ -216,7 +216,7 @@ def main [
         open --raw $languages_file
       }
     }
-  | str join "\n\n"
+  | str join "\n"
   | save --force .helix/languages.toml
 
   open $"($environments_directory)/generic/Justfile"
