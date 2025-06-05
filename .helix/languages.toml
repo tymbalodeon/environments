@@ -11,6 +11,12 @@ formatter = { command = "alejandra" }
 
 
 [[language]]
+name = "python"
+auto-format = true
+formatter = { command = "ruff", args = ["format", "-"] }
+
+
+[[language]]
 name = "toml"
 auto-format = true
 formatter = { command = "taplo", args = ["format", "-"] }
