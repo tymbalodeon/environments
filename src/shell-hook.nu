@@ -199,6 +199,8 @@ def main [
   copy-files $"($environments_directory)/generic/files"
   ensure-directory .helix
 
+  # TODO: allow project-specific helix settings to be picked up here
+
   $active_environments
   | each {
       |environment|

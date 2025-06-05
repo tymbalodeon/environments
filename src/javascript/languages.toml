@@ -1,0 +1,17 @@
+[[language]]
+name = "javascript"
+auto-format = true
+formatter = { command = "biome", args = [
+  "format",
+  "--stdin-file-path",
+  "buffer.js",
+] }
+
+[[language]]
+name = "jsx"
+auto-format = true
+formatter = { command = "biome", args = [
+  "format",
+  "--stdin-file-path",
+  "buffer.jsx",
+] }
