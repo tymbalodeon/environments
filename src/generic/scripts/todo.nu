@@ -4,10 +4,26 @@ use color.nu use-colors
 
 # Open comment at $index in $EDITOR
 def "main open" [
-  index: int
-  path?: string
+  index?: int
+  --path: string
   --sort-by-tag
 ] {
+  let index = if ($index | is-empty) {
+    let todos = if $sort_by_tag {
+      main --color never --sort-by-tag $path
+    } else {
+      main --color never $path
+    }
+
+    $todos
+    | fzf --tac
+    | split row " "
+    | first
+    | into int
+  } else {
+    $index
+  }
+
   ^$env.EDITOR (
     get-todos never $sort_by_tag $path
     | get $index
