@@ -7,7 +7,7 @@ def main [
   --web # Open the remote repository website in the browser
 ] {
   let domain = try {
-    domain
+    domain err> /dev/null
   } catch {
     return
   }
