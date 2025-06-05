@@ -1,8 +1,8 @@
 set working-directory := ".."
 
 # View help text
-@help:
-    just --list --justfile just/python.just
+@help *args:
+    ./scripts/python/help.nu {{ args }}
 
 # Add dependencies
 @add *args:
