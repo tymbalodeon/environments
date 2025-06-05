@@ -1,6 +1,6 @@
 {pkgs}: {
   packages = with pkgs; [
     biome
-    typescript-typescript-language-server
+    typescript-language-server
   ];
 }
