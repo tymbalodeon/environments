@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 use ../domain.nu parse-git-origin
-use ../project.nu get-project-path
+use ../environment.nu get-project-path
 
 # Update repo link in README
 def main [] {
