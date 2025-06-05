@@ -125,6 +125,9 @@ def main [
     | save --append .gitignore
   }
 
+  # TODO: allow different environments to include the same pre-commit checks,
+  # but don't duplicate when combined into one (see javascript/typescript)
+
   let local_pre_commit_config = if (".pre-commit-config.yaml" | path exists) {
     open --raw .pre-commit-config.yaml
     | split row "# "
