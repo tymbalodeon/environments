@@ -44,19 +44,28 @@ def initialize [] {
 export def "main add" [
   ...environments: string # Environments to add
 ] {
-  initialize
-
-  # TODO: add error message if any environments are invalid?
-  let environments = (
+  let unrecognized_environments = (
     $environments
     | where {
-        $in in (
+        $in not-in (
           ls --short-names $env.ENVIRONMENTS
           | where type == dir
           | get name
         )
       }
   )
+
+  if ($unrecognized_environments | is-not-empty) {
+    print $"Urecognized environments:\n(
+      $unrecognized_environments
+      | each {|environment| $'- ($environment)'}
+      | to text --no-newline
+    )"
+
+    exit 1
+  }
+
+  initialize
 
   open .environments.toml
   | update environments (
@@ -123,6 +132,23 @@ def "main list installed" [
 def "main remove" [
   ...environments: string # Environments to remove
 ] {
+  let recognized_environments = if ($environments | is-not-empty) {
+    $environments
+    | where {
+        $in in (
+          ls --short-names $env.ENVIRONMENTS
+          | where type == dir
+          | get name
+        )
+      }
+  } else {
+    []
+  }
+
+  if ($environments | is-not-empty) and ($recognized_environments | is-empty) {
+    return
+  }
+
   initialize
 
   if ($environments | is-empty) {
