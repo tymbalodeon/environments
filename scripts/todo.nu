@@ -4,10 +4,26 @@ use color.nu use-colors
 
 # Open comment at $index in $EDITOR
 def "main open" [
-  index: int
-  path?: string
+  index?: int
+  --path: string
   --sort-by-tag
 ] {
+  let index = if ($index | is-empty) {
+    let todos = if $sort_by_tag {
+      main --color never --sort-by-tag $path
+    } else {
+      main --color never $path
+    }
+
+    $todos
+    | fzf --tac
+    | split row " "
+    | first
+    | into int
+  } else {
+    $index
+  }
+
   ^$env.EDITOR (
     get-todos never $sort_by_tag $path
     | get $index
@@ -33,6 +49,12 @@ def get-todos [
     rg $pattern --json $path
   }
 
+  let justfiles = (
+    ls --short-names just
+    | get name
+    | where {($in | path parse | get stem) not-in (just env list)}
+  )
+
   let todos = (
     $matches
     | lines
@@ -44,7 +66,13 @@ def get-todos [
     | str trim
     | select line_number path.text lines.text
     | rename line_number file comment
-    | where {not ($in.file | str starts-with scripts)}
+    | where {
+        not ($in.file | str starts-with scripts) and (
+          not (
+            $in.file | str starts-with just
+          ) or ($in.file in $justfiles)
+        )
+      }
     | sort-by {$in | get (if $sort_by_tag { "comment" } else { "file" })}
   )
 
