@@ -13,6 +13,7 @@
     nushell
     ripgrep
     stylelint
+    tera-cli
     vscode-langservers-extracted
   ];
 }

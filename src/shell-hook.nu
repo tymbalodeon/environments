@@ -335,10 +335,45 @@ def main [
     let templates_directory = $"($environment_path)/templates"
 
     if ($templates_directory | path exists) {
-      for file in (ls $templates_directory) {
-        if not ($file.name | path basename | path exists) {
-          ^cp --recursive $file.name .
-          chmod --recursive +w ($file.name | path basename)
+      mkdir tera
+      let context_source = $"($templates_directory)/context.toml"
+      let context_file = $"tera/($environment).toml"
+
+      if not ($context_file | path exists) {
+        if ($context_source | path exists) {
+          ^cp $context_source $context_file
+          chmod +w $context_file
+        } else {
+          touch $context_file
+        }
+      }
+
+      for file in (
+        ls $templates_directory
+        | get name
+        | where {not ($in | str ends-with context.toml)}
+      ) {
+        let local_file = ($file | path basename | str replace ".templ" "")
+        let text = (tera --template $file $context_file)
+        let is_toml = (($local_file | path parse | get extension) == toml)
+
+        let text = if $is_toml {
+          if ($local_file | path exists) {
+            $text
+            | from toml
+            | merge deep (open $local_file)
+          } else {
+            $text
+          }
+        } else {
+          $text
+        }
+
+        $text
+        | save --force $local_file
+
+        if $is_toml {
+          taplo format $local_file
         }
       }
     }
