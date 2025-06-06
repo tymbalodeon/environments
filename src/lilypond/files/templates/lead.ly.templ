@@ -1,4 +1,4 @@
-\version "[lilypond_version]"
+\version "{{lilypond_version}}"
 
 \include "helpers/settings.ily"
 
@@ -8,8 +8,8 @@
 \include "structure.ily"
 
 \header {
-  title = "[title]"
-  composer = "[composer]"
+  title = "{{title}}"
+  composer = "{{composer}}"
 }
 
 melody = \new Staff {
@@ -29,7 +29,7 @@ music = \relative c'' {
 
 \score {
     \new Staff \with {
-        instrumentName = "[instrument]"
+        instrumentName = "{{instrument}}"
         \numericTimeSignature
     } {
         \compressMMRests

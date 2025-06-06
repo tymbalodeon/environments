@@ -11,11 +11,13 @@ def main [
 ] {
   if not $preview {
     if not ((git branch --show-current) == "trunk") {
-      return "Can only release from the trunk branch."
+      print "Can only release from the trunk branch."
+      exit 1
     }
 
     if (git status --short | is-not-empty) {
-      return "Please commit all changes before releasing."
+      print "Please commit all changes before releasing."
+      exit 1
     }
 
     check
