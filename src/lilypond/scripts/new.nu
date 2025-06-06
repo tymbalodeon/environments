@@ -68,7 +68,7 @@ def main [
 
   mkdir $new_score_directory
 
-  for file in (fd $template templates | lines) {
+  for file in (fd $template $"($env.ENVIRONMENTS)/templates" | lines) {
     $context
     | to toml
     | tera --stdin --template $file 
