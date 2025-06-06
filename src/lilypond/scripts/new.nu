@@ -72,6 +72,6 @@ def main [
     $context
     | to toml
     | tera --stdin --template $file 
-    | save $"($new_score_directory)/($file | path basename)"
+    | save $"($new_score_directory)/($file | path basename | str replace .templ "")"
   }
 }
