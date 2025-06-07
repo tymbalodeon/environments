@@ -22,7 +22,7 @@ def main [
 
   if ("CHANGELOG.md" | path exists) {
     open CHANGELOG.md
-    | str replace --all "\n---\n" "\n- - -n"
+    | str replace --all "\n---\n" "\n- - -\n"
     | save --force CHANGELOG.md
 
     jj describe --message "chore: prepare CHANGELOG.md for release"
