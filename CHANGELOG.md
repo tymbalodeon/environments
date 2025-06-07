@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file. See
 guidelines.
 
 - - -
+## 0.3.1 - 2025-06-07
+#### Bug Fixes
+- release - (af0ad1a) - Ben Rosen
+- release - (ceab82d) - Ben Rosen
+- release - (04ffd25) - Ben Rosen
+#### Miscellaneous Chores
+- prepare CHANGELOG.md for release - (ea0a64e) - Ben Rosen
+- format CHANGELOG.md after release - (f040f39) - Ben Rosen
+- prepare CHANGELOG.md for release - (8928ab2) - Ben Rosen
+- format CHANGELOG.md after release - (0736bed) - Ben Rosen
+- prepare CHANGELOG.md for release - (0f6bef7) - Ben Rosen
+- format CHANGELOG.md after release - (4feb5c3) - Ben Rosen
+- prepare CHANGELOG.md for release - (856612e) - Ben Rosen
+- remove pyproject templ - (db16dea) - Ben Rosen
+- update release - (945d046) - Ben Rosen
+- update release - (453b8fb) - Ben Rosen
+
+- - -
+
 
 ## 0.3.0 - 2025-06-07
 
