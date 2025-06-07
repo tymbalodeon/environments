@@ -3,6 +3,10 @@
 # TODO: move this to its own module? Since not every generic project has
 # "releases"
 
+def "main list" [] {
+  jj tag list
+}
+
 # Create a new release
 def main [
   --preview # Preview changes without altering anything 
