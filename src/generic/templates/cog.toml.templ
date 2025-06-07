@@ -15,15 +15,16 @@ tag_prefix = ""
 [bump_profiles]
 
 [changelog]
-owner = "tymbalodeon"
+authors = [
+  {%- for author in changelog.authors -%}
+  { signature = "{{author.signature}}", username = "{{author.username}}" }
+  {%- endfor -%}
+]
+owner = "{{changelog.owner}}"
 path = "CHANGELOG.md"
-remote = "github.com"
-repository = "environments"
+remote = "{{changelog.remote}}"
+repository = "{{changelog.repository}}"
 template = "remote"
-
-[[changelog.authors]]
-signature = "Ben Rosen"
-username = "tymbalodeon"
 
 [commit_types]
 

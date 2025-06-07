@@ -70,6 +70,54 @@ def copy-files [directory: string] {
   }
 }
 
+def generate-template-files [environment: string] {
+  let templates_directory = $"($env.ENVIRONMENTS)/($environment)/templates"
+
+  if ($templates_directory | path exists) {
+    mkdir tera
+    let context_source = $"($templates_directory)/context.toml"
+    let local_context_file = $"tera/($environment).toml"
+
+    if not ($local_context_file | path exists) {
+      if ($context_source | path exists) {
+        ^cp $context_source $local_context_file
+        chmod +w $local_context_file
+      } else {
+        touch $local_context_file
+      }
+    }
+
+    for file in (
+      ls $templates_directory
+      | get name
+      | where {not ($in | str ends-with context.toml)}
+    ) {
+      let local_file = ($file | path basename | str replace ".templ" "")
+      let text = (tera --template $file $local_context_file)
+      let is_toml = (($local_file | path parse | get extension) == toml)
+
+      let text = if $is_toml {
+        if ($local_file | path exists) {
+          $text
+          | from toml
+          | merge deep (open $local_file)
+        } else {
+          $text
+        }
+      } else {
+        $text
+      }
+
+      $text
+      | save --force $local_file
+
+      if $is_toml {
+        taplo format $local_file
+      }
+    }
+  }
+}
+
 def main [
   --active-environments: string
   --environments-directory: string
@@ -190,7 +238,9 @@ def main [
       rm --force --recursive $environment_scripts
     }
 
-    let templates_directory = $"($environments_directory)/($environment)/templates"
+    let templates_directory = (
+      $"($environments_directory)/($environment)/templates"
+    )
 
     if ($templates_directory | path exists) {
       for file in (ls $templates_directory) {
@@ -242,6 +292,8 @@ def main [
   ) {
     ^cp $file scripts
   }
+
+  generate-template-files generic
 
   let active_environments = (
     $active_environments
@@ -332,51 +384,7 @@ def main [
       )
     }
 
-    let templates_directory = $"($environment_path)/templates"
-
-    if ($templates_directory | path exists) {
-      mkdir tera
-      let context_source = $"($templates_directory)/context.toml"
-      let context_file = $"tera/($environment).toml"
-
-      if not ($context_file | path exists) {
-        if ($context_source | path exists) {
-          ^cp $context_source $context_file
-          chmod +w $context_file
-        } else {
-          touch $context_file
-        }
-      }
-
-      for file in (
-        ls $templates_directory
-        | get name
-        | where {not ($in | str ends-with context.toml)}
-      ) {
-        let local_file = ($file | path basename | str replace ".templ" "")
-        let text = (tera --template $file $context_file)
-        let is_toml = (($local_file | path parse | get extension) == toml)
-
-        let text = if $is_toml {
-          if ($local_file | path exists) {
-            $text
-            | from toml
-            | merge deep (open $local_file)
-          } else {
-            $text
-          }
-        } else {
-          $text
-        }
-
-        $text
-        | save --force $local_file
-
-        if $is_toml {
-          taplo format $local_file
-        }
-      }
-    }
+    generate-template-files $environment
   }
 
   yamlfmt .pre-commit-config.yaml

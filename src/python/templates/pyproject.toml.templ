@@ -1,7 +1,9 @@
 [project]
 name = "{{project.name}}"
 version = "{{project.version}}"
-{% if project.description %}description = "{{project.description}}"{% endif -%}
+{% if project.description -%}
+description = "{{project.description}}"
+{%- endif %}
 readme = "README.md"
 requires-python = ">={{project.requires_python}}"
 dependencies = []
