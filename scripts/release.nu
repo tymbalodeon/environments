@@ -26,5 +26,5 @@ def main [
 
   prettier CHANGELOG.md
   jj describe --message "chore: format CHANGELOG.md after release"
-  jj bookmark set trunk; jj git push; jj new
+  jj new; jj bookmark set trunk --to @-; jj git push
 }
