@@ -7,8 +7,19 @@
 def main [
   --preview # Preview changes without altering anything 
 ] {
-  # TODO check if there are working copy changes and if so exit
-  
+  if (git status --porcelain=1 | lines | length) > 0 {
+    let message = (
+      [
+        "The working copy contains changes."
+         "Please commit all changes and try again."
+      ]
+      | str join " "
+    )
+
+    print $message
+    exit 1
+  }
+
   if ("CHANGELOG.md" | path exists) {
     open CHANGELOG.md
     | str replace --all "\n---\n" "\n- - -n"
