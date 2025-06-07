@@ -23,5 +23,5 @@ def main [
     check
   }
 
-  cog changelog
+  cog bump --auto
 }
