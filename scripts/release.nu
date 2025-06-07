@@ -4,6 +4,12 @@
 # "releases"
 
 # Create a new release
-def main [] {
-  cog bump --auto
+def main [
+  --preview # Preview changes without altering anything 
+] {
+  if $preview {
+    cog bump --auto --dry-run
+  } else {
+    cog bump --auto
+  }
 }

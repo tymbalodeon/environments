@@ -5,20 +5,6 @@ All notable changes to this project will be documented in this file. See
 guidelines.
 
 - - -
-## 0.2.0 - 2025-06-07
-#### Features
-- test releasing function - (1da8263) - Ben Rosen
-- test releasing function - (f1a5161) - Ben Rosen
-- test releasing function - (758be77) - Ben Rosen
-- test releasing function - (bb877a0) - Ben Rosen
-- test releasing function - (baa935b) - Ben Rosen
-- test releasing function - (b98ed76) - Ben Rosen
-- test releasing function - (0227d0d) - Ben Rosen
-#### Miscellaneous Chores
-- update environment - (3eee6db) - Ben Rosen
-
-- - -
-
 
 ## 0.1.0 - 2024-08-04
 
