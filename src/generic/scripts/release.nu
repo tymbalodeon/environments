@@ -11,6 +11,15 @@ def "main list" [] {
 def main [
   --preview # Preview changes without altering anything 
 ] {
+  if not $preview {
+    if (
+      input --numchar 1 "Are you sure you want to proceed [y/N]? "
+      | str downcase
+    ) != "y" {
+      exit
+    }
+  }
+
   if (git status --porcelain=1 | lines | length) > 0 {
     let message = (
       [
