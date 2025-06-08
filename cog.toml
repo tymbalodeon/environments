@@ -15,15 +15,12 @@ tag_prefix = ""
 [bump_profiles]
 
 [changelog]
+authors = [{ signature = "Ben Rosen", username = "tymbalodeon" }]
 owner = "tymbalodeon"
 path = "CHANGELOG.md"
 remote = "github.com"
 repository = "environments"
 template = "remote"
-
-[[changelog.authors]]
-signature = "Ben Rosen"
-username = "tymbalodeon"
 
 [commit_types]
 
