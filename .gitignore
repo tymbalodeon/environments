@@ -2,10 +2,6 @@
 .env
 .envrc
 
-# environments
-init/flake.lock
-src/**/uv.lock
-
 # python
 *.pyc
 .coverage
@@ -13,3 +9,7 @@ src/**/uv.lock
 __pycache__/
 build/
 dist/
+
+# environments
+init/flake.lock
+src/**/uv.lock

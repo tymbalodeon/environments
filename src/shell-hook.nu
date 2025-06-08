@@ -1,8 +1,57 @@
-def get-environment-gitignore [
-  environment: string
-  environments_directory: string
+def generate-environments-file [] {
+  if (".environments.toml" | path exists) {
+    {
+      environments: (
+        open $"($env.ENVIRONMENTS)/generic/.environments.toml"
+        | get environments
+        | append (open .environments.toml).environments
+        | uniq
+        | sort
+      )
+    }
+    | save --force .environments.toml
+  } else {
+    ^cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
+    chmod +w .environments.toml
+  }
+
+  taplo format .environments.toml
+}
+
+def copy-directory-files [directory: string] {
+  if not ($directory | path exists) {
+    return
+  }
+
+  for file in (ls $directory) {
+    ^cp --recursive $file.name .
+    chmod --recursive +w ($file.name | path basename)
+  }
+}
+
+def copy-files [
+  active_environments: list<string>
+  inactive_environments: list<string>
 ] {
-  let gitignore_file = $"($environments_directory)/($environment)/.gitignore"
+  for inactive_environment in $inactive_environments {
+    let files_directory = (
+      $"($env.ENVIRONMENTS)/($inactive_environment)/files"
+    )
+
+    if ($files_directory | path exists) {
+      for file in (ls $files_directory) {
+        rm --force --recursive ($file.name | path basename)
+      }
+    }
+  }
+
+  for environment in $active_environments {
+    copy-directory-files $"($env.ENVIRONMENTS)/($environment)/files"
+  }
+}
+
+def get-environment-gitignore [environment: string] {
+  let gitignore_file = $"($env.ENVIRONMENTS)/($environment)/.gitignore"
 
   if not ($gitignore_file | path exists) {
     return
@@ -17,29 +66,84 @@ def get-environment-gitignore [
   }
 }
 
+def generate-gitignore-file [
+  active_environments: list<string>
+  inactive_environments: list<string>
+] {
+  let local_gitignore = if (".gitignore" | path exists) {
+    open .gitignore
+    | split row "\n\n"
+    | filter {
+        |section|
+
+        ($section | str starts-with  "#") and (
+          ($section | lines | first | str replace "# " "") not-in (
+            just env list
+          )
+        )
+      }
+  } else {
+    []
+  }
+
+  $active_environments
+  | each {get-environment-gitignore $in}
+  | append $local_gitignore
+  | where {is-not-empty}
+  | str join "\n"
+  | save --force .gitignore
+}
+
+def ensure-directory-exists [name: string] {
+  if not ($name | path exists) {
+    ^mkdir $name
+  } else if ($name | path type) == file {
+    rm $name
+    ^mkdir $name
+  }
+}
+
+def generate-helix-languages-file [active_environments: list<string>] {
+  # TODO: allow project-specific helix settings to be picked up here
+  ensure-directory-exists .helix
+
+  $active_environments
+  | each {
+      |environment|
+
+      let languages_file = (
+        $"($env.ENVIRONMENTS)/($environment)/languages.toml"
+      )
+
+      if ($languages_file | path exists) {
+        open --raw $languages_file
+      }
+    }
+  | str join "\n"
+  | save --force .helix/languages.toml
+}
+
+
 def indent-lines []: string -> string  {
   $in
   | lines
-  | each {|line| $"  ($line)"}
+  | each {$"  ($in)"}
   | to text
 }
 
-def get-environment-pre-commit-hooks [
-  environment: string
-  environments_directory: string
-] {
+def get-environment-pre-commit-hooks []: string -> string {
   let pre_commit_config = $"(
-    $environments_directory
-  )/($environment)/.pre-commit-config.yaml"
+    $env.ENVIRONMENTS
+  )/($in)/.pre-commit-config.yaml"
 
   if not ($pre_commit_config | path exists) {
     return
   }
 
-  if $environment == generic {
+  if $in == generic {
     open --raw $pre_commit_config
   } else {
-    $"# ($environment)"
+    $"# ($in)"
     | append (
         open $pre_commit_config
         | get repos
@@ -50,182 +154,11 @@ def get-environment-pre-commit-hooks [
   }
 }
 
-def ensure-directory [name: string] {
-  if not ($name | path exists) {
-    ^mkdir $name
-  } else if ($name | path type) == file {
-    rm $name
-    ^mkdir $name
-  }
-}
-
-def copy-files [directory: string] {
-  if not ($directory | path exists) {
-    return
-  }
-
-  for file in (ls $directory) {
-    ^cp --recursive $file.name .
-    chmod --recursive +w ($file.name | path basename)
-  }
-}
-
-def generate-template-files [environment: string] {
-  let templates_directory = $"($env.ENVIRONMENTS)/($environment)/templates"
-
-  if ($templates_directory | path exists) {
-    mkdir tera
-    let context_source = $"($templates_directory)/context.toml"
-    let local_context_file = $"tera/($environment).toml"
-
-    if not ($local_context_file | path exists) {
-      if ($context_source | path exists) {
-        ^cp $context_source $local_context_file
-        chmod +w $local_context_file
-      } else {
-        touch $local_context_file
-      }
-    }
-
-    for file in (
-      ls $templates_directory
-      | get name
-      | where {not ($in | str ends-with context.toml)}
-    ) {
-      let local_file = ($file | path basename | str replace ".templ" "")
-      let text = (tera --template $file $local_context_file)
-      let is_toml = (($local_file | path parse | get extension) == toml)
-
-      let text = if $is_toml {
-        if ($local_file | path exists) {
-          $text
-          | from toml
-          | merge deep (open $local_file)
-        } else {
-          $text
-        }
-      } else {
-        $text
-      }
-
-      $text
-      | save --force $local_file
-
-      if $is_toml {
-        taplo format $local_file
-      }
-    }
-  }
-}
-
-def main [
-  --active-environments: string
-  --environments-directory: string
-  --inactive-environments: string
-  --local-justfiles: string
+def generate-justfile-and-scripts [
+  active_environments: list<string>
+  inactive_environments: list<string>
 ] {
-  if (".environments.toml" | path exists) {
-    {
-      environments: (
-        open $"($environments_directory)/generic/.environments.toml"
-        | get environments
-        | append (open .environments.toml).environments
-        | uniq
-        | sort
-      )
-    }
-    | save --force .environments.toml
-  } else {
-    ^cp $"($environments_directory)/generic/.environments.toml" .
-    chmod +w .environments.toml
-  }
-
-  taplo format .environments.toml
-
-  let active_environments = ($active_environments | split row " ")
-  let inactive_environments = ($inactive_environments | split row " ")
-
-  let local_gitignore = if (".gitignore" | path exists) {
-    open .gitignore
-    | split row "\n\n"
-    | filter {
-        |section|
-
-        ($section | str starts-with  "#") and (
-          ($section | lines | first | str replace "# " "") not-in (
-            $active_environments ++ $inactive_environments
-            | append generic
-          )
-        )
-      }
-  } else {
-    []
-  }
-
-  get-environment-gitignore generic $environments_directory
-  | save --force .gitignore
-
-  if ($local_gitignore | is-not-empty) {
-    "\n"
-    | append $local_gitignore
-    | append "\n"
-    | str join
-    | save --append .gitignore
-  }
-
-  # TODO: allow different environments to include the same pre-commit checks,
-  # but don't duplicate when combined into one (see javascript/typescript)
-
-  let local_pre_commit_config = if (".pre-commit-config.yaml" | path exists) {
-    open --raw .pre-commit-config.yaml
-    | split row "# "
-    | drop nth 0
-    | filter {
-        |section|
-
-        let first_line = ($section | lines | first)
-
-        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
-          $active_environments ++ $inactive_environments
-          | append generic
-        )
-      }
-    | each {
-        |section|
-
-        let lines = ($section | lines)
-
-        $"# ($lines | first)\n(
-          $lines
-          | drop nth 0
-          | to text
-          | from yaml
-          | to yaml
-        )"
-        | indent-lines
-      }
-  } else {
-    []
-  }
-
-  get-environment-pre-commit-hooks generic $environments_directory
-  | save --force .pre-commit-config.yaml
-
-  if ($local_pre_commit_config | is-not-empty) {
-    $local_pre_commit_config
-    | str join
-    | save --append .pre-commit-config.yaml
-  }
-
   for environment in $inactive_environments {
-    let files_directory = $"($environments_directory)/($environment)/files"
-
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
-        rm --force --recursive ($file.name | path basename)
-      }
-    }
-
     let environment_justfile = $"just/($environment).just"
 
     if ($environment_justfile | path exists) {
@@ -237,44 +170,9 @@ def main [
     if ($environment_scripts | path exists) {
       rm --force --recursive $environment_scripts
     }
-
-    let templates_directory = (
-      $"($environments_directory)/($environment)/templates"
-    )
-
-    if ($templates_directory | path exists) {
-      for file in (ls $templates_directory) {
-        rm --force --recursive ($file.name | path basename)
-      }
-    }
   }
 
-  copy-files $"($environments_directory)/generic/files"
-  ensure-directory .helix
-
-  # TODO: allow project-specific helix settings to be picked up here
-
-  $active_environments
-  | each {
-      |environment|
-
-      let languages_file = (
-        $"($environments_directory)/($environment)/languages.toml"
-      )
-
-      if ($languages_file | path exists) {
-        open --raw $languages_file
-      }
-    }
-  | str join "\n"
-  | save --force .helix/languages.toml
-
-  open $"($environments_directory)/generic/Justfile"
-  | append "\n"
-  | str join
-  | save --force Justfile
-
-  ensure-directory scripts
+  ensure-directory-exists scripts
 
   try {
     for file in (ls ("scripts/*" | into glob) | where type == file) {
@@ -282,116 +180,77 @@ def main [
     }
   }
 
-  for file in (
-    fd
-      --exclude tests
-      --type file
-      ""
-      $"($environments_directory)/generic/scripts"
-    | lines
-  ) {
-    ^cp $file scripts
-  }
-
-  generate-template-files generic
-
-  let active_environments = (
+  let scripts_files = (
     $active_environments
-    | where {$in != generic}
+    | each {
+        |environment|
+
+        let scripts_directory = (
+          $"($env.ENVIRONMENTS)/($environment)/scripts"
+        )
+
+        if ($scripts_directory | path exists) {
+          fd --exclude tests --type file "" $scripts_directory
+          | lines
+        }
+      }
+    | where {is-not-empty}
+    | flatten
   )
 
-  mut index = 0
-
-  let local_justfiles = if $local_justfiles == none {
-    ""
-  } else {
-    $local_justfiles
-  }
-
-  for environment in (
-    $active_environments ++ (
-      $local_justfiles
-      | split row " "
-      | where {is-not-empty}
-    )
-    | uniq
-    | sort
-  ) {
-    let justfile = $"just/($environment).just"
-
-    if not ($justfile | path exists) {
-      continue
-    }
-
-    $"mod ($environment) \"($justfile)\"\n"
-    | save --append Justfile
-
-    $index += 1
-  }
-
-  if $index > 0 {
-    "\n"
-    | save --append Justfile
-  }
-
-  ensure-directory just
-
-  for environment in $active_environments {
-    let environment_gitignore = (
-      get-environment-gitignore $environment $environments_directory
+  for file in $scripts_files {
+    let local_file = (
+      $file
+      | str replace generic/ ""
+      | str replace $"($env.ENVIRONMENTS)/" ""
     )
 
-    if ($environment_gitignore | is-not-empty) {
-      "\n"
-      | append $environment_gitignore
-      | str join
-      | save --append .gitignore
-    }
+    ensure-directory-exists ($local_file | path dirname)
+    ^cp --recursive $file $local_file
+  }
 
-    let environment_pre_commit_config = (
-      get-environment-pre-commit-hooks $environment $environments_directory
+  chmod --recursive +w scripts
+  ensure-directory-exists just
+
+  for environment in ($active_environments | where {$in != generic}) {
+    let justfile = (
+      $"($env.ENVIRONMENTS)/($environment)/Justfile"
     )
-
-    if ($environment_pre_commit_config | is-not-empty) {
-      $environment_pre_commit_config
-      | save --append .pre-commit-config.yaml
-    }
-
-    let environment_path = $"($environments_directory)/($environment)";
-    copy-files $"($environment_path)/files"
-    let justfile = $"($environment_path)/Justfile"
 
     if ($justfile | path exists) {
-      (
-        ^cp
-          --recursive
-          $"($environment_path)/Justfile"
-          $"just/($environment).just"
-      )
+      ^cp $justfile $"just/$(environment).just"
     }
-
-    let scripts_directory = $"scripts/($environment)"
-    let source_directory = $"($environment_path)/scripts"
-
-    if ($source_directory | path exists) {
-      ensure-directory $scripts_directory
-
-      (
-        ^cp
-          --recursive
-          ($"($source_directory)/*" | into glob)
-          $scripts_directory
-      )
-    }
-
-    generate-template-files $environment
   }
 
-  yamlfmt .pre-commit-config.yaml
+  chmod --recursive +w just
 
-  for directory in [just scripts] {
-    chmod --recursive +w $directory
-  }
+  let local_justfiles = (
+    ls --short-names just
+    | get name
+    | path parse
+    | get stem
+    | where {$in not-in (just env list)}
+  )
+
+  open $"($env.ENVIRONMENTS)/generic/Justfile"
+  | append "\n"
+  | append (
+      ($active_environments | where {$in != generic}) ++ $local_justfiles
+      | uniq
+      | sort
+      | each {
+          |environment|
+
+          let justfile = $"just/($environment).just"
+
+          if ($justfile | path exists) {
+            $"mod ($environment) \"($justfile)\"\n"
+          }
+        }
+      | where {is-not-empty}
+    )
+  | str join "\n"
+  | save --force Justfile
 
   let generic_recipes = (
     just --summary
@@ -411,7 +270,7 @@ def main [
           | str trim
           | where {is-not-empty}
           | str replace "@" ""
-          | each {|recipe| $recipe | split row " " | first}
+          | each {split row " " | first}
         )
 
         {
@@ -443,4 +302,141 @@ def main [
       | save --append Justfile
     }
   }
+
+  just --fmt --unstable
+}
+
+def generate-pre-commit-config-file [
+  active_environments: list<string>
+  inactive_environments: list<string>
+] {
+  # TODO: allow different environments to include the same pre-commit checks,
+  # but don't duplicate when combined into one (see javascript/typescript)
+
+  let local_pre_commit_config = if (".pre-commit-config.yaml" | path exists) {
+    open --raw .pre-commit-config.yaml
+    | split row "# "
+    | drop nth 0
+    | filter {
+        |section|
+
+        let first_line = ($section | lines | first)
+
+        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
+          just env list
+        )
+      }
+    | each {
+        |section|
+
+        let lines = ($section | lines)
+
+        $"# ($lines | first)\n(
+          $lines
+          | drop nth 0
+          | to text
+          | from yaml
+          | to yaml
+        )"
+        | indent-lines
+      }
+  } else {
+    []
+  }
+
+  $active_environments
+  | each {get-environment-pre-commit-hooks}
+  | append $local_pre_commit_config
+  | where {is-not-empty}
+  | str join "\n"
+  | save --force .pre-commit-config.yaml
+
+  yamlfmt .pre-commit-config.yaml
+}
+
+def generate-template-files [
+  active_environments: list<string>
+  inactive_environments: list<string>
+] {
+  for environment in $inactive_environments {
+    let templates_directory = (
+      $"($env.ENVIRONMENTS)/($environment)/templates"
+    )
+
+    if ($templates_directory | path exists) {
+      for file in (ls $templates_directory) {
+        rm --force --recursive ($file.name | path basename)
+      }
+    }
+  }
+
+  for environment in $active_environments {
+    let templates_directory = $"($env.ENVIRONMENTS)/($environment)/templates"
+
+    if ($templates_directory | path exists) {
+      mkdir tera
+      let context_source = $"($templates_directory)/context.toml"
+      let local_context_file = $"tera/($environment).toml"
+
+      if not ($local_context_file | path exists) {
+        if ($context_source | path exists) {
+          ^cp $context_source $local_context_file
+          chmod +w $local_context_file
+        } else {
+          touch $local_context_file
+        }
+      }
+
+      for file in (
+        ls $templates_directory
+        | get name
+        | where {not ($in | str ends-with context.toml)}
+      ) {
+        let local_file = ($file | path basename | str replace ".templ" "")
+        let text = (tera --template $file $local_context_file)
+        let is_toml = (($local_file | path parse | get extension) == toml)
+
+        let text = if $is_toml {
+          if ($local_file | path exists) {
+            $text
+            | from toml
+            | merge deep (open $local_file)
+          } else {
+            $text
+          }
+        } else {
+          $text
+        }
+
+        $text
+        | save --force $local_file
+
+        if $is_toml {
+          taplo format $local_file
+        }
+      }
+    }
+  }
+}
+
+def main [] {
+  let active_environments = (
+    open .environments.toml
+    | get environments
+    | uniq
+  )
+
+  let inactive_environments = (
+    just env list
+    | lines
+    | where {$in not-in (open .environments.toml | get environments)}
+  )
+
+  generate-environments-file
+  copy-files $active_environments $inactive_environments
+  generate-gitignore-file $active_environments $inactive_environments
+  generate-helix-languages-file $active_environments
+  generate-justfile-and-scripts $active_environments $inactive_environments
+  generate-pre-commit-config-file $active_environments $inactive_environments
+  generate-template-files $active_environments $inactive_environments
 }

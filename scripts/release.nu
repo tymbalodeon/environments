@@ -13,7 +13,7 @@ def main [
 ] {
   if not $preview {
     if (
-      input --numchar 1 "Are you sure you want to proceed? [y/N] "
+      input --numchar 1 "Are you sure you want to proceed [y/N]? "
       | str downcase
     ) != "y" {
       exit
