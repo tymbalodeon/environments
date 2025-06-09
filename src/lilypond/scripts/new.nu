@@ -71,7 +71,7 @@ def main [
   for file in (fd $template $"($env.ENVIRONMENTS)/lilypond/score-templates" | lines) {
     $context
     | to toml
-    | tera --stdin --template $file 
+    | tera --stdin --template $file
     | save $"($new_score_directory)/($file | path basename | str replace .templ "")"
   }
 }

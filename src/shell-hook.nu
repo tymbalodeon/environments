@@ -96,11 +96,13 @@ def generate-gitignore-file [
 
 def ensure-directory-exists [name: string] {
   if not ($name | path exists) {
-    ^mkdir $name
+    ^mkdir --parents $name
   } else if ($name | path type) == file {
     rm $name
-    ^mkdir $name
+    ^mkdir --parents $name
   }
+
+  chmod --recursive +w $name
 }
 
 def generate-helix-languages-file [active_environments: list<string>] {
@@ -121,37 +123,6 @@ def generate-helix-languages-file [active_environments: list<string>] {
     }
   | str join "\n"
   | save --force .helix/languages.toml
-}
-
-
-def indent-lines []: string -> string  {
-  $in
-  | lines
-  | each {$"  ($in)"}
-  | to text
-}
-
-def get-environment-pre-commit-hooks []: string -> string {
-  let pre_commit_config = $"(
-    $env.ENVIRONMENTS
-  )/($in)/.pre-commit-config.yaml"
-
-  if not ($pre_commit_config | path exists) {
-    return
-  }
-
-  if $in == generic {
-    open --raw $pre_commit_config
-  } else {
-    $"# ($in)"
-    | append (
-        open $pre_commit_config
-        | get repos
-        | to yaml
-      )
-    | to text --no-newline
-    | indent-lines
-  }
 }
 
 def generate-justfile-and-scripts [
@@ -180,7 +151,7 @@ def generate-justfile-and-scripts [
     }
   }
 
-  let scripts_files = (
+  let scripts_directories = (
     $active_environments
     | each {
         |environment|
@@ -189,24 +160,35 @@ def generate-justfile-and-scripts [
           $"($env.ENVIRONMENTS)/($environment)/scripts"
         )
 
-        if ($scripts_directory | path exists) {
-          fd --exclude tests --type file "" $scripts_directory
-          | lines
+        {
+          environment: $environment
+
+          files: (
+            if ($scripts_directory | path exists) {
+              fd --exclude tests --type file "" $scripts_directory
+              | lines
+            } else {
+              []
+            }
+          )
         }
       }
-    | where {is-not-empty}
+    | where {$in.files | is-not-empty}
     | flatten
   )
 
-  for file in $scripts_files {
-    let local_file = (
-      $file
-      | str replace generic/ ""
-      | str replace $"($env.ENVIRONMENTS)/" ""
-    )
+  for directory in $scripts_directories {
+    let local_directory = if $directory.environment == generic {
+      "scripts"
+    } else {
+      let local_directory = $"scripts/($directory.environment)"
+      ensure-directory-exists $local_directory
+      $local_directory
+    }
 
-    ensure-directory-exists ($local_file | path dirname)
-    ^cp --recursive $file $local_file
+    for file in $directory.files {
+      ^cp --recursive $file $"($local_directory)/($file | path basename)"
+    }
   }
 
   chmod --recursive +w scripts
@@ -218,7 +200,7 @@ def generate-justfile-and-scripts [
     )
 
     if ($justfile | path exists) {
-      ^cp $justfile $"just/$(environment).just"
+      ^cp $justfile $"just/($environment).just"
     }
   }
 
@@ -233,7 +215,6 @@ def generate-justfile-and-scripts [
   )
 
   open $"($env.ENVIRONMENTS)/generic/Justfile"
-  | append "\n"
   | append (
       ($active_environments | where {$in != generic}) ++ $local_justfiles
       | uniq
@@ -244,7 +225,7 @@ def generate-justfile-and-scripts [
           let justfile = $"just/($environment).just"
 
           if ($justfile | path exists) {
-            $"mod ($environment) \"($justfile)\"\n"
+            $"mod ($environment) \"($justfile)\""
           }
         }
       | where {is-not-empty}
@@ -288,24 +269,58 @@ def generate-justfile-and-scripts [
     | sort-by recipe
   )
 
-  for recipe in $submodule_recipes {
-    if (
-      (
-        $generic_recipes
-        | wrap recipe
-        | insert environment generic
-      ) ++ $submodule_recipes
-      | where recipe == $recipe.recipe
-      | length
-    ) == 1 {
-      $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)\n"
-      | save --append Justfile
-    }
+  let submodule_recipes = (
+    $submodule_recipes
+    | each {
+        |recipe|
+
+        if (
+          (
+            $generic_recipes
+            | wrap recipe
+            | insert environment generic
+          ) ++ $submodule_recipes
+          | where recipe == $recipe.recipe
+          | length
+        ) == 1 {
+          $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)"
+        }
+      }
+  )
+
+  if ($submodule_recipes | length) > 0 {
+    "\n"
+    | append $submodule_recipes
+    | save --append Justfile
   }
 
   just --fmt --unstable
 }
 
+def get-environment-pre-commit-hooks [environment: string] {
+  let pre_commit_config = $"(
+    $env.ENVIRONMENTS
+  )/($environment)/.pre-commit-config.yaml"
+
+  if not ($pre_commit_config | path exists) {
+    return
+  }
+
+  if $environment == generic {
+    open $pre_commit_config
+    | to yaml
+  } else {
+    $"# ($environment)\n"
+    | append (
+        open $pre_commit_config
+        | get repos
+        | to yaml
+      )
+    | str join
+  }
+}
+
+# FIXME
 def generate-pre-commit-config-file [
   active_environments: list<string>
   inactive_environments: list<string>
@@ -338,17 +353,16 @@ def generate-pre-commit-config-file [
           | from yaml
           | to yaml
         )"
-        | indent-lines
       }
   } else {
     []
   }
 
   $active_environments
-  | each {get-environment-pre-commit-hooks}
+  | each {get-environment-pre-commit-hooks $in}
   | append $local_pre_commit_config
   | where {is-not-empty}
-  | str join "\n"
+  | str join
   | save --force .pre-commit-config.yaml
 
   yamlfmt .pre-commit-config.yaml
