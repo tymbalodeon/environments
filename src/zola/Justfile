@@ -1,9 +1,9 @@
-set dotenv-load
+set dotenv-load := true
 set working-directory := ".."
 
 # View help text
-@help *recipe:
-    ./scripts/zola/help.nu {{ recipe }}
+@help *args:
+    ./scripts/zola/help.nu {{ args }}
 
 # Serve the site
 @start *args:

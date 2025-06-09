@@ -1,16 +1,16 @@
 set working-directory := ".."
 
 # View help text
-@help *recipe:
-    ./scripts/java/help.nu {{ recipe }}
+@help *args:
+    ./scripts/java/help.nu {{ args }}
 
 # Remove compiled files
-@clean *help:
-    ./scripts/java/clean.nu {{ help }}
+@clean *args:
+    ./scripts/java/clean.nu {{ args }}
 
 # Compile
-@compile *help:
-    ./scripts/java/compile.nu {{ help }}
+@compile *args:
+    ./scripts/java/compile.nu {{ args }}
 
 # Run
 @run *args:

@@ -1,17 +1,17 @@
 set working-directory := ".."
 
 # View help text
-@help *recipe:
-    ./scripts/environments/help.nu {{ recipe }}
+@help *args:
+    ./scripts/environments/help.nu {{ args }}
 
 # Update init flake and pre-commit hooks
-@update *verbose:
-    ./scripts/environments/update.nu {{ verbose }}
+@update *args:
+    ./scripts/environments/update.nu {{ args }}
 
 # Update README
-@readme *help:
-    ./scripts/environments/readme.nu {{ help }}
+@readme *args:
+    ./scripts/environments/readme.nu {{ args }}
 
 # Reload environment
-@reload *help:
-    ./scripts/environments/reload.nu {{ help }}
+@reload *args:
+    ./scripts/environments/reload.nu {{ args }}

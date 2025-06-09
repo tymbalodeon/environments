@@ -1,8 +1,8 @@
 set working-directory := ".."
 
 # View help text
-@help *recipe:
-    ./scripts/tree-sitter/help.nu {{ recipe }}
+@help *args:
+    ./scripts/tree-sitter/help.nu {{ args }}
 
 # Generate parser
 @generate:
@@ -13,20 +13,20 @@ set working-directory := ".."
     ./scripts/tree-sitter/install.nu
 
 # Parse file
-parse +file:
-    ./scripts/tree-sitter/parse.nu
+parse *args:
+    ./scripts/tree-sitter/parse.nu {{ args }}
 
 # Test parser
-test *name:
-    ./scripts/tree-sitter/test.nu
+test *args:
+    ./scripts/tree-sitter/test.nu {{ args }}
 
 # Highlight file
-highlight *file:
-    ./scripts/tree-sitter/highlight.nu
+highlight *args:
+    ./scripts/tree-sitter/highlight.nu {{ args }}
 
 # Open file
-open *file:
-    ./scripts/tree-sitter/open.nu
+open *args:
+    ./scripts/tree-sitter/open.nu {{ args }}
 
 # Copy queries to helix directory
 install-queries:
@@ -37,5 +37,5 @@ install-queries:
     ./scripts/tree-sitter/install-grammar.nu
 
 # Report states
-report-states *rule:
-    ./scripts/tree-sitter/report-states.nu
+report-states *args:
+    ./scripts/tree-sitter/report-states.nu {{ args }}

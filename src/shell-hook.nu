@@ -1,21 +1,31 @@
-def generate-environments-file [] {
+def generate-environments-file [temporary_directory: string] {
   if (".environments.toml" | path exists) {
-    {
-      environments: (
-        open $"($env.ENVIRONMENTS)/generic/.environments.toml"
-        | get environments
-        | append (open .environments.toml).environments
-        | uniq
-        | sort
-      )
+    cp .environments.toml $temporary_directory
+
+    try {
+      {
+        environments: (
+          open $"($env.ENVIRONMENTS)/generic/.environments.toml"
+          | get environments
+          | append (open .environments.toml).environments
+          | uniq
+          | sort
+        )
+      }
+      | save --force .environments.toml
+
+      taplo format .environments.toml
+    } catch {
+      |error|
+
+      print $"(ansi red_bold)error(ansi reset): failed to generate .environments.toml"
+      cp $"($temporary_directory)/.environments.toml" .
+      print $error.rendered
     }
-    | save --force .environments.toml
   } else {
     ^cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
     chmod +w .environments.toml
   }
-
-  taplo format .environments.toml
 }
 
 def copy-directory-files [directory: string] {
@@ -69,30 +79,54 @@ def get-environment-gitignore [environment: string] {
 def generate-gitignore-file [
   active_environments: list<string>
   inactive_environments: list<string>
+  temporary_directory: string
 ] {
-  let local_gitignore = if (".gitignore" | path exists) {
-    open .gitignore
-    | split row "\n\n"
-    | filter {
-        |section|
+  let file_existed = if (".gitignore" | path exists) {
+    cp .gitignore $temporary_directory
 
-        ($section | str starts-with  "#") and (
-          ($section | lines | first | str replace "# " "") not-in (
-            just env list
-          )
-        )
-      }
-    | each {|section| $"($section)\n"}
+    true
   } else {
-    []
+    false
   }
+  
+  try {
+    let local_gitignore = if (".gitignore" | path exists) {
+      open .gitignore
+      | split row "\n\n"
+      | filter {
+          |section|
 
-  $active_environments
-  | each {get-environment-gitignore $in}
-  | append $local_gitignore
-  | where {is-not-empty}
-  | str join "\n"
-  | save --force .gitignore
+          ($section | str starts-with  "#") and (
+            ($section | lines | first | str replace "# " "") not-in (
+              just env list
+              | lines
+            )
+          )
+        }
+      | each {|section| $"($section)\n"}
+    } else {
+      []
+    }
+
+    $active_environments
+    | each {get-environment-gitignore $in}
+    | append $local_gitignore
+    | where {is-not-empty}
+    | str join "\n"
+    | save --force .gitignore
+  } catch {
+      |error|
+
+      print $error.rendered
+
+      if $file_existed {
+        print (
+          $"(ansi red_bold)error(ansi reset): failed to generate .gitignore"
+        )
+
+        cp $"($temporary_directory)/.gitignore" .
+      }
+  }
 }
 
 def ensure-directory-exists [name: string] {
@@ -106,24 +140,49 @@ def ensure-directory-exists [name: string] {
   chmod --recursive +w $name
 }
 
-def generate-helix-languages-file [active_environments: list<string>] {
+def generate-helix-languages-file [
+  active_environments: list<string>
+  temporary_directory: string
+] {
   # TODO: allow project-specific helix settings to be picked up here
   ensure-directory-exists .helix
 
-  $active_environments
-  | each {
-      |environment|
+  let file_existed = if (".helix/languages.toml" | path exists) {
+    let temporary_helix_directory = $"($temporary_directory)/.helix"
+    mkdir $temporary_helix_directory
+    cp .helix/languages.toml $temporary_helix_directory
 
-      let languages_file = (
-        $"($env.ENVIRONMENTS)/($environment)/languages.toml"
-      )
+    true
+  } else {
+    false
+  }
+ 
+  try {
+    $active_environments
+    | each {
+        |environment|
 
-      if ($languages_file | path exists) {
-        open --raw $languages_file
+        let languages_file = (
+          $"($env.ENVIRONMENTS)/($environment)/languages.toml"
+        )
+
+        if ($languages_file | path exists) {
+          open --raw $languages_file
+        }
       }
-    }
-  | str join "\n"
-  | save --force .helix/languages.toml
+    | str join "\n"
+    | save --force .helix/languages.toml
+  } catch {
+      |error|
+
+      print $error.rendered
+
+      if $file_existed {
+        let message = "failed to generate .helix/languages.toml"
+        print $"(ansi red_bold)error(ansi reset): ($message)"
+        cp $"($temporary_directory)/.helix/languages.toml" .
+      }
+  }
 }
 
 def generate-justfile-and-scripts [
@@ -212,7 +271,7 @@ def generate-justfile-and-scripts [
     | get name
     | path parse
     | get stem
-    | where {$in not-in (just env list)}
+    | where {$in not-in (just env list | lines)}
   )
 
   open $"($env.ENVIRONMENTS)/generic/Justfile"
@@ -340,6 +399,7 @@ def generate-pre-commit-config-file [
 
         ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
           just env list
+          | lines
         )
       }
     | each {
@@ -447,11 +507,110 @@ def main [] {
     | where {$in not-in (open .environments.toml | get environments)}
   )
 
-  generate-environments-file
+  let existing_modified_files = (
+    git status --porcelain=1
+    | lines
+    | each {split row " " | last}
+  )
+
+  let temporary_directory = (mktemp --directory)
+  generate-environments-file $temporary_directory
   copy-files $active_environments $inactive_environments
-  generate-gitignore-file $active_environments $inactive_environments
-  generate-helix-languages-file $active_environments
-  generate-justfile-and-scripts $active_environments $inactive_environments
-  generate-pre-commit-config-file $active_environments $inactive_environments
-  generate-template-files $active_environments $inactive_environments
+
+  (
+    generate-gitignore-file
+      $active_environments
+      $inactive_environments
+      $temporary_directory
+  )
+
+  generate-helix-languages-file $active_environments $temporary_directory
+  rm --force --recursive $temporary_directory
+
+  try {
+    generate-justfile-and-scripts $active_environments $inactive_environments
+    generate-pre-commit-config-file $active_environments $inactive_environments
+    generate-template-files $active_environments $inactive_environments
+  } catch {
+      |error|
+
+      print $"(ansi red_bold)error(ansi reset): failed to activate environments"
+      print $error.rendered
+      # Can the script check at the start to see which files have modifications,
+      # TODO: restore only files that are managed by environments
+      # and only restore files that didn't have modifications when started, or
+      # but what if a user has altered the gitignore and not commited it yet?
+      # which are completely managed by environments?
+      #
+      # If there are modifications, should there be a note about it?
+      #
+      # Or should the script only run if everything is commited and have a very visible
+      # note if not?
+      #
+      # NOTE: Actually, it should store the complete state of the current dir, possibly in a tmp dir
+      # and then restore that if anything fails, or possibly store the files for each
+      # function in a tmp dir and only restore the ones for functions that fail,
+      # being careful to group files that are necessary for each other, so that
+      # nothing is ever left in a broken state
+
+      let environment_files = [
+        Justfile
+        .pre-commit-config.yaml
+      ] ++ (
+        ls ($"($env.ENVIRONMENTS)/**/files/**/*" | into glob)
+        | where type == file
+        | get name
+        | each {split row "files/" | last}
+        | where {path exists}
+      ) ++ (
+        fd --type file "" scripts
+        | lines
+        | filter {
+            |file|
+
+            let scripts_directory = (
+              $file
+              | str replace scripts/ ""
+              | path dirname
+            )
+
+            (
+              $scripts_directory
+              | is-empty
+            ) or $scripts_directory in (just env list | lines)
+          }
+      ) ++ (
+        ls ($"($env.ENVIRONMENTS)/**/templates/**/*" | into glob)
+        | get name
+        | where {$in !~ context}
+        | each {split row "templates/" | last | str replace .templ ""}
+        | where {path exists}
+      )
+
+      let newly_modified_files = (
+        git status --porcelain=1
+        | lines
+        | each {split row " " | last}
+        | where {$in not-in $existing_modified_files}
+      )
+
+      mut unrecoverable_files = []
+
+      for file in $environment_files {
+        if $file in $newly_modified_files {
+          jj restore $file
+        } else if $file in $existing_modified_files {
+          $unrecoverable_files = ($unrecoverable_files | append $file)
+        }
+      }
+
+      if ($unrecoverable_files | is-not-empty) {
+        print $"(ansi yellow_bold)warn(ansi reset): failed to activate environment"
+        print $"(ansi yellow_bold)warn(ansi reset): the following files may have been altered in an undesirable way:"
+
+        for file in $unrecoverable_files {
+          print $"(ansi yellow_bold)warn(ansi reset):     - ($file)"
+        }
+      }
+  }
 }

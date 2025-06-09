@@ -102,8 +102,18 @@ repos:
   # environments
   - repo: local
     hooks:
+      - id: readme
+        name: readme
+        entry: just environments readme
+        language: system
+        pass_filenames: false
       - id: test
         name: test
         entry: just env test
+        language: system
+        pass_filenames: false
+      - id: update
+        name: update
+        entry: just environments update
         language: system
         pass_filenames: false

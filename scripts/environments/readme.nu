@@ -1,28 +1,54 @@
 #!/usr/bin/env nu
 
-use ../domain.nu parse-git-origin
 use ../environment.nu get-project-path
+use ../environment.nu "main list"
 
-# Update repo link in README
-def main [] {
-  let origin = (git remote get-url origin | split row "@" | last)
-
-  let output = $"<!-- `init` start -->
-
-```sh
-nix run github:tymbalodeon/environments?dir=init# --no-write-lock-file \\
-  init [ENVIRONMENT]...
-```
-
-<!-- `init` end -->"
-
+def generate-readme-text [text: string target: string] {
   let readme = (get-project-path README.md)
+
+  let text = $"<!-- ($target) start -->\n($text)\n<!-- ($target) end -->"
 
   open $readme
   | (
       str replace
-        --regex $"<!-- `init` start -->\(.|\\s\)*<!-- `init` end -->"
-        $output
+        --regex (
+          $"<!-- ($target) start -->\(.|\\s\)*<!-- ($target) end -->"
+        )
+
+        $text
     )
   | save --force $readme
+}
+
+# Update repo link in README
+def main [] {
+  let sections = [
+    {
+      target: environments
+
+      text: (
+        main list
+        | lines
+        | where {$in != generic}
+        | each {$'- ($in)'}
+        | to text
+      )
+    }
+
+    {
+      target: init
+
+      # TODO: generate the url dynamically using git
+      text: "```sh
+nix run github:tymbalodeon/environments?dir=init# --no-write-lock-file \\
+  init [ENVIRONMENT]...
+```"
+    }
+  ]
+
+  for section in $sections {
+    generate-readme-text $section.text $section.target
+  }
+
+  prettier --write README.md
 }
