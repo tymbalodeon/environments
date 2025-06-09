@@ -82,6 +82,7 @@ def generate-gitignore-file [
           )
         )
       }
+    | each {|section| $"($section)\n"}
   } else {
     []
   }
