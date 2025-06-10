@@ -31,6 +31,7 @@ def "main init" [] {
   nix flake update
 }
 
+# Update init flake and pre-commit hooks
 def main [
   --verbose # Show errors
 ] {

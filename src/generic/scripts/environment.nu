@@ -95,7 +95,7 @@ def list-environments [environment?: string path?: string] {
 }
 
 # List environments and files
-def "main list" [
+export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
 ] {

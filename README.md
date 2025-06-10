@@ -4,6 +4,28 @@ _Environments_ is a collection of opinionated development environments for
 various project types that can be easily installed, updated, and composed
 together.
 
+Available environments:
+
+<!-- environments start -->
+
+- c
+- git
+- haskell
+- java
+- javascript
+- lilypond
+- nix
+- python
+- rust
+- toml
+- tree-sitter
+- typescript
+- typst
+- yaml
+- zola
+
+<!-- environments end -->
+
 ## Installation
 
 _On non-NixOS systems:_ Install Nix using the Determinate Systems

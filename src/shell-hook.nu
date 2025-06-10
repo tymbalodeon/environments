@@ -10,12 +10,12 @@ def generate-environments-file [] {
       )
     }
     | save --force .environments.toml
+
+    taplo format .environments.toml
   } else {
     ^cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
     chmod +w .environments.toml
   }
-
-  taplo format .environments.toml
 }
 
 def copy-directory-files [directory: string] {
@@ -79,6 +79,7 @@ def generate-gitignore-file [
         ($section | str starts-with  "#") and (
           ($section | lines | first | str replace "# " "") not-in (
             just env list
+            | lines
           )
         )
       }
@@ -212,7 +213,7 @@ def generate-justfile-and-scripts [
     | get name
     | path parse
     | get stem
-    | where {$in not-in (just env list)}
+    | where {$in not-in (just env list | lines)}
   )
 
   open $"($env.ENVIRONMENTS)/generic/Justfile"
@@ -340,6 +341,7 @@ def generate-pre-commit-config-file [
 
         ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
           just env list
+          | lines
         )
       }
     | each {
