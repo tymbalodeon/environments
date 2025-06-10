@@ -415,9 +415,11 @@ def generate-template-files [
 
         let text = if $is_toml {
           if ($local_file | path exists) {
-            $text
-            | from toml
-            | merge deep (open $local_file)
+            open $local_file
+            | merge deep (
+              $text
+              | from toml
+            )
           } else {
             $text
           }
