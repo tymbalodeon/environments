@@ -42,21 +42,59 @@ def copy-directory-files [directory: string] {
 def copy-files [
   active_environments: list<string>
   inactive_environments: list<string>
+  temporary_directory: string
 ] {
-  for inactive_environment in $inactive_environments {
-    let files_directory = (
-      $"($env.ENVIRONMENTS)/($inactive_environment)/files"
-    )
+  let existing_files = (
+    ls ($"($env.ENVIRONMENTS)/**/files/**/*" | into glob)
+    | where type == file
+    | get name
+    | each {split row "files/" | last}
+    | where {path exists}
+  )
 
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
-        rm --force --recursive ($file.name | path basename)
-      }
-    }
+  mut files_to_restore = []
+
+  for file in $existing_files {
+    let directory = $"($temporary_directory)/($file | path dirname)"
+    mkdir $directory
+    let file_to_restore = $"($directory)/($file | path basename)"
+    cp $file $file_to_restore
+    $files_to_restore = ($files_to_restore | append $file_to_restore)
   }
 
-  for environment in $active_environments {
-    copy-directory-files $"($env.ENVIRONMENTS)/($environment)/files"
+  let files_to_restore = $files_to_restore
+
+  try {
+    open bad.toml
+    for inactive_environment in $inactive_environments {
+      let files_directory = (
+        $"($env.ENVIRONMENTS)/($inactive_environment)/files"
+      )
+
+      if ($files_directory | path exists) {
+        for file in (ls $files_directory) {
+          rm --force --recursive ($file.name | path basename)
+        }
+      }
+    }
+
+    for environment in $active_environments {
+      copy-directory-files $"($env.ENVIRONMENTS)/($environment)/files"
+    }
+  } catch {
+      |error|
+
+      print $error.rendered
+
+      if ($files_to_restore | is-not-empty) {
+        print $"(ansi red_bold)error(ansi reset): failed to copy files"
+
+        for file in $files_to_restore {
+          let directory = ($file | path dirname)
+          mkdir $directory
+          cp $file $"($directory)/($file | path basename)"
+        }
+      }
   }
 }
 
@@ -188,6 +226,7 @@ def generate-helix-languages-file [
 def generate-justfile-and-scripts [
   active_environments: list<string>
   inactive_environments: list<string>
+  temporary_directory: string
 ] {
   for environment in $inactive_environments {
     let environment_justfile = $"just/($environment).just"
@@ -515,7 +554,7 @@ def main [] {
 
   let temporary_directory = (mktemp --directory)
   generate-environments-file $temporary_directory
-  copy-files $active_environments $inactive_environments
+  copy-files $active_environments $inactive_environments $temporary_directory
 
   (
     generate-gitignore-file
@@ -525,10 +564,17 @@ def main [] {
   )
 
   generate-helix-languages-file $active_environments $temporary_directory
+
+  (
+    generate-justfile-and-scripts
+      $active_environments
+      $inactive_environments
+      $temporary_directory
+  )
+
   rm --force --recursive $temporary_directory
 
   try {
-    generate-justfile-and-scripts $active_environments $inactive_environments
     generate-pre-commit-config-file $active_environments $inactive_environments
     generate-template-files $active_environments $inactive_environments
   } catch {
@@ -557,12 +603,6 @@ def main [] {
         Justfile
         .pre-commit-config.yaml
       ] ++ (
-        ls ($"($env.ENVIRONMENTS)/**/files/**/*" | into glob)
-        | where type == file
-        | get name
-        | each {split row "files/" | last}
-        | where {path exists}
-      ) ++ (
         fd --type file "" scripts
         | lines
         | filter {
