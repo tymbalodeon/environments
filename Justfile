@@ -31,10 +31,6 @@ alias find := find-recipe
 @issue *args:
     ./scripts/issue.nu {{ args }}
 
-# Create a new release
-@release *args:
-    ./scripts/release.nu  {{ args }}
-
 # View remote repository
 @remote *args:
     ./scripts/remote.nu  {{ args }}
@@ -58,6 +54,10 @@ alias todos := todo
     ./scripts/view-source.nu {{ args }}
 
 alias src := view-source
+
+# Create a new release
+@release *args:
+    ./scripts/release.nu  {{ args }}
 
 mod environments "just/environments.just"
 mod python "just/python.just"

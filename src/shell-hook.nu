@@ -1,11 +1,30 @@
+def get-environment-path [
+  environment: any
+  path: string
+] {
+  let environment = if (
+    $environment
+    | describe --detailed
+    | get type
+  ) == string {
+    $environment
+  } else {
+    $environment.name
+  }
+
+  $"($env.ENVIRONMENTS)/($environment)/($path)"
+}
+
 def generate-environments-file [] {
   if (".environments.toml" | path exists) {
     {
       environments: (
-        open $"($env.ENVIRONMENTS)/generic/.environments.toml"
+        open (get-environment-path generic .environments.toml)
         | get environments
-        | append (open .environments.toml).environments
-        | uniq
+        | merge deep --strategy overwrite (
+            open .environments.toml
+            | get environments
+          )
         | sort
       )
     }
@@ -13,7 +32,7 @@ def generate-environments-file [] {
 
     taplo format .environments.toml
   } else {
-    ^cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
+    ^cp (get-environment-path generic .environments.toml) .
     chmod +w .environments.toml
   }
 }
@@ -29,71 +48,198 @@ def copy-directory-files [directory: string] {
   }
 }
 
-def copy-files [
-  active_environments: list<string>
+def remove-inactive-files [
   inactive_environments: list<string>
+  directory: string
 ] {
-  for inactive_environment in $inactive_environments {
-    let files_directory = (
-      $"($env.ENVIRONMENTS)/($inactive_environment)/files"
-    )
+  for environment in $inactive_environments {
+    let files_directories = (get-environment-path $environment $directory)
+    let features_directory = (get-environment-path $environment features)
 
-    if ($files_directory | path exists) {
-      for file in (ls $files_directory) {
+    let files_directories = if ($features_directory | path exists) {
+      $files_directories
+      | append (
+        ls $features_directory
+        | get name
+        | each {
+            |feature|
+
+            (
+              get-environment-path
+                $environment
+                $"features/($feature)/($directory)"
+            )
+          }
+        )
+    } else {
+      [$files_directories]
+    }
+    | where {path exists}
+
+    for directory in $files_directories {
+      for file in (ls $directory) {
         rm --force --recursive ($file.name | path basename)
       }
     }
   }
-
-  for environment in $active_environments {
-    copy-directory-files $"($env.ENVIRONMENTS)/($environment)/files"
-  }
 }
 
-def get-environment-gitignore [environment: string] {
-  let gitignore_file = $"($env.ENVIRONMENTS)/($environment)/.gitignore"
-
-  if not ($gitignore_file | path exists) {
-    return
-  }
-
-  if $environment == generic {
-    open $gitignore_file
-  } else {
-    $"# ($environment)"
-    | append (open $gitignore_file | str trim)
-    | to text
-  }
-}
-
-def generate-gitignore-file [
-  active_environments: list<string>
+def copy-files [
+  active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  let local_gitignore = if (".gitignore" | path exists) {
-    open .gitignore
-    | split row "\n\n"
+  remove-inactive-files $inactive_environments files
+
+  for environment in $active_environments {
+    copy-directory-files (get-environment-path $environment.name files)
+
+    for feature in $environment.features {
+      let features_directory = (
+        get-environment-path $environment.name $"features/($feature)/files"
+      )
+
+      if ($features_directory | path exists) {
+        copy-directory-files $features_directory
+      }
+    }
+  }
+}
+
+def get-environment-file [
+  environment: record<name: string, features: list<string>>
+  file: string
+  --raw
+] {
+  let files = (
+    get-environment-path $environment.name $file
+    | append (
+        $environment.features
+        | each {
+            |feature|
+
+            get-environment-path $environment $"features/($feature)/($file)"
+          }
+      )
+    | where {path exists}
+  )
+
+  let text = (
+    $files
+    | each {
+        |file|
+
+        let text = if $raw {
+          open --raw $file
+        } else {
+          open $file
+        }
+
+        $text
+        | str trim
+      }
+    | to text
+  )
+
+  if ($files | is-not-empty) {
+    if $environment.name == generic {
+      $text
+    } else {
+      $"# ($environment.name)"
+      | append $text
+      | to text
+    }
+  }
+}
+
+def get-local-sections [file: string --raw] {
+  if ($file | path exists) {
+    let text = if $raw {
+      open --raw $file
+    } else {
+      open $file
+    }
+
+    let separator = if $file == .pre-commit-config.yaml {
+      "\n  # "
+    } else {
+      "\n\n"
+    }
+
+    $text
+    | split row $separator
     | filter {
         |section|
 
-        ($section | str starts-with  "#") and (
-          ($section | lines | first | str replace "# " "") not-in (
-            just env list
+        let official_environments = (just env list | lines)
+
+        if $file == .pre-commit-config.yaml {
+          let name = (
+            $section
             | lines
+            | first
+            | str trim
           )
-        )
+
+          $name != repos: and $name not-in $official_environments
+        } else {
+          ($section | str starts-with  "#") and (
+            $section | lines | first | str replace "# " ""
+          ) not-in $official_environments
+        }
       }
-    | each {|section| $"($section)\n"}
+    | each {
+        |section|
+
+        if $file == .pre-commit-config.yaml {
+          $"($separator)($section)"
+        } else {
+          $section
+        }
+      }
   } else {
     []
   }
+}
+
+def generate-file [
+  active_environments: list<record<name: string, features: list<string>>>
+  file: string
+  source_file?: string
+  --raw
+] {
+  let source_file = if ($source_file | is-not-empty) {
+    $source_file
+  } else {
+    $file
+  }
 
   $active_environments
-  | each {get-environment-gitignore $in}
-  | append $local_gitignore
-  | where {is-not-empty}
+  | each {
+      |environment|
+
+      if $raw {
+        get-environment-file --raw $environment $source_file
+      } else {
+        get-environment-file $environment $source_file
+      }
+    }
+  | append (
+      if $raw {
+        get-local-sections --raw $source_file
+      } else {
+        get-local-sections $source_file
+      }
+    )
+  | str trim
+  | each {|section| $"($section)\n"}
   | str join "\n"
-  | save --force .gitignore
+  | save --force $file
+}
+
+def generate-gitignore-file [
+  active_environments: list<record<name: string, features: list<string>>>
+] {
+  generate-file $active_environments .gitignore
 }
 
 def ensure-directory-exists [name: string] {
@@ -107,28 +253,17 @@ def ensure-directory-exists [name: string] {
   chmod --recursive +w $name
 }
 
-def generate-helix-languages-file [active_environments: list<string>] {
-  # TODO: allow project-specific helix settings to be picked up here
+def generate-helix-languages-file [
+  active_environments: list<record<name: string, features: list<string>>>
+] {
+  # TODO: allow multiple environments to declare the same settings, but remove
+  # duplicates in the final file
   ensure-directory-exists .helix
-
-  $active_environments
-  | each {
-      |environment|
-
-      let languages_file = (
-        $"($env.ENVIRONMENTS)/($environment)/languages.toml"
-      )
-
-      if ($languages_file | path exists) {
-        open --raw $languages_file
-      }
-    }
-  | str join "\n"
-  | save --force .helix/languages.toml
+  generate-file --raw $active_environments .helix/languages.toml languages.toml
 }
 
 def generate-justfile-and-scripts [
-  active_environments: list<string>
+  active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
   for environment in $inactive_environments {
@@ -153,56 +288,113 @@ def generate-justfile-and-scripts [
     }
   }
 
-  let scripts_directories = (
+  let script_files = (
     $active_environments
     | each {
         |environment|
 
-        let scripts_directory = (
-          $"($env.ENVIRONMENTS)/($environment)/scripts"
-        )
-
         {
-          environment: $environment
-
-          files: (
-            if ($scripts_directory | path exists) {
-              fd --exclude tests --type file "" $scripts_directory
-              | lines
-            } else {
-              []
-            }
-          )
+          source: (get-environment-path $environment scripts)
+          environment: $environment.name
         }
+        | append (
+            $environment.features
+            | each {
+                |feature|
+
+                let feature_path = (
+                  $"(get-environment-path $environment $"features/($feature)")"
+                )
+
+                if ($feature_path | path exists) {
+                  {
+                    source: $"($feature_path)/scripts"
+
+                    environment: (
+                      if ($"($feature)/Justfile" | path exists) {
+                        $environment.name
+                      } else {
+                        "generic"
+                      }
+                    )
+                  }
+                }
+              }
+          )
+        | where {is-not-empty}
+        | flatten
+        | where {$in.source | path exists}
+        | each {
+            |item|
+
+            {
+              path: (
+                fd --exclude tests --type file "" $item.source
+                | lines
+              )
+
+              environment: $item.environment
+            }
+          }
+        | flatten
       }
-    | where {$in.files | is-not-empty}
     | flatten
   )
 
-  for directory in $scripts_directories {
-    let local_directory = if $directory.environment == generic {
+  ensure-directory-exists scripts
+
+  for file in $script_files {
+    let local_directory = if $file.environment == generic {
       "scripts"
     } else {
-      let local_directory = $"scripts/($directory.environment)"
+      let local_directory = $"scripts/($file.environment)"
       ensure-directory-exists $local_directory
       $local_directory
     }
 
-    for file in $directory.files {
-      ^cp --recursive $file $"($local_directory)/($file | path basename)"
-    }
+    let basename = ($file.path | path basename)
+    ^cp --recursive $file.path $"($local_directory)/($basename)"
   }
 
   chmod --recursive +w scripts
   ensure-directory-exists just
 
-  for environment in ($active_environments | where {$in != generic}) {
-    let justfile = (
-      $"($env.ENVIRONMENTS)/($environment)/Justfile"
+  for environment in (
+    $active_environments
+    | where {$in.name != generic}
+  ) {
+    let justfile = (get-environment-path $environment Justfile)
+
+    let text = (
+      $environment.features
+      | each {
+          |feature|
+
+          let features_directory = (
+            get-environment-path $environment $"features/($feature)"
+          )
+
+          if ($features_directory | path exists) {
+            fd Justfile $features_directory
+            | lines
+            | each {|file| open $file}
+            | flatten
+          }
+        }
+      | where {is-not-empty}
     )
 
-    if ($justfile | path exists) {
-      ^cp $justfile $"just/($environment).just"
+    let text = if ($justfile | path exists) {
+      open $justfile
+      | append $text
+    } else {
+      $text
+    }
+
+    if ($text | is-not-empty) {
+      $text
+      | to text --no-newline
+      | save --force $"just/($environment.name).just"
     }
   }
 
@@ -216,9 +408,37 @@ def generate-justfile-and-scripts [
     | where {$in not-in (just env list | lines)}
   )
 
-  open $"($env.ENVIRONMENTS)/generic/Justfile"
+  open (get-environment-path generic Justfile)
   | append (
-      ($active_environments | where {$in != generic}) ++ $local_justfiles
+      $active_environments
+      | each {
+          |environment|
+
+          $environment.features
+          | each {
+              |feature|
+
+              let features_directory = (
+                get-environment-path $environment $"features/($feature)"
+              )
+
+              if ($features_directory | path exists) {
+                fd --extension just "" $features_directory
+                | lines
+                | each {|file| open $file}
+                | flatten
+              }
+            }
+        }
+      | where {is-not-empty}
+      | flatten
+    )
+  | append (
+      (
+        $active_environments
+        | get name
+        | where {$in != generic}
+      ) ++ $local_justfiles
       | uniq
       | sort
       | each {
@@ -232,6 +452,7 @@ def generate-justfile-and-scripts [
         }
       | where {is-not-empty}
     )
+  | flatten
   | str join "\n"
   | save --force Justfile
 
@@ -299,20 +520,22 @@ def generate-justfile-and-scripts [
   just --fmt --unstable
 }
 
-def get-environment-pre-commit-hooks [environment: string] {
-  let pre_commit_config = $"(
-    $env.ENVIRONMENTS
-  )/($environment)/.pre-commit-config.yaml"
+def get-environment-pre-commit-hooks [
+  environment: record<name: string, features: list<string>>
+] {
+  let pre_commit_config = (
+    get-environment-path $environment.name .pre-commit-config.yaml
+  )
 
   if not ($pre_commit_config | path exists) {
     return
   }
 
-  if $environment == generic {
+  if $environment.name == generic {
     open $pre_commit_config
     | to yaml
   } else {
-    $"# ($environment)\n"
+    $"# ($environment.name)\n"
     | append (
         open $pre_commit_config
         | get repos
@@ -322,78 +545,75 @@ def get-environment-pre-commit-hooks [environment: string] {
   }
 }
 
-# FIXME
 def generate-pre-commit-config-file [
-  active_environments: list<string>
+  active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
   # TODO: allow different environments to include the same pre-commit checks,
   # but don't duplicate when combined into one (see javascript/typescript)
+  generate-file --raw $active_environments .pre-commit-config.yaml
 
-  let local_pre_commit_config = if (".pre-commit-config.yaml" | path exists) {
-    open --raw .pre-commit-config.yaml
-    | split row "# "
-    | drop nth 0
-    | filter {
-        |section|
+  open --raw .pre-commit-config.yaml
+  | str replace --all "repos:\n" ""
+  | lines
+  | each {
+      |line|
 
-        let first_line = ($section | lines | first)
-
-        ($first_line | rg "^[a-z]" | is-not-empty) and $first_line not-in (
-          just env list
-          | lines
-        )
+      if ($line | str starts-with "#") {
+        $"  ($line)"
+      } else {
+        $line
       }
-    | each {
-        |section|
-
-        let lines = ($section | lines)
-
-        $"# ($lines | first)\n(
-          $lines
-          | drop nth 0
-          | to text
-          | from yaml
-          | to yaml
-        )"
-      }
-  } else {
-    []
-  }
-
-  $active_environments
-  | each {get-environment-pre-commit-hooks $in}
-  | append $local_pre_commit_config
-  | where {is-not-empty}
-  | str join
+    }
+  | prepend "repos:"
+  | str join "\n"
+  | lines
+  | where {
+      ($in | str starts-with "  # ") or not (
+        $in | str trim | str starts-with "#"
+      )
+    }
+  | str join "\n"
   | save --force .pre-commit-config.yaml
 
   yamlfmt .pre-commit-config.yaml
 }
 
 def generate-template-files [
-  active_environments: list<string>
+  active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  for environment in $inactive_environments {
-    let templates_directory = (
-      $"($env.ENVIRONMENTS)/($environment)/templates"
-    )
-
-    if ($templates_directory | path exists) {
-      for file in (ls $templates_directory) {
-        rm --force --recursive ($file.name | path basename)
-      }
-    }
-  }
+  remove-inactive-files $inactive_environments templates
 
   for environment in $active_environments {
-    let templates_directory = $"($env.ENVIRONMENTS)/($environment)/templates"
+    let templates_directory = (get-environment-path $environment.name templates)
+    let features_directory = (get-environment-path $environment.name features)
 
-    if ($templates_directory | path exists) {
-      mkdir tera
-      let context_source = $"($templates_directory)/context.toml"
-      let local_context_file = $"tera/($environment).toml"
+    let template_directories = if ($features_directory | path exists) {
+      $templates_directory
+      | append (
+        ls $features_directory
+        | get name
+        | each {
+            |feature|
+
+            (
+              get-environment-path
+                $environment
+                $"features/($feature)/templates"
+            )
+          }
+        )
+    } else {
+      [$templates_directory]
+    }
+    | where {path exists}
+
+    mkdir tera
+
+    for directory in $template_directories {
+      let context_source = $"($directory)/context.toml"
+      let local_context_file = $"tera/($environment.name).toml"
 
       if not ($local_context_file | path exists) {
         if ($context_source | path exists) {
@@ -405,7 +625,7 @@ def generate-template-files [
       }
 
       for file in (
-        ls $templates_directory
+        ls $directory
         | get name
         | where {not ($in | str ends-with context.toml)}
       ) {
@@ -416,7 +636,7 @@ def generate-template-files [
         let text = if $is_toml {
           if ($local_file | path exists) {
             open $local_file
-            | merge deep (
+            | merge deep --strategy overwrite (
               $text
               | from toml
             )
@@ -443,17 +663,38 @@ def main [] {
     open .environments.toml
     | get environments
     | uniq
+    | prepend (
+        [
+          generic
+          git
+          nix
+          toml
+          yaml
+        ]
+        | each {|environment| {name: $environment}}
+      )
+    | each {
+        |environment|
+
+        let features = if "features" in ($environment | columns) {
+          $environment.features
+        } else {
+          []
+        }
+
+        $environment | upsert features $features
+      }
   )
 
   let inactive_environments = (
     just env list
     | lines
-    | where {$in not-in (open .environments.toml | get environments)}
+    | where {$in not-in $active_environments.name}
   )
 
   generate-environments-file
   copy-files $active_environments $inactive_environments
-  generate-gitignore-file $active_environments $inactive_environments
+  generate-gitignore-file $active_environments
   generate-helix-languages-file $active_environments
   generate-justfile-and-scripts $active_environments $inactive_environments
   generate-pre-commit-config-file $active_environments $inactive_environments

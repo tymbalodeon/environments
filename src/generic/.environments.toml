@@ -1,1 +1,11 @@
-environments = ["generic", "git", "nix", "toml", "yaml"]
+[[environments]]
+name = "git"
+
+[[environments]]
+name = "nix"
+
+[[environments]]
+name = "toml"
+
+[[environments]]
+name = "yaml"
