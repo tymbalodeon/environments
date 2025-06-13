@@ -660,19 +660,27 @@ def generate-template-files [
 
 def main [] {
   let active_environments = (
-    open .environments.toml
-    | get environments
+    [
+      generic
+      git
+      nix
+      toml
+      yaml
+    ]
+    | each {|environment| {name: $environment}}
+  )
+
+  let active_environments = if (".environments.toml" | path exists) {
+    $active_environments
+    | append (open .environments.toml).environments
+  } else {
+    $active_environments
+  }
+
+  let active_environments = (
+    $active_environments
     | uniq
-    | prepend (
-        [
-          generic
-          git
-          nix
-          toml
-          yaml
-        ]
-        | each {|environment| {name: $environment}}
-      )
+    | sort
     | each {
         |environment|
 
