@@ -148,6 +148,17 @@ def "main develop" [
   }
 }
 
+# Edit issue
+def "main edit" [
+  issue_number: number # The id of the issue to view
+  --service: string # Which service to use (see `list-services`)
+] {
+  match (get-service $service) {
+    "github" => (gh issue edit $issue_number)
+    "nb" => (nb edit $issue_number)
+  }
+}
+
 def list [web: bool service?: string] {
   mut args = [issue list]
 
