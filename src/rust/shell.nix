@@ -5,6 +5,7 @@
       cargo-bloat
       cargo-edit
       cargo-outdated
+      cargo-release
       cargo-udeps
       cargo-watch
       libiconv
