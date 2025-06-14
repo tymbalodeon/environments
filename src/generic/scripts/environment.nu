@@ -44,6 +44,7 @@ def initialize [] {
 export def "main add" [
   ...environments: string # Environments to add
 ] {
+  # TODO: handle features (what to do about removing features?)
   let unrecognized_environments = (
     $environments
     | where {
