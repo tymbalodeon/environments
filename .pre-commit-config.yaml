@@ -112,8 +112,8 @@ repos:
         entry: just env test
         language: system
         pass_filenames: false
-      - id: update
-        name: update
+      - id: update-environments
+        name: update-environments
         entry: just environments update
         language: system
         pass_filenames: false
