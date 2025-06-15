@@ -24,26 +24,18 @@ def "main activate" [] {
   direnv allow
 }
 
-def copy-environments-toml [] {
-  cp $"($env.ENVIRONMENTS)/generic/.environments.toml" .
-  chmod +w .environments.toml
-}
-
 def initialize [] {
   try {
-    if not (".environments.toml" | path exists) {
-      copy-environments-toml
-    }
-
-    cp $"($env.ENVIRONMENTS)/generic/flake.nix" .
+    cp --update $"($env.ENVIRONMENTS)/generic/flake.nix" flake.nix
     chmod +w flake.nix
   }
 }
 
-# Add environments to the project
-export def "main add" [
-  ...environments: string # Environments to add
-] {
+def print-error [message: string] {
+  print $"(ansi red_bold)error(ansi reset): ($message)"
+}
+
+def validate-environments [environments: list<string>] {
   let unrecognized_environments = (
     $environments
     | where {
@@ -56,7 +48,7 @@ export def "main add" [
   )
 
   if ($unrecognized_environments | is-not-empty) {
-    print $"Urecognized environments:\n(
+    print-error "Urecognized environments:\n(
       $unrecognized_environments
       | each {|environment| $'- ($environment)'}
       | to text --no-newline
@@ -64,16 +56,121 @@ export def "main add" [
 
     exit 1
   }
+}
 
+# Add environments to the project
+export def "main add" [
+  ...environments: string # Environments to add
+] {
+  let environments = ($environments | str downcase)
+  validate-environments $environments
   initialize
 
-  open .environments.toml
-  | update environments (
-      (open .environments.toml).environments
-      | append $environments
-      | uniq
-      | sort
-    )
+  # TODO: handle features
+  let environments = if (".environments.toml" | path exists) {
+    open .environments.toml
+    | update environments (
+        (open .environments.toml).environments
+        | append $environments
+      )
+  } else {
+    $environments
+  }
+
+  $environments
+  | uniq
+  | sort
+  | save --force .environments.toml
+
+  main activate
+}
+
+def validate-features [
+  environment: string
+  features: list<string>
+] {
+  if ($environment not-in (just env list | lines)) {
+    print-error $"Urecognized environment: ($environment)"
+    exit 1
+  }
+
+  mut unrecognized_features = []
+
+  for feature in $features {
+    if not (
+      $"($env.ENVIRONMENTS)/($environment)/features/($feature)"
+      | path exists
+    ) {
+      $unrecognized_features = ($unrecognized_features | append $feature)
+    }
+  }
+
+  for feature in $unrecognized_features {
+    print-error $"Unrecognized feature: ($feature)"
+  }
+
+  if ($unrecognized_features | is-not-empty) {
+    exit 1
+  }
+}
+
+# Add features to active environments
+export def "main add features" [
+  environment: string # Activate features for specified environment
+  ...features: string # The features to activate
+] {
+  let environment = ($environment | str downcase)
+  validate-features $environment $features
+  initialize
+
+  let environments = if (".environments.toml" | path exists) {
+    (open .environments.toml).environments
+  } else {
+    []
+  }
+
+  let environments = if ($environment in $environments.name) {
+    $environments
+    | each {
+        |existing_environment|
+
+        let is_environment_to_update = (
+          $existing_environment.name == $environment
+        )
+
+        let features = if features not-in ($existing_environment | columns) {
+          if $is_environment_to_update {
+            $features
+          }
+        } else {
+          if $is_environment_to_update {
+            $existing_environment.features
+            | append $features
+            | uniq
+          } else {
+            $existing_environment.features
+          }
+        }
+
+        {name: $existing_environment.name features: $features}
+      }
+  } else {
+    $environments
+    | append {name: $environment.name features: $features}
+  }
+  | each {
+      |environment|
+
+      if ($environment.features | is-empty) {
+        $environment
+        | reject features
+      } else {
+        $environment
+      }
+    }
+
+  {environments: $environments}
+  | to toml
   | save --force .environments.toml
 
   main activate
@@ -160,23 +257,8 @@ def "main list active" [
 def "main remove" [
   ...environments: string # Environments to remove
 ] {
-  let recognized_environments = if ($environments | is-not-empty) {
-    $environments
-    | where {
-        $in in (
-          ls --short-names $env.ENVIRONMENTS
-          | where type == dir
-          | get name
-        )
-      }
-  } else {
-    []
-  }
-
-  if ($environments | is-not-empty) and ($recognized_environments | is-empty) {
-    return
-  }
-
+  let environments = ($environments | str downcase)
+  validate-environments $environments
   initialize
 
   if ($environments | is-empty) {
@@ -191,6 +273,54 @@ def "main remove" [
   }
 
   main activate
+}
+
+# Remove environments from the project
+def "main remove features" [
+  environment: string # Remove features for specified environment
+  ...features: string # The features to remove
+] {
+  let environment = ($environment | str downcase)
+  validate-features $environment $features
+  initialize
+
+  if (".environments.toml" | path exists) {
+    let existing_environments = (open .environments.toml).environments
+
+    let environments = (
+      $existing_environments
+      | each {
+          |environment|
+
+          {
+            name: $environment.name
+
+            features: (
+              if features in ($environment | columns) {
+                $environment.features
+                | where {$in not-in $features}
+              }
+            )
+          }
+        }
+      | each {
+          |environment|
+
+          if ($environment.features | is-empty) {
+            $environment
+            | reject features
+          } else {
+            $environment
+          }
+        }
+    )
+
+    {environments: $environments}
+    | to toml
+    | save --force .environments.toml
+
+    main activate
+  }
 }
 
 # View the contents of an environment file

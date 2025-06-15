@@ -15,28 +15,6 @@ def get-environment-path [
   $"($env.ENVIRONMENTS)/($environment)/($path)"
 }
 
-def generate-environments-file [] {
-  if (".environments.toml" | path exists) {
-    {
-      environments: (
-        open (get-environment-path generic .environments.toml)
-        | get environments
-        | merge deep --strategy overwrite (
-            open .environments.toml
-            | get environments
-          )
-        | sort
-      )
-    }
-    | save --force .environments.toml
-
-    taplo format .environments.toml
-  } else {
-    ^cp (get-environment-path generic .environments.toml) .
-    chmod +w .environments.toml
-  }
-}
-
 def copy-directory-files [directory: string] {
   if not ($directory | path exists) {
     return
@@ -700,7 +678,6 @@ def main [] {
     | where {$in not-in $active_environments.name}
   )
 
-  generate-environments-file
   copy-files $active_environments $inactive_environments
   generate-gitignore-file $active_environments
   generate-helix-languages-file $active_environments
