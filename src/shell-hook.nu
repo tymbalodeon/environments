@@ -244,6 +244,14 @@ def generate-justfile-and-scripts [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
+  let local_justfiles = (
+    ls --short-names just
+    | get name
+    | path parse
+    | get stem
+    | where {$in not-in (just env list | lines)}
+  )
+
   for environment in $inactive_environments {
     let environment_justfile = $"just/($environment).just"
 
@@ -260,10 +268,8 @@ def generate-justfile-and-scripts [
 
   ensure-directory-exists scripts
 
-  try {
-    for file in (ls ("scripts/*" | into glob) | where type == file) {
-      rm $file.name
-    }
+  for file in (ls ("scripts/*" | into glob) | where type == file) {
+    rm --force $file.name
   }
 
   let script_files = (
@@ -377,14 +383,6 @@ def generate-justfile-and-scripts [
   }
 
   chmod --recursive +w just
-
-  let local_justfiles = (
-    ls --short-names just
-    | get name
-    | path parse
-    | get stem
-    | where {$in not-in (just env list | lines)}
-  )
 
   open (get-environment-path generic Justfile)
   | append (

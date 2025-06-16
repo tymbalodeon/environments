@@ -48,7 +48,7 @@ def validate-environments [environments: list<string>] {
   )
 
   if ($unrecognized_environments | is-not-empty) {
-    print-error "Urecognized environments:\n(
+    print-error $"Urecognized environments:\n(
       $unrecognized_environments
       | each {|environment| $'- ($environment)'}
       | to text --no-newline
