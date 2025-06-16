@@ -91,11 +91,17 @@ export def "main add" [
   main activate
 }
 
+def get-available-environments [] {
+  ls --short-names $env.ENVIRONMENTS
+  | where type == dir
+  | get name
+}
+
 def validate-features [
   environment: string
   features: list<string>
 ] {
-  if ($environment not-in (just env list | lines)) {
+  if ($environment not-in (get-available-environments)) {
     print-error $"Urecognized environment: ($environment)"
     exit 1
   }
@@ -182,12 +188,13 @@ export def "main add features" [
   main activate
 }
 
-# TODO: add features
-def list-environments [environment?: string path?: string] {
+def list-environments [
+  features: bool
+  environment?: string
+  path?: string
+] {
   if ($environment | is-empty) {
-    ls --short-names $env.ENVIRONMENTS
-    | where type == dir
-    | get name
+    get-available-environments 
   } else if ($path | is-empty) {
     fd --type file "" $"($env.ENVIRONMENTS)/($environment)"
     | lines
@@ -202,8 +209,9 @@ def list-environments [environment?: string path?: string] {
 export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
+  --features # Show features
 ] {
-  list-environments $environment $path
+  list-environments $features $environment $path
   | str join "\n"
 }
 
@@ -218,14 +226,15 @@ def get-local-environment-name [directory: string] {
 def "main list active" [
   --all # Show all installed environments
   --default # Show only default installed environments
+  --features # Show active features
+  --local # Show local environments
   --user # Show only user installed environments [default]
 ] {
-  # TODO: display features
-  let default_environments = (
-    open $"($env.ENVIRONMENTS)/generic/.environments.toml"
-  ).environments.name
+  if not (".environments.toml" | path exists) {
+    return
+  }
 
-  let environments = (open .environments.toml).environments.name
+  let environments = (open .environments.toml).environments
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
@@ -236,25 +245,89 @@ def "main list active" [
         get-local-environment-name nix
       )
     | uniq
-    | where {$in not-in (list-environments)}
-    | each {|environment| $"($environment) \(local\)"}
+    | where {$in not-in (list-environments false)}
+    | each {|environment| {name: $environment}}
   } else {
     []
   }
 
+  let default_environments = (
+    [
+      generic
+      git
+      nix
+      toml
+      yaml
+    ]
+    | each {|environment| {name: $environment}}
+  )
+
   let environments = if $all {
     $environments
     | append $local_environments
+    | append $default_environments
   } else if $default {
-    $environments
-    | where {$in in $default_environments}
+    $default_environments
+  } else if $local {
+    $local_environments
   } else {
     $environments
-    | where {$in not-in $default_environments}
-    | append $local_environments
+    | where {$in not-in (get-available-environments)}
+  }
+
+  let environments = if $features {
+    $environments
+    | each {
+        |environment|
+
+        let features = if features in ($environment| columns) {
+          $environment.features
+        } else {
+          []
+        }
+
+        {name: $environment.name features: $features}
+      }
+  } else {
+    $environments.name
+  }
+
+  let environments = if $features {
+    mut unique_environments = []
+
+    for thing in $environments {
+      if $thing.name in $unique_environments.name {
+        if (
+          ($unique_environments | where name == $thing.name | first).features
+          | length
+        ) == 0 {
+          $unique_environments = (($unique_environments | where name != $thing.name) | append $thing.name)
+        }
+       } else {
+        $unique_environments = ($unique_environments | append $thing)
+      }
+    }
+
+    $unique_environments
+    | each {
+        |environment|
+
+        let features = (
+          $environment.features
+          | each {|feature| $"+($feature)"}
+          | str join " "
+        )
+
+        $environment.name
+        | append $features
+        | str join " "
+      }
+  } else {
+    $environments
   }
 
   $environments
+  | uniq
   | sort
   | str join "\n"
 }
@@ -336,21 +409,59 @@ def "main remove features" [
 
 # View the contents of an environment file
 def "main source" [
-  environment: string # The environment whose file to view
-  file: string # The file to view
+  environment?: string # The environment whose file to view
+  file?: string # The file to view
 ] {
-  # TODO: make env and file optional and use fzf in those cases
-  let files = (^fd $file $"($env.ENVIRONMENTS)/($environment)")
+  let environment = if ($environment | is-empty) {
+    get-available-environments
+    | to text
+    | fzf
+  } else {
+    $environment
+  }
 
-  if ($files | is-empty) {
+  let environment_path = $"($env.ENVIRONMENTS)/($environment)"
+
+  if (ls $environment_path | is-empty) {
     return
   }
 
-  let file = if ($files | lines | length) > 1 {
+  let file = if ($file | is-empty) {
+    let files = (
+      fd --type file "" $environment_path
+      | lines
+      | wrap path
+      | merge (
+          fd --type file "" $environment_path
+          | lines
+          | str replace $"($environment_path)/" ""
+          | wrap name
+        )
+    )
+
+    let name = (
+      $files.name
+      | to text
+      | fzf
+    )
+
     $files
-    | fzf
+    | where name == $name
+    | get path
+    | first
   } else {
-    $files
+    let files = (
+      fd $file $environment_path
+      | lines
+    )
+
+    if ($files | length) > 1 {
+      $files
+      | fzf
+    } else {
+      $files
+      | first
+    }
   }
 
   bat $file

@@ -671,6 +671,7 @@ def main [] {
   )
 
   let inactive_environments = (
+    # TODO: remove need for just
     just env list
     | lines
     | where {$in not-in $active_environments.name}
