@@ -66,20 +66,26 @@ export def "main add" [
   validate-environments $environments
   initialize
 
-  # TODO: handle features
+  let environments = (
+    $environments
+    | each {|environment| {name: $environment}}
+  )
+
   let environments = if (".environments.toml" | path exists) {
-    open .environments.toml
-    | update environments (
-        (open .environments.toml).environments
-        | append $environments
-      )
+    (open .environments.toml).environments
+    | append $environments
   } else {
     $environments
   }
 
-  $environments
-  | uniq
-  | sort
+  let environments = (
+    $environments
+    | uniq
+    | sort
+  )
+
+  {environments: $environments}
+  | to toml
   | save --force .environments.toml
 
   main activate
@@ -261,18 +267,24 @@ def "main remove" [
   validate-environments $environments
   initialize
 
-  if ($environments | is-empty) {
-    copy-environments-toml
-  } else {
-    open .environments.toml
-    | update environments (
-        (open .environments.toml).environments
-        | where {$in not-in $environments}
-      )
-    | save --force .environments.toml
-  }
+  let environments = (
+    $environments
+    | each {|environment| {name: $environment}}
+  )
 
-  main activate
+  if (".environments.toml" | path exists) {
+    let environments = (
+      (open .environments.toml).environments
+      | where name not-in $environments.name
+    )
+
+    {environments: $environments}
+    | to toml
+    | save --force .environments.toml
+
+    # TODO: handle Justfile error when removing
+    main activate
+  }
 }
 
 # Remove environments from the project
