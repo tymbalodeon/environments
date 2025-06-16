@@ -282,7 +282,6 @@ def "main remove" [
     | to toml
     | save --force .environments.toml
 
-    # TODO: handle Justfile error when removing
     main activate
   }
 }
