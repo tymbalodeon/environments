@@ -1,3 +1,10 @@
+  def get-random-file [files: list<string>] {
+  let max_index = (($files | length) - 1)
+
+  $files
+  | get (random int 0..$max_index)
+}
+
   export def open-temporary-file [file: string] {
     let files = (
       ls test/corpus/**/*
