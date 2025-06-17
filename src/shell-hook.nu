@@ -618,7 +618,7 @@ def generate-template-files [
         let text = if $is_toml {
           if ($local_file | path exists) {
             open $local_file
-            | merge deep --strategy overwrite (
+            | merge deep --strategy append (
               $text
               | from toml
             )
