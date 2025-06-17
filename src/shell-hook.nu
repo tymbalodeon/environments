@@ -83,147 +83,54 @@ def copy-files [
   }
 }
 
-def get-environment-file [
-  environment: record<name: string, features: list<string>>
-  file: string
-  --raw
-] {
-  let files = (
-    get-environment-path $environment.name $file
-    | append (
-        $environment.features
-        | each {
-            |feature|
-
-            get-environment-path $environment $"features/($feature)/($file)"
-          }
-      )
-    | where {path exists}
-  )
-
-  let text = (
-    $files
-    | each {
-        |file|
-
-        let text = if $raw {
-          open --raw $file
-        } else {
-          open $file
-        }
-
-        $text
-        | str trim
-      }
-    | to text
-  )
-
-  if ($files | is-not-empty) {
-    if $environment.name == generic {
-      $text
-    } else {
-      $"# ($environment.name)"
-      | append $text
-      | to text
-    }
-  }
-}
-
-def get-available-environments [] {
-  ls --short-names $env.ENVIRONMENTS
-  | where type == dir
-  | get name
-}
-
-def get-local-sections [file: string --raw] {
-  if ($file | path exists) {
-    let text = if $raw {
-      open --raw $file
-    } else {
-      open $file
-    }
-
-    let separator = if $file == .pre-commit-config.yaml {
-      "\n  # "
-    } else {
-      "\n\n"
-    }
-
-    $text
-    | split row $separator
-    | filter {
-        |section|
-
-        let official_environments = (get-available-environments)
-
-        if $file == .pre-commit-config.yaml {
-          let name = (
-            $section
-            | lines
-            | first
-            | str trim
-          )
-
-          $name != repos: and $name not-in $official_environments
-        } else {
-          ($section | str starts-with  "#") and (
-            $section | lines | first | str replace "# " ""
-          ) not-in $official_environments
-        }
-      }
-    | each {
-        |section|
-
-        if $file == .pre-commit-config.yaml {
-          $"($separator)($section)"
-        } else {
-          $section
-        }
-      }
-  } else {
-    []
-  }
-}
-
 def generate-file [
   active_environments: list<record<name: string, features: list<string>>>
   file: string
-  source_file?: string
-  --raw
 ] {
-  let source_file = if ($source_file | is-not-empty) {
-    $source_file
-  } else {
-    $file
-  }
-
   $active_environments
   | each {
       |environment|
 
-      if $raw {
-        get-environment-file --raw $environment $source_file
-      } else {
-        get-environment-file $environment $source_file
-      }
+      get-environment-path $environment.name $file
+      | append (
+          $environment.features
+          | each {
+              |feature|
+
+              get-environment-path $environment $"features/($feature)/($file)"
+            }
+        )
+      | where {path exists}
+      | each {
+          |file|
+
+          open $file
+          | str trim
+        }
     }
-  | append (
-      if $raw {
-        get-local-sections --raw $source_file
-      } else {
-        get-local-sections $source_file
-      }
-    )
   | str trim
-  | each {|section| $"($section)\n"}
-  | str join "\n"
-  | save --force $file
+  | where {is-not-empty}
 }
 
 def generate-gitignore-file [
   active_environments: list<record<name: string, features: list<string>>>
 ] {
+  # TODO: how to handle comments? Should they be allowed for the sake of notes?
+  # Is it possible to keep comments connected to the lines they were above?
   generate-file $active_environments .gitignore
+  | append (
+      if (".gitignore" | path exists) {
+        open .gitignore
+      } else {
+        []
+      }
+    )
+  | lines
+  | where {is-not-empty}
+  | uniq
+  | sort
+  | to text
+  | save --force .gitignore
 }
 
 def ensure-directory-exists [name: string] {
@@ -237,13 +144,47 @@ def ensure-directory-exists [name: string] {
   chmod --recursive +w $name
 }
 
+def merge-environments-and-local-file [
+  active_environments: list<record<name: string, features: list<string>>>
+  environment_file: string
+  local_file?: string
+ ] {
+  let local_file = if ($local_file | is-empty) {
+    $environment_file
+  } else {
+    $local_file
+  }
+
+  generate-file $active_environments $environment_file
+  | flatten
+  | reduce {|a, b| $a | merge deep --strategy append $b}
+  | merge deep --strategy overwrite (open $local_file)
+}
+
 def generate-helix-languages-file [
   active_environments: list<record<name: string, features: list<string>>>
 ] {
-  # TODO: allow multiple environments to declare the same settings, but remove
-  # duplicates in the final file
+  # TODO: how to handle duplicate names (exact duplicates are removed, but
+  # should it remove duplicates with the same name only and if so, which to
+  # privilege--the environment or the local?)
   ensure-directory-exists .helix
-  generate-file --raw $active_environments .helix/languages.toml languages.toml
+
+  (
+    merge-environments-and-local-file
+      $active_environments
+      languages.toml
+      .helix/languages.toml
+  )
+  | to toml
+  | save --force .helix/languages.toml
+
+  taplo format .helix/languages.toml
+}
+
+def get-available-environments [] {
+  ls --short-names $env.ENVIRONMENTS
+  | where type == dir
+  | get name
 }
 
 def generate-justfile-and-scripts [
@@ -533,29 +474,12 @@ def generate-pre-commit-config-file [
 ] {
   # TODO: allow different environments to include the same pre-commit checks,
   # but don't duplicate when combined into one (see javascript/typescript)
-  generate-file --raw $active_environments .pre-commit-config.yaml
-
-  open --raw .pre-commit-config.yaml
-  | str replace --all "repos:\n" ""
-  | lines
-  | each {
-      |line|
-
-      if ($line | str starts-with "#") {
-        $"  ($line)"
-      } else {
-        $line
-      }
-    }
-  | prepend "repos:"
-  | str join "\n"
-  | lines
-  | where {
-      ($in | str starts-with "  # ") or not (
-        $in | str trim | str starts-with "#"
-      )
-    }
-  | str join "\n"
+  (
+    merge-environments-and-local-file
+      $active_environments
+      .pre-commit-config.yaml
+  )
+  | to yaml
   | save --force .pre-commit-config.yaml
 
   yamlfmt .pre-commit-config.yaml
@@ -618,7 +542,7 @@ def generate-template-files [
         let text = if $is_toml {
           if ($local_file | path exists) {
             open $local_file
-            | merge deep --strategy append (
+            | merge deep --strategy overwrite (
               $text
               | from toml
             )
