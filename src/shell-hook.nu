@@ -129,6 +129,12 @@ def get-environment-file [
   }
 }
 
+def get-available-environments [] {
+  ls --short-names $env.ENVIRONMENTS
+  | where type == dir
+  | get name
+}
+
 def get-local-sections [file: string --raw] {
   if ($file | path exists) {
     let text = if $raw {
@@ -148,7 +154,7 @@ def get-local-sections [file: string --raw] {
     | filter {
         |section|
 
-        let official_environments = (just env list | lines)
+        let official_environments = (get-available-environments)
 
         if $file == .pre-commit-config.yaml {
           let name = (
@@ -249,7 +255,7 @@ def generate-justfile-and-scripts [
     | get name
     | path parse
     | get stem
-    | where {$in not-in (just env list | lines)}
+    | where {$in not-in (get-available-environments)}
   )
 
   for environment in $inactive_environments {
@@ -671,8 +677,7 @@ def main [] {
   )
 
   let inactive_environments = (
-    # TODO: remove need for just
-    just env list
+    get-available-environments
     | lines
     | where {$in not-in $active_environments.name}
   )
