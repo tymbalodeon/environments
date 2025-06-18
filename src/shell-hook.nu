@@ -115,20 +115,61 @@ def generate-file [
 def generate-gitignore-file [
   active_environments: list<record<name: string, features: list<string>>>
 ] {
-  # TODO: how to handle comments? Should they be allowed for the sake of notes?
-  # Is it possible to keep comments connected to the lines they were above?
+  mut comments = []
+  mut previous_comment = []
+
+  for line in (open .gitignore | lines | append ["\n"]) {
+    if ($line | str starts-with  "#") {
+      $previous_comment = ($previous_comment | append $line)
+    } else {
+      $comments = (
+        $comments
+        | append {
+            comment: (
+              $previous_comment
+              | str join "\n"
+            )
+
+            line: $line
+        }
+      )
+
+      $previous_comment = []
+    }
+  }
+
+  let comments = $comments
+
   generate-file $active_environments .gitignore
-  | append (
-      if (".gitignore" | path exists) {
-        open .gitignore
-      } else {
-        []
-      }
-    )
-  | lines
-  | where {is-not-empty}
+  | flatten
+  | each {lines}
+  | flatten
+  | append $comments.line
+  | where {$in | str trim | is-not-empty}
   | uniq
   | sort
+  | each {
+      |line|
+
+      if $line in $comments.line {
+        let comment = (
+          $comments
+          | where line == $line
+          | get comment
+          | first
+        )
+
+        if ($comment | is-not-empty) {
+          $comment
+          | append $line
+          | str join "\n"
+        } else {
+          $line
+        }
+      } else {
+        $line
+      }
+    }
   | to text
   | save --force .gitignore
 }
