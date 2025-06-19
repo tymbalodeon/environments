@@ -510,8 +510,6 @@ def generate-pre-commit-config-file [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  # TODO: allow different environments to include the same pre-commit checks,
-  # but don't duplicate when combined into one (see javascript/typescript)
   (
     merge-environments-and-local-file
       $active_environments
