@@ -198,16 +198,13 @@ def merge-environments-and-local-file [
 
   generate-file $active_environments $environment_file
   | flatten
-  | reduce {|a, b| $a | merge deep --strategy append $b}
+  | reduce {|a, b| $a | merge deep $b}
   | merge deep --strategy overwrite (open $local_file)
 }
 
 def generate-helix-languages-file [
   active_environments: list<record<name: string, features: list<string>>>
 ] {
-  # TODO: how to handle duplicate names (exact duplicates are removed, but
-  # should it remove duplicates with the same name only and if so, which to
-  # privilege--the environment or the local?)
   ensure-directory-exists .helix
 
   (
