@@ -280,7 +280,7 @@ def generate-justfile-and-scripts [
                     source: $"($feature_path)/scripts"
 
                     environment: (
-                      if ($"($feature)/Justfile" | path exists) {
+                      if ($"($feature_path)/Justfile" | path exists) {
                         $environment.name
                       } else {
                         "generic"
