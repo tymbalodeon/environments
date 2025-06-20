@@ -4,4 +4,3 @@ features = ["release"]
 
 [[environments]]
 name = "python"
-features = ["build"]
