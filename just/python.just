@@ -41,7 +41,3 @@ alias deps := dependencies
 # Update dependencies
 @update *args:
     ./scripts/python/update.nu {{ args }}
-
-# Build and install the application
-@build *args:
-    ./scripts/python/build.nu {{ args }}
