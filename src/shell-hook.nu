@@ -26,7 +26,23 @@ def copy-directory-files [directory: string] {
   }
 }
 
+def get-local-filename [file: string environment: string] {
+  if (
+    $file
+    | path parse
+    | get extension
+  ) == templ {
+    $file
+    | str replace .templ ""
+  } else if $file == context.toml {
+    $"tera/($environment).toml"
+  } else {
+    $file
+  }
+}
+
 def remove-inactive-files [
+  active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
   directory: string
 ] {
@@ -37,17 +53,9 @@ def remove-inactive-files [
     let files_directories = if ($features_directory | path exists) {
       $files_directories
       | append (
-        ls $features_directory
-        | get name
-        | each {
-            |feature|
-
-            (
-              get-environment-path
-                $environment
-                $"features/($feature)/($directory)"
-            )
-          }
+          ls $features_directory
+          | get name
+          | each {$"($in)/files"}
         )
     } else {
       [$files_directories]
@@ -56,7 +64,30 @@ def remove-inactive-files [
 
     for directory in $files_directories {
       for file in (ls $directory) {
-        rm --force --recursive ($file.name | path basename)
+        let local_file = (
+          get-local-filename ($file.name | path basename) $environment
+        )
+
+        rm --force --recursive $local_file
+      }
+    }
+  }
+
+  for environment in $active_environments {
+    let features = (get-environment-path $environment.name features)
+
+    if ($features | path exists) {
+      for feature in (ls $features | get name) {
+        if ($feature | path split | last) not-in $environment.features {
+          let files = $"($feature)/($directory)"
+
+          if ($files | path exists) {
+            for file in (ls --short-names $files | get name) {
+              let local_file = (get-local-filename $file $environment.name)
+              rm --force $file
+            }
+          }
+        }
       }
     }
   }
@@ -66,7 +97,7 @@ def copy-files [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  remove-inactive-files $inactive_environments files
+  remove-inactive-files $active_environments $inactive_environments files
 
   for environment in $active_environments {
     copy-directory-files (get-environment-path $environment.name files)
@@ -251,10 +282,38 @@ def generate-justfile-and-scripts [
     }
   }
 
+  for environment in $active_environments {
+    let features = (get-environment-path $environment.name features)
+
+    if ($features | path exists) {
+      for feature in (ls $features | get name) {
+        if ($feature | path split | last) not-in $environment.features {
+          let scripts = $"($feature)/scripts"
+
+          if ($scripts | path exists) {
+            let filenames = (ls --short-names $scripts | get name)
+
+            for filename in $filenames {
+              let file = if ($"($feature)/Justfile" | path exists) {
+                $"scripts/($environment.name)/($filename)"
+              } else {
+                $"scripts/($filename)"
+              }
+
+              rm --force --recursive $file
+            }
+          }
+        }
+      }
+    }
+  }
+
   ensure-directory-exists scripts
 
-  for file in (ls ("scripts/*" | into glob) | where type == file) {
-    rm --force $file.name
+  try {
+    for file in (ls ("scripts/*" | into glob) | where type == file) {
+      rm --force $file.name
+    }
   }
 
   let script_files = (
@@ -525,7 +584,7 @@ def generate-template-files [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  remove-inactive-files $inactive_environments templates
+  remove-inactive-files $active_environments $inactive_environments templates
 
   for environment in $active_environments {
     let templates_directory = (get-environment-path $environment.name templates)
