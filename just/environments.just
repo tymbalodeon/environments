@@ -15,3 +15,7 @@ set working-directory := ".."
 # Reload environment
 @reload *args:
     ./scripts/environments/reload.nu {{ args }}
+
+# Sort environment .gitignore files
+@sort-gitignores *args:
+    ./scripts/environments/sort-gitignores.nu {{ args }}

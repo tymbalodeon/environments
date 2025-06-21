@@ -71,4 +71,5 @@ alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run
 alias shell := python::shell
+alias sort-gitignores := environments::sort-gitignores
 alias test := python::test
