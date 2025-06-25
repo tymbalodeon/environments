@@ -39,59 +39,210 @@ export def print-warning [message: string] {
   print $"(ansi yellow_bold)warning(ansi reset): ($message)"
 }
 
-def validate-environments [environments: list<string>] {
-  let unrecognized_environments = (
-    $environments
-    | where {
-        $in not-in (
-          ls --short-names $env.ENVIRONMENTS
-          | where type == dir
-          | get name
-        )
-      }
+def validate-environments [
+  environments: list<record<name: string, features: list<string>>>
+] {
+  let valid_environments = (
+    ls --short-names $env.ENVIRONMENTS
+    | where type == dir
+    | get name
   )
 
-  if ($unrecognized_environments | is-not-empty) {
-    print-error $"Unrecognized environments:"
+  mut invalid_environments = []
 
-    print-error (
-      $unrecognized_environments
-      | each {|environment| $'- ($environment)'}
-      | to text --no-newline
+  for environment in $environments {
+    mut invalid_environment = {valid-name: true}
+
+    if $environment.name not-in $valid_environments {
+      $invalid_environment = (
+        $invalid_environment
+        | insert name $environment.name
+        | update valid-name false
+      )
+
+      print-warning $"unrecognized environment: ($environment.name)"
+    }
+
+    mut invalid_features = []
+
+    for feature in $environment.features {
+      let features_directory = (
+        $"($env.ENVIRONMENTS)/($environment.name)/features"
+      )
+
+      if not ($features_directory | path exists) or $feature not-in (
+        ls --short-names $features_directory
+        | where type == dir
+        | get name
+      ) {
+        $invalid_features = ($invalid_features | append $feature)
+
+        print-warning (
+          $"unrecognized feature for ($environment.name): ($feature)"
+        )
+      }
+    }
+
+    if ($invalid_features | is-not-empty) and (
+      "name" not-in ($invalid_environment | columns)
+    ) {
+      $invalid_environment = (
+        $invalid_environment
+        | insert name $environment.name
+      )
+    }
+
+    $invalid_environment = (
+      $invalid_environment
+      | insert features $invalid_features
     )
 
-    exit 1
+    $invalid_environments = (
+      $invalid_environments
+      | append $invalid_environment
+    )
   }
+
+  let invalid_environments = $invalid_environments
+
+  $environments
+  | where name not-in (
+      $invalid_environments
+      | where valid-name == false
+      | get name
+    )
+  | each {
+      |environment|
+
+      $environment
+      | update features (
+          $environment.features
+          | where {
+              $in not-in (
+                $invalid_environments
+                | where name == $environment.name
+                | get features
+                | flatten
+              )
+            }
+        )
+    }
 }
 
-# Add environments to the project
+def parse-environments [environments: list<string>] {
+  let environments = (
+    $environments
+    | str downcase
+    | each {
+        |environment|
+
+        let parts = ($environment | split row "+")
+
+        {
+          name: ($parts | first)
+          features: ($parts | drop nth 0)
+        }
+      }
+    | sort-by name
+  )
+
+  mut $unique_environments = []
+
+  for environment in $environments {
+    if $environment.name in ($unique_environments.name) {
+      let features = (
+        $unique_environments
+        | where name == $environment.name
+        | get features
+        | append $environment.features
+        | flatten
+        | uniq
+        | sort
+      )
+
+      $unique_environments = (
+        $unique_environments
+        | where name != $environment.name
+        | append {
+            name: $environment.name
+            features: $features
+          }
+      )
+    } else {
+      $unique_environments = ($unique_environments | append $environment)
+    }
+  }
+
+  validate-environments $unique_environments
+}
+
+def convert-to-toml [environments: list<record>] {
+  {
+    environments: (
+      $environments
+      | each {
+          |environment|
+
+          if features in ($environment | columns) and (
+            $environment.features
+            | is-empty
+          ) {
+            {name: $environment.name}
+          } else {
+            $environment
+          }
+        }
+      | sort-by name
+    )
+  }
+  | to toml
+}
+
+# Add environments (and features) to the project
+#
+# Add features with <environment-name>[+<feature>...], e.g. "python+build"
 export def "main add" [
   ...environments: string # Environments to add
 ] {
-  let environments = ($environments | str downcase)
-  validate-environments $environments
-  initialize
+  let environments = (parse-environments $environments)
+  mut environments = $environments
 
-  let environments = (
-    $environments
-    | each {|environment| {name: $environment}}
-  )
+  if (".environments.toml" | path exists) {
+    for environment in (open .environments.toml).environments {
+      if ($environment.name in $environments.name) {
+        let existing_environment = (
+          $environments
+          | where name == $environment.name
+          | first
+        )
 
-  let environments = if (".environments.toml" | path exists) {
-    (open .environments.toml).environments
-    | append $environments
-  } else {
-    $environments
+        $environments = (
+          $environments
+          | where name != $environment.name
+          | append {
+              name: $environment.name
+
+              features: (
+                $existing_environment.features
+                | append (
+                    if features in ($environment | columns) {
+                      $environment.features
+                    } else {
+                      []
+                    }
+                  )
+                | uniq
+                | sort
+              )
+            }
+        )
+      } else {
+        $environments = ($environments | append $environment)
+      }
+    }
   }
 
-  let environments = (
-    $environments
-    | uniq
-    | sort
-  )
-
-  {environments: $environments}
-  | to toml
+  convert-to-toml $environments
   | save --force .environments.toml
 
   main activate
@@ -130,83 +281,6 @@ def validate-features [
   if ($unrecognized_features | is-not-empty) {
     exit 1
   }
-}
-
-# Add features to active environments
-export def "main add features" [
-  environment: string # Activate features for specified environment
-  ...features: string # The features to activate
-] {
-  let environment = ($environment | str downcase)
-  validate-features $environment $features
-  initialize
-
-  let environments = if (".environments.toml" | path exists) {
-    (open .environments.toml).environments
-  } else {
-    []
-  }
-
-  let environments = if ($environment in $environments.name) {
-    $environments
-    | each {
-        |existing_environment|
-
-        let is_environment_to_update = (
-          $existing_environment.name == $environment
-        )
-
-        let features = if features not-in ($existing_environment | columns) {
-          if $is_environment_to_update {
-            $features
-          }
-        } else {
-          if $is_environment_to_update {
-            $existing_environment.features
-            | append $features
-            | uniq
-          } else {
-            $existing_environment.features
-          }
-        }
-
-        {name: $existing_environment.name features: $features}
-      }
-  } else {
-    $environments
-    | each {
-        |environment|
-
-        {
-          name: $environment.name
-
-          features: (
-            if features in ($environment | columns) {
-              $environment.features
-            } else {
-              []
-            }
-          )
-        }
-      }
-    | append {name: $environment features: $features}
-  }
-  | each {
-      |environment|
-
-      if ($environment.features | is-empty) {
-        $environment
-        | reject features
-      } else {
-        $environment
-      }
-    }
-
-  {environments: ($environments | sort-by name)}
-  | to toml
-  | save --force .environments.toml
-
-  main activate
 }
 
 def list-environments [
@@ -316,16 +390,20 @@ def "main list active" [
   let environments = if $features {
     mut unique_environments = []
 
-    for thing in $environments {
-      if $thing.name in $unique_environments.name {
+    for environment in $environments {
+      if $environment.name in $unique_environments.name {
         if (
-          ($unique_environments | where name == $thing.name | first).features
+          ($unique_environments | where name == $environment.name | first).features
           | length
         ) == 0 {
-          $unique_environments = (($unique_environments | where name != $thing.name) | append $thing.name)
+          $unique_environments = (
+            $unique_environments
+            | where name != $environment.name
+            | append $environment.name
+          )
         }
        } else {
-        $unique_environments = ($unique_environments | append $thing)
+        $unique_environments = ($unique_environments | append $environment)
       }
     }
 
@@ -353,79 +431,51 @@ def "main list active" [
   | str join "\n"
 }
 
-# Remove environments from the project
+# Remove environments (and features) from the project
+#
+# Remove features with <environment-name>[+<feature>...], e.g. "python+build"
 def "main remove" [
   ...environments: string # Environments to remove
 ] {
-  let environments = ($environments | str downcase)
-  validate-environments $environments
-  initialize
+  if not (".environments.toml" | path exists) {
+    return
+  }
+
+  let environments = (parse-environments $environments)
 
   let environments = (
-    $environments
-    | each {|environment| {name: $environment}}
+    (open .environments.toml).environments
+    | where name not-in (
+        $environments
+        | where {$in.features | is-empty}
+        | get name
+      )
+    | each {
+        |environment|
+
+        if features in ($environment | columns) {
+          $environment
+          | update features (
+              $environment.features
+              | where {
+                  $in not-in (
+                    $environments
+                    | where name == $environment.name
+                    | get features
+                    | flatten
+                  )
+                }
+            )
+        } else {
+          $environment
+        }
+    }
   )
 
-  if (".environments.toml" | path exists) {
-    let environments = (
-      (open .environments.toml).environments
-      | where name not-in $environments.name
-    )
+  convert-to-toml $environments
+  | save --force .environments.toml
 
-    {environments: $environments}
-    | to toml
-    | save --force .environments.toml
-
-    main activate
-  }
-}
-
-# Remove environments from the project
-def "main remove features" [
-  environment: string # Remove features for specified environment
-  ...features: string # The features to remove
-] {
-  let environment = ($environment | str downcase)
-  validate-features $environment $features
-  initialize
-
-  if (".environments.toml" | path exists) {
-    let existing_environments = (open .environments.toml).environments
-
-    let environments = (
-      $existing_environments
-      | each {
-          |environment|
-
-          {
-            name: $environment.name
-
-            features: (
-              if features in ($environment | columns) {
-                $environment.features
-                | where {$in not-in $features}
-              }
-            )
-          }
-        }
-      | each {
-          |environment|
-
-          if ($environment.features | is-empty) {
-            $environment
-            | reject features
-          } else {
-            $environment
-          }
-        }
-    )
-
-    {environments: $environments}
-    | to toml
-    | save --force .environments.toml
-
-    main activate
-  }
+  main activate
 }
 
 # View the contents of an environment file
