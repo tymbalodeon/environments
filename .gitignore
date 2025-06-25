@@ -1,5 +1,4 @@
 *.pyc
-./build/
 .coverage
 .direnv
 .env
