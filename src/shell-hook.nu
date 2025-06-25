@@ -479,7 +479,7 @@ def generate-justfile-and-scripts [
   let generic_recipes = (
     just --summary
     | split row " "
-    | filter {|recipe| "::" not-in $recipe}
+    | where {|recipe| "::" not-in $recipe}
   )
 
   let submodule_recipes = (
