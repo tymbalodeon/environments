@@ -6,7 +6,6 @@
 .envrc
 .venv
 __pycache__/
-build/
 dist/
 init/flake.lock
 src/**/uv.lock

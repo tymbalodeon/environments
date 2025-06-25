@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-use ./files.nu get-compilation-status
-use ./files.nu get-files
-use ./files.nu get-title
+use files.nu get-compilation-status
+use files.nu get-files
+use files.nu get-title
 
 const null_display = "----"
 
