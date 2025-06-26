@@ -24,13 +24,6 @@ def "main activate" [] {
   direnv allow
 }
 
-def initialize [] {
-  try {
-    cp --update $"($env.ENVIRONMENTS)/generic/flake.nix" flake.nix
-    chmod +w flake.nix
-  }
-}
-
 export def print-error [message: string] {
   print $"(ansi red_bold)error(ansi reset): ($message)"
 }
@@ -39,11 +32,35 @@ export def print-warning [message: string] {
   print $"(ansi yellow_bold)warning(ansi reset): ($message)"
 }
 
+def get-features [
+  environments: list<record>
+  environment: record<name: string, features: list<string>>
+] {
+  if features in ($environments | columns) {
+    $environments
+    | where name == $environment.name
+    | get features
+    | flatten
+  } else {
+    []
+  }
+}
+
+def get-environment-path [path?: string] {
+  let environments_base = $env.ENVIRONMENTS
+
+  if ($path | is-empty) {
+    $environments_base
+  } else {
+    $"($environments_base)/($path)"
+  }
+}
+
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
 ] {
   let valid_environments = (
-    ls --short-names $env.ENVIRONMENTS
+    ls --short-names (get-environment-path)
     | where type == dir
     | get name
   )
@@ -67,7 +84,7 @@ def validate-environments [
 
     for feature in $environment.features {
       let features_directory = (
-        $"($env.ENVIRONMENTS)/($environment.name)/features"
+        get-environment-path $"($environment.name)/features"
       )
 
       if not ($features_directory | path exists) or $feature not-in (
@@ -118,12 +135,7 @@ def validate-environments [
       | update features (
           $environment.features
           | where {
-              $in not-in (
-                $invalid_environments
-                | where name == $environment.name
-                | get features
-                | flatten
-              )
+              $in not-in (get-features $invalid_environments $environment)
             }
         )
     }
@@ -151,11 +163,8 @@ def parse-environments [environments: list<string>] {
   for environment in $environments {
     if $environment.name in ($unique_environments.name) {
       let features = (
-        $unique_environments
-        | where name == $environment.name
-        | get features
+        get-features $unique_environments $environment
         | append $environment.features
-        | flatten
         | uniq
         | sort
       )
@@ -249,7 +258,7 @@ export def "main add" [
 }
 
 def get-available-environments [] {
-  ls --short-names $env.ENVIRONMENTS
+  ls --short-names (get-environment-path)
   | where type == dir
   | get name
 }
@@ -267,7 +276,7 @@ def validate-features [
 
   for feature in $features {
     if not (
-      $"($env.ENVIRONMENTS)/($environment)/features/($feature)"
+      get-environment-path $"($environment)/features/($feature)"
       | path exists
     ) {
       $unrecognized_features = ($unrecognized_features | append $feature)
@@ -291,11 +300,11 @@ def list-environments [
   if ($environment | is-empty) {
     get-available-environments
   } else if ($path | is-empty) {
-    fd --type file "" $"($env.ENVIRONMENTS)/($environment)"
+    fd --type file "" (get-environment-path $environment)
     | lines
     | each {|file| $file | split row $"src/($environment)/" | last}
   } else {
-    ls --short-names $"($env.ENVIRONMENTS)/($environment)/($path)"
+    ls --short-names (get-environment-path $"($environment)/($path)")
     | get name
   }
 }
@@ -431,6 +440,29 @@ def "main list active" [
   | str join "\n"
 }
 
+def get-environment-files [
+  environment: record<name: string, features: list<string>>
+  filename: string
+] {
+  let feature_files = (
+    $environment.features
+    | each {
+        (
+          get-environment-path
+            $"($environment.name)/features/($in)/($filename)"
+        )
+      }
+  )
+
+  if ($environment.features | is-empty) {
+    get-environment-path $"($environment.name)/($filename)"
+    | append $feature_files
+  } else {
+    $feature_files
+  }
+  | where {path exists}
+}
+
 # Remove environments (and features) from the project
 #
 # Remove features with <environment-name>[+<feature>...], e.g. "python+build"
@@ -442,9 +474,61 @@ def "main remove" [
   }
 
   let environments = (parse-environments $environments)
+  let existing_environments = (open .environments.toml).environments
+
+  let environments_to_remove = (
+    $existing_environments
+    | where {$in.name in $environments.name}
+    | each {
+        |environment|
+
+        if features in ($environment | columns) {
+          $environment
+          | update features (
+              get-features $existing_environments $environment
+              | where {$in in (get-features $environments $environment)}
+            )
+        } else {
+          $environment
+          | insert features []
+        }
+      }
+  )
+
+  for environment in $environments_to_remove {
+    if (".gitignore" | path exists) {
+      open .gitignore
+      | lines
+      | where {
+          $in not-in (
+            get-environment-files $environment .gitignore
+            | each {open}
+            | str join "\n"
+            | lines
+            | where {is-not-empty}
+          )
+        }
+      | to text
+      # TODO: why is this necessary?!
+      | save --force .gitignore-temporary
+
+      # TODO: why is this necessary?!
+      mv .gitignore-temporary .gitignore
+    }
+
+    if (".helix/languages.toml" | path exists) {
+      # TODO
+      let files = (get-environment-files $environment languages.toml)
+
+      print $files
+    }
+  }
+
+  # FIXME
+  return
 
   let environments = (
-    (open .environments.toml).environments
+    $existing_environments
     | where name not-in (
         $environments
         | where {$in.features | is-empty}
@@ -457,14 +541,7 @@ def "main remove" [
           $environment
           | update features (
               $environment.features
-              | where {
-                  $in not-in (
-                    $environments
-                    | where name == $environment.name
-                    | get features
-                    | flatten
-                  )
-                }
+              | where {$in not-in (get-features $environments $environment)}
             )
         } else {
           $environment
@@ -491,7 +568,7 @@ def "main source" [
     $environment
   }
 
-  let environment_path = $"($env.ENVIRONMENTS)/($environment)"
+  let environment_path = (get-environment-path $environment)
 
   if (ls $environment_path | is-empty) {
     return
