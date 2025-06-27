@@ -474,8 +474,8 @@ def "main remove" [
     return
   }
 
-  let environments = (parse-environments $environments)
   let existing_environments = (open .environments.toml).environments
+  let environments = (parse-environments $environments)
 
   let environments_to_remove = (
     $existing_environments
@@ -514,50 +514,45 @@ def "main remove" [
         | where {is-not-empty}
       )
 
-      open .gitignore
-      | lines
-      | where {$in not-in $gitignore_lines}
-      | to text
-      # TODO: why is this necessary?!
-      | save --force .gitignore-temporary
+      let updated_gitignore = (
+        open .gitignore
+        | lines
+        | where {$in not-in $gitignore_lines}
+        | to text
+      )
 
-      # TODO: why is this necessary?!
-      mv .gitignore-temporary .gitignore
+      $updated_gitignore
+      | save --force .gitignore
     }
 
     if (".helix/languages.toml" | path exists) {
       let languages = (open .helix/languages.toml)
 
-      # FIXME
-      let thing = (
-        $languages
-        | columns
-        | each {
-            |column|
+      $languages
+      | columns
+      | each {
+          |column|
 
-            $languages
+          {
+            $column: (
+              $languages
             | get $column
             | where {
                 let environment_languages = (
                   get-environment-files $environment languages.toml
                 )
 
-                $column in ($environment_languages | columns) and (
+                $column not-in ($environment_languages | columns) or (
                   $in not-in ($environment_languages | get $column)
                 )
               }
-            | wrap $column
+            )
           }
-        | flatten
-        | into record
-      )
+        }
+      | into record
+      | save --force .helix/languages.toml
 
-      print "-----"
-      print $thing
-      print "-----"
-
-      # $thing
-      # | save --force .helix/languages.toml
+      taplo format .helix/languages.toml
     }
 
     if (".pre-commit-config.yaml" | path exists) {
@@ -573,35 +568,41 @@ def "main remove" [
         )
       }
       | save --force .pre-commit-config.yaml
+
+      yamlfmt .pre-commit-config.yaml
     }
   }
 
-  let environments = (
-    $existing_environments
-    | where name not-in (
-        $environments
-        | where {$in.features | is-empty}
-        | get name
-      )
-    | each {
-        |environment|
+  if ($environments_to_remove | is-not-empty) {
+    convert-to-toml (
+      $existing_environments
+      | where name not-in (
+          $environments_to_remove
+          | where {$in.features | is-empty}
+          | get name
+        )
+      | each {
+          |environment|
 
-        if features in ($environment | columns) {
-          $environment
-          | update features (
-              $environment.features
-              | where {$in not-in (get-features $environments $environment)}
-            )
-        } else {
-          $environment
-        }
-    }
-  )
+          if features in ($environment | columns) {
+            $environment
+            | update features (
+                $environment.features
+                | where {
+                    $in not-in (
+                      get-features $environments_to_remove $environment
+                    )
+                  }
+              )
+          } else {
+            $environment
+          }
+      }
+    )
+    | save --force .environments.toml
 
-  convert-to-toml $environments
-  | save --force .environments.toml
-
-  main activate
+    main activate
+  }
 }
 
 # View the contents of an environment file

@@ -63,7 +63,6 @@ mod environments "just/environments.just"
 mod python "just/python.just"
 
 alias add := python::add
-alias build := python::build
 alias dependencies := python::dependencies
 alias pin := python::pin
 alias profile := python::profile

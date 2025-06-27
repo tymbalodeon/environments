@@ -221,16 +221,24 @@ def merge-environments-and-local-file [
   environment_file: string
   local_file?: string
  ] {
+  let file = (
+    generate-file $active_environments $environment_file
+    | flatten
+    | reduce {|a, b| $a | merge deep $b}
+  )
+
   let local_file = if ($local_file | is-empty) {
     $environment_file
   } else {
     $local_file
   }
 
-  generate-file $active_environments $environment_file
-  | flatten
-  | reduce {|a, b| $a | merge deep $b}
-  | merge deep --strategy overwrite (open $local_file)
+  if ($local_file | path exists) {
+    $file
+    | merge deep --strategy overwrite (open $local_file)
+  } else {
+    $file
+  }
 }
 
 def generate-helix-languages-file [
