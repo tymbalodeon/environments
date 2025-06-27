@@ -9,13 +9,6 @@ def main [...environments: string] {
   http get $"($remote_url)/src/generic/flake.nix"
   | save --force $"($project_root)/flake.nix"
 
-  let environments_file = $"($project_root)/.environments.toml"
-
-  if not ($environments_file | path exists) {
-    http get $"($remote_url)/src/generic/.environments.toml"
-    | save $environments_file
-  }
-
   git add .
   environment add ...$environments
 }
