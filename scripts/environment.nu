@@ -461,6 +461,7 @@ def get-environment-files [
     $feature_files
   }
   | where {path exists}
+  | each {open}
 }
 
 # Remove environments (and features) from the project
@@ -493,21 +494,29 @@ def "main remove" [
           | insert features []
         }
       }
+    | where {
+        ($in.features | is-not-empty) or (
+          $environments
+          | where name == python
+          | get features
+          | flatten
+          | is-empty
+        )
+      }
   )
 
   for environment in $environments_to_remove {
     if (".gitignore" | path exists) {
+      let gitignore_lines = (
+        get-environment-files $environment .gitignore
+        | str join "\n"
+        | lines
+        | where {is-not-empty}
+      )
+
       open .gitignore
       | lines
-      | where {
-          $in not-in (
-            get-environment-files $environment .gitignore
-            | each {open}
-            | str join "\n"
-            | lines
-            | where {is-not-empty}
-          )
-        }
+      | where {$in not-in $gitignore_lines}
       | to text
       # TODO: why is this necessary?!
       | save --force .gitignore-temporary
@@ -517,15 +526,55 @@ def "main remove" [
     }
 
     if (".helix/languages.toml" | path exists) {
-      # TODO
-      let files = (get-environment-files $environment languages.toml)
+      let languages = (open .helix/languages.toml)
 
-      print $files
+      # FIXME
+      let thing = (
+        $languages
+        | columns
+        | each {
+            |column|
+
+            $languages
+            | get $column
+            | where {
+                let environment_languages = (
+                  get-environment-files $environment languages.toml
+                )
+
+                $column in ($environment_languages | columns) and (
+                  $in not-in ($environment_languages | get $column)
+                )
+              }
+            | wrap $column
+          }
+        | flatten
+        | into record
+      )
+
+      print "-----"
+      print $thing
+      print "-----"
+
+      # $thing
+      # | save --force .helix/languages.toml
+    }
+
+    if (".pre-commit-config.yaml" | path exists) {
+      {
+        repos: (
+          open .pre-commit-config.yaml
+          | get repos
+          | where {
+              $in not-in (
+                get-environment-files $environment .pre-commit-config.yaml
+              )
+            }
+        )
+      }
+      | save --force .pre-commit-config.yaml
     }
   }
-
-  # FIXME
-  return
 
   let environments = (
     $existing_environments

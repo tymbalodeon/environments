@@ -526,16 +526,57 @@ def "main remove" [
     }
 
     if (".helix/languages.toml" | path exists) {
-      open .helix/languages.toml
-      | get language
-      | where {
-          $in not-in (get-environment-files $environment languages.toml)
-        }
-      | save --force .helix/languages.toml
+      let languages = (open .helix/languages.toml)
+
+      # FIXME
+      let thing = (
+        $languages
+        | columns
+        | each {
+            |column|
+
+            $languages
+            | get $column
+            | where {
+                let environment_languages = (
+                  get-environment-files $environment languages.toml
+                )
+
+                # $column in ($environment_languages | columns) and (
+                #   $in not-in ($environment_languages | get $column)
+                # )
+                true
+              }
+            | wrap $column
+          }
+        | flatten
+        | into record
+      )
+
+      print "-----"
+      print ($thing | table --expand)
+      print "-----"
+
+      # $thing
+      # | save --force .helix/languages.toml
+    }
+
+    if (".pre-commit-config.yaml" | path exists) {
+      {
+        repos: (
+          open .pre-commit-config.yaml
+          | get repos
+          | where {
+              $in not-in (
+                get-environment-files $environment .pre-commit-config.yaml
+              )
+            }
+        )
+      }
+      | save --force .pre-commit-config.yaml
     }
   }
 
-  # FIXME
   return
 
   let environments = (
