@@ -263,59 +263,80 @@ def get-available-environments [] {
   | get name
 }
 
-def validate-features [
-  environment: string
-  features: list<string>
-] {
-  if ($environment not-in (get-available-environments)) {
-    print-error $"Unrecognized environment: ($environment)"
-    exit 1
-  }
-
-  mut unrecognized_features = []
-
-  for feature in $features {
-    if not (
-      get-environment-path $"($environment)/features/($feature)"
-      | path exists
-    ) {
-      $unrecognized_features = ($unrecognized_features | append $feature)
-    }
-  }
-
-  for feature in $unrecognized_features {
-    print-error $"Unrecognized feature: ($feature)"
-  }
-
-  if ($unrecognized_features | is-not-empty) {
-    exit 1
-  }
-}
-
-def list-environments [
-  features: bool
-  environment?: string
-  path?: string
-] {
-  if ($environment | is-empty) {
-    get-available-environments
-  } else if ($path | is-empty) {
-    fd --type file "" (get-environment-path $environment)
-    | lines
-    | each {|file| $file | split row $"src/($environment)/" | last}
-  } else {
-    ls --short-names (get-environment-path $"($environment)/($path)")
-    | get name
-  }
-}
-
 # List environments and files
 export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
+  --feature: string # List files for $feature only (requires $environment)
   --features # Show features
 ] {
-  list-environments $features $environment $path
+  let environments = if ($environment | is-empty) {
+    let environments = (get-available-environments)
+
+    if $features {
+      $environments
+      | each {
+        |environment|
+
+        let features_path = (get-environment-path $"($environment)/features")
+
+        let features = if ($features_path | path exists) {
+          ls --short-names (get-environment-path $"($environment)/features")
+          | get name
+          | each {$"+($in)"}
+          | str join " "
+        } else {
+          ""
+        }
+
+        [$environment $features "\n"]
+        | str join " "
+      }
+      | to text
+      | column -t
+    } else {
+      $environments
+    }
+  } else if ($path | is-empty) {
+    let files = if ($feature | is-not-empty) {
+      fd --type file "" (
+        get-environment-path $"($environment)/features/($feature)"
+      )
+    } else {
+      fd --type file "" (get-environment-path $environment)
+    }
+
+    let remove_path = if ($feature | is-empty) {
+      $"src/($environment)/"
+    } else {
+      $"src/($environment)/features/($feature)/"
+    }
+
+    let files = (
+      $files
+      | lines
+      | each {|file| $file | split row $remove_path | last}
+    )
+
+    if ($feature | is-not-empty) or $features {
+      $files
+    } else {
+      $files
+      | where {not ($in | str starts-with features)}
+      | to text --no-newline
+    }
+  } else {
+    let base_path = if ($feature | is-empty) {
+      $"($environment)"
+    } else {
+      $"($environment)/features/($feature)"
+    }
+
+    ls --short-names (get-environment-path $"($base_path)/($path)")
+    | get name
+  }
+
+  $environments
   | str join "\n"
 }
 
@@ -349,7 +370,7 @@ def "main list active" [
         get-local-environment-name nix
       )
     | uniq
-    | where {$in not-in (list-environments false)}
+    | where {$in not-in (get-available-environments)}
     | each {|environment| {name: $environment}}
   } else {
     []
@@ -384,13 +405,16 @@ def "main list active" [
     | each {
         |environment|
 
-        let features = if features in ($environment| columns) {
+        let features = if features in ($environment | columns) {
           $environment.features
         } else {
           []
         }
 
-        {name: $environment.name features: $features}
+        {
+          name: $environment.name
+          features: $features
+        }
       }
   } else {
     $environments.name
@@ -422,7 +446,7 @@ def "main list active" [
 
         let features = (
           $environment.features
-          | each {|feature| $"+($feature)"}
+          | each {$"+($in)"}
           | str join " "
         )
 
