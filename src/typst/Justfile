@@ -3,3 +3,15 @@ set working-directory := ".."
 # View help text
 @help *args:
     ./scripts/typst/help.nu {{ args }}
+
+# Compile file
+@compile *args:
+    typst compile {{ args }}
+
+# List available fonts
+@fonts *args:
+    typst fonts {{ args }}
+
+# Watch file and recompile on changes
+@watch *args:
+    typst watch {{ args }}
