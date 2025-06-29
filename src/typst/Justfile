@@ -14,4 +14,4 @@ set working-directory := ".."
 
 # Watch file and recompile on changes
 @watch *args:
-    typst watch {{ args }}
+    ./scripts/typst/watch.nu {{ args }}

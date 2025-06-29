@@ -10,5 +10,6 @@ def main [...environments: string] {
   | save --force $"($project_root)/flake.nix"
 
   git add .
+  environment activate
   environment add ...$environments
 }
