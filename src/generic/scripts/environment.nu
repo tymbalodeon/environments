@@ -347,6 +347,24 @@ def get-local-environment-name [directory: string] {
   | get stem
 }
 
+def get-default-environments [] {
+  [
+    generic
+    git
+    just
+    markdown
+    nix
+    toml
+    yaml
+  ]
+  | each {
+    {
+      name: $in
+      features: []
+    }
+  }
+}
+
 # List installed environments
 def "main list active" [
   --all # Show all installed environments
@@ -376,25 +394,12 @@ def "main list active" [
     []
   }
 
-  let default_environments = (
-    [
-      generic
-      git
-      just
-      markdown
-      nix
-      toml
-      yaml
-    ]
-    | each {|environment| {name: $environment}}
-  )
-
   let environments = if $all {
     $environments
     | append $local_environments
-    | append $default_environments
+    | append (get-default-environments)
   } else if $default {
-    $default_environments
+    get-default-environments
   } else if $local {
     $local_environments
   } else {
@@ -600,7 +605,7 @@ def "main remove" [
   }
 
   if ($environments_to_remove | is-not-empty) {
-    convert-to-toml (
+    let user_environments = (
       $existing_environments
       | where name not-in (
           $environments_to_remove
@@ -623,9 +628,24 @@ def "main remove" [
           } else {
             $environment
           }
-      }
+        }
+      | where {
+          not (
+            (
+              ("features" not-in ($in | columns)) or (
+                $in.features | is-empty
+              )
+            ) and ($in in (get-default-environments))
+          )
+        }
     )
-    | save --force .environments.toml
+
+    if ($user_environments | is-not-empty) {
+      convert-to-toml $user_environments
+      | save --force .environments.toml
+    } else {
+      rm .environments.toml
+    }
 
     main activate
   }
