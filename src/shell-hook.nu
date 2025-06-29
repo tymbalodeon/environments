@@ -670,6 +670,8 @@ def main [] {
     [
       generic
       git
+      just
+      markdown
       nix
       toml
       yaml

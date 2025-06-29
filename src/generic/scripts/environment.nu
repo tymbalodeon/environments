@@ -380,6 +380,8 @@ def "main list active" [
     [
       generic
       git
+      just
+      markdown
       nix
       toml
       yaml
