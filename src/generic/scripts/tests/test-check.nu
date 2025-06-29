@@ -23,7 +23,6 @@ def test-get-pre-commit-hook-names [] {
   let expected_hooks = "check-merge-conflict
 check-yaml
 end-of-file-fixer
-flake
 pre-commit-update
 sort-simple-yaml
 trailing-whitespace"
