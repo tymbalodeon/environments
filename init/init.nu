@@ -10,6 +10,9 @@ def main [...environments: string] {
   | save --force $"($project_root)/flake.nix"
 
   git add .
+
+  # FIXME: this doesn't work because activate runs in the background and line 16
+  # runs without knowing whether or not the activation is complete
   environment activate
   environment add ...$environments
 }
