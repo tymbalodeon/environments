@@ -299,11 +299,11 @@ export def "main list" [
     }
   } else if ($path | is-empty) {
     let files = if ($feature | is-not-empty) {
-      fd --type file "" (
+      fd --hidden --type file "" (
         get-environment-path $"($environment)/features/($feature)"
       )
     } else {
-      fd --type file "" (get-environment-path $environment)
+      fd --hidden --type file "" (get-environment-path $environment)
     }
 
     let remove_path = if ($feature | is-empty) {
@@ -629,6 +629,40 @@ def "main remove" [
   }
 }
 
+def list-short-names [directory: string file?: string] {
+  let search = if ($file | is-not-empty) {
+    $file
+  } else {
+    ""
+  }
+
+  let files = (
+    fd --hidden --type file $search $directory
+    | lines
+  )
+
+  $files
+  | wrap path
+  | merge (
+      $files
+      | str replace $"($directory)/" ""
+      | wrap name
+    )
+}
+
+def select-file [files: table<path: string, name: string>] {
+  let name = (
+    $files.name
+    | to text
+    | fzf
+  )
+
+  $files
+  | where name == $name
+  | get path
+  | first
+}
+
 # View the contents of an environment file
 def "main source" [
   environment?: string # The environment whose file to view
@@ -649,38 +683,17 @@ def "main source" [
   }
 
   let file = if ($file | is-empty) {
-    let files = (
-      fd --type file "" $environment_path
-      | lines
-      | wrap path
-      | merge (
-          fd --type file "" $environment_path
-          | lines
-          | str replace $"($environment_path)/" ""
-          | wrap name
-        )
-    )
-
-    let name = (
-      $files.name
-      | to text
-      | fzf
-    )
-
-    $files
-    | where name == $name
-    | get path
-    | first
+    select-file (list-short-names $environment_path)
   } else {
-    let files = (
-      fd $file $environment_path
-      | lines
-    )
+    let files = (list-short-names $environment_path $file)
 
     if ($files | length) > 1 {
-      $files
-      | fzf
+      select-file $files
     } else {
+      if ($files | is-empty) {
+        return
+      }
+
       $files
       | first
     }
