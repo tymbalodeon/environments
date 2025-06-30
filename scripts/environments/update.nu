@@ -35,6 +35,8 @@ def "main init" [] {
 def main [
   --verbose # Show errors
 ] {
+  just python update
+
   if $verbose {
     main pre-commit --verbose
   } else {
