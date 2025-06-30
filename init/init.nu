@@ -11,8 +11,15 @@ def main [...environments: string] {
 
   git add .
 
-  # FIXME: this doesn't work because activate runs in the background and line 16
-  # runs without knowing whether or not the activation is complete
-  environment activate
+  let temporary_directory = (mktemp --directory --tmpdir)
+
+  (
+    git clone
+      https://github.com/tymbalodeon/environments.git
+      $temporary_directory 
+  )
+
+  $env.ENVIRONMENTS = $"($temporary_directory)/src"
   environment add ...$environments
+  rm --force $temporary_directory
 }
