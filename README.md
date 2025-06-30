@@ -13,7 +13,9 @@ Available environments:
 - haskell
 - java
 - javascript
+- just
 - lilypond
+- markdown
 - nix
 - python
 - rust

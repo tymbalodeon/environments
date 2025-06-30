@@ -16,7 +16,7 @@ def main [...environments: string] {
   (
     git clone
       https://github.com/tymbalodeon/environments.git
-      $temporary_directory 
+      $temporary_directory
   )
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
