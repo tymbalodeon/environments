@@ -595,26 +595,22 @@ def generate-template-files [
   remove-inactive-files $active_environments $inactive_environments templates
 
   for environment in $active_environments {
-    let templates_directory = (get-environment-path $environment.name templates)
+    let templates_directory = [
+      (get-environment-path $environment.name templates)
+    ]
+
     let features_directory = (get-environment-path $environment.name features)
 
     let template_directories = if ($features_directory | path exists) {
       $templates_directory
       | append (
-        ls $features_directory
-        | get name
-        | each {
-            |feature|
-
-            (
-              get-environment-path
-                $environment
-                $"features/($feature)/templates"
-            )
-          }
+          ls --short-names $features_directory
+          | get name
+          | each {get-environment-path $environment $"features/($in)/templates"}
+          | flatten
         )
     } else {
-      [$templates_directory]
+      $templates_directory
     }
     | where {path exists}
 

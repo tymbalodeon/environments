@@ -1,8 +1,8 @@
 [changelog]
-owner = ""
-remote = ""
-repository = ""
+owner = "tymbalodeon"
+remote = "github.com"
+repository = "environments"
 
 [[changelog.authors]]
-signature = ""
-username = ""
+signature = "Ben Rosen"
+username = "tymbalodeon"
