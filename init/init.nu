@@ -21,5 +21,5 @@ def main [...environments: string] {
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
   environment add ...$environments
-  rm --force $temporary_directory
+  rm --force --recursive $temporary_directory
 }
