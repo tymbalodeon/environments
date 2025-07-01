@@ -1,22 +1,26 @@
-branch_whitelist = []
-disable_bump_commit = false
-disable_changelog = false
 from_latest_tag = false
-generate_mono_repository_global_tag = true
 ignore_merge_commits = true
-post_bump_hooks = []
-post_package_bump_hooks = []
-pre_bump_hooks = []
-pre_package_bump_hooks = []
+ignore_fixup_commits = true
+disable_changelog = false
+disable_bump_commit = false
+generate_mono_repository_global_tag = true
+generate_mono_repository_package_tags = true
+branch_whitelist = []
 skip_ci = "[skip ci]"
 skip_untracked = false
+pre_bump_hooks = []
+post_bump_hooks = []
+pre_package_bump_hooks = []
+post_package_bump_hooks = []
 tag_prefix = ""
 
-[bump_profiles]
+[git_hooks]
+
+[commit_types]
 
 [changelog]
-owner = "tymbalodeon"
 path = "CHANGELOG.md"
+owner = "tymbalodeon"
 remote = "github.com"
 repository = "environments"
 template = "remote"
@@ -25,8 +29,6 @@ template = "remote"
 signature = "Ben Rosen"
 username = "tymbalodeon"
 
-[commit_types]
-
-[git_hooks]
+[bump_profiles]
 
 [packages]

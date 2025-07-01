@@ -1,7 +1,25 @@
 #!/usr/bin/env nu
 
+def "main remove" [] {
+  (
+    rm
+      --force
+      --recursive
+      .pytest_cache
+      .python-version
+      .ruff_cache
+      .venv
+      pyproject.toml
+      uv.lock
+  )
+}
+
 def main [] {
-  uv init --bare err> /dev/null
+  try { uv init --bare err> /dev/null }
   uv add --dev bpython pytest
   taplo format pyproject.toml
+
+  if (uv python pin | complete | get exit_code) != 0 {
+    uv python pin 3.13
+  }
 }

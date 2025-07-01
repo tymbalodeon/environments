@@ -74,6 +74,7 @@ alias readme := environments::readme
 alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run
+alias set-executable := environments::set-executable
 alias shell := python::shell
 alias sort-gitignores := environments::sort-gitignores
 alias test := python::test

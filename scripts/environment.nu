@@ -500,13 +500,23 @@ def get-environment-files [
 # Remove features with <environment-name>[+<feature>...], e.g. "python+build"
 def "main remove" [
   ...environments: string # Environments to remove
+  --force # Force removal even if environment(s) not currently active
 ] {
-  if not (".environments.toml" | path exists) {
+  if not $force and (
+    not (".environments.toml" | path exists) or (
+      $environments | is-empty
+    )
+  ) {
+    return
+  }
+
+  let environments = (parse-environments $environments)
+
+  if ($environments | is-empty) {
     return
   }
 
   let existing_environments = (open .environments.toml).environments
-  let environments = (parse-environments $environments)
 
   let environments_to_remove = (
     $existing_environments
@@ -584,6 +594,21 @@ def "main remove" [
       | save --force .helix/languages.toml
 
       taplo format .helix/languages.toml
+    }
+
+    for hook_file in (
+      get-environment-path $"($environment.name)/hook.nu"
+      | append (
+          ls (get-environment-path $"($environment.name)/features")
+          | get name
+          | each {
+              get-environment-path $"($environment.name)/features/($in)/hook.nu"
+            }
+        )
+      | flatten
+      | where {path exists}
+    ) {
+      nu $hook_file remove
     }
 
     if (".pre-commit-config.yaml" | path exists) {

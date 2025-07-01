@@ -41,13 +41,12 @@ def get-local-filename [file: string environment: string] {
   }
 }
 
-def remove-inactive-files [
+def copy-files [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
-  directory: string
 ] {
   for environment in $inactive_environments {
-    let files_directories = (get-environment-path $environment $directory)
+    let files_directories = (get-environment-path $environment files)
     let features_directory = (get-environment-path $environment features)
 
     let files_directories = if ($features_directory | path exists) {
@@ -79,7 +78,7 @@ def remove-inactive-files [
     if ($features | path exists) {
       for feature in (ls $features | get name) {
         if ($feature | path split | last) not-in $environment.features {
-          let files = $"($feature)/($directory)"
+          let files = $"($feature)/files"
 
           if ($files | path exists) {
             for file in (ls --short-names $files | get name) {
@@ -91,13 +90,6 @@ def remove-inactive-files [
       }
     }
   }
-}
-
-def copy-files [
-  active_environments: list<record<name: string, features: list<string>>>
-  inactive_environments: list<string>
-] {
-  remove-inactive-files $active_environments $inactive_environments files
 
   for environment in $active_environments {
     copy-directory-files (get-environment-path $environment.name files)
@@ -588,75 +580,30 @@ def generate-pre-commit-config-file [
   yamlfmt .pre-commit-config.yaml
 }
 
-def generate-template-files [
+def run-hooks [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  remove-inactive-files $active_environments $inactive_environments templates
-
   for environment in $active_environments {
-    let templates_directory = [
-      (get-environment-path $environment.name templates)
-    ]
-
+    let hook_file = [(get-environment-path $environment.name hook.nu)]
     let features_directory = (get-environment-path $environment.name features)
 
-    let template_directories = if ($features_directory | path exists) {
-      $templates_directory
+    let hook_files = if ($features_directory | path exists) {
+      $hook_file
       | append (
           ls --short-names $features_directory
           | get name
-          | each {get-environment-path $environment $"features/($in)/templates"}
+          | where {$in in $environment.features}
+          | each {get-environment-path $environment $"features/($in)/hook.nu"}
           | flatten
         )
     } else {
-      $templates_directory
+      $hook_file
     }
     | where {path exists}
 
-    mkdir tera
-
-    for directory in $template_directories {
-      let context_source = $"($directory)/context.toml"
-      let local_context_file = $"tera/($environment.name).toml"
-
-      if not ($local_context_file | path exists) {
-        if ($context_source | path exists) {
-          ^cp $context_source $local_context_file
-          chmod +w $local_context_file
-        } else {
-          touch $local_context_file
-        }
-      }
-
-      for file in (
-        ls $directory
-        | get name
-        | where {not ($in | str ends-with context.toml)}
-      ) {
-        let local_file = ($file | path basename | str replace ".templ" "")
-        let text = (tera --template $file $local_context_file)
-        let is_toml = (($local_file | path parse | get extension) == toml)
-
-        let text = if $is_toml {
-          if ($local_file | path exists) {
-            $text
-            | from toml
-            | merge deep (open $local_file)
-          } else {
-            $text
-          }
-        } else {
-          $text
-        }
-
-        $text
-        | save --force $local_file
-
-        if $is_toml {
-          taplo format $local_file
-        }
-      }
+    for hook_file in $hook_files {
+      nu $hook_file
     }
   }
 }
@@ -710,5 +657,5 @@ def main [] {
   generate-helix-languages-file $active_environments
   generate-justfile-and-scripts $active_environments $inactive_environments
   generate-pre-commit-config-file $active_environments $inactive_environments
-  generate-template-files $active_environments $inactive_environments
+  run-hooks $active_environments $inactive_environments
 }
