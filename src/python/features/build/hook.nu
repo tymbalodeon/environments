@@ -5,7 +5,7 @@ def "main remove" [] {
   | reject build-system
   | save --force pyproject.toml
 
-  taplo format pyproject.toml
+  taplo format pyproject.toml out+err> /dev/null
 }
 
 def main [] {
@@ -16,5 +16,5 @@ def main [] {
     }
   | save --force pyproject.toml
 
-  taplo format pyproject.toml
+  taplo format pyproject.toml out+err> /dev/null
 }

@@ -32,7 +32,7 @@ def main [
       }
     } 
 
-    taplo format pyproject.toml
+    taplo format pyproject.toml out+err> /dev/null
   } else {
     let args = [--upgrade]
 

@@ -247,7 +247,7 @@ def generate-helix-languages-file [
   | to toml
   | save --force .helix/languages.toml
 
-  taplo format .helix/languages.toml
+  taplo format .helix/languages.toml out+err> /dev/null
 }
 
 def get-available-environments [] {
