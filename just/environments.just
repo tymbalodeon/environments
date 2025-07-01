@@ -16,6 +16,10 @@ set working-directory := ".."
 @reload *args:
     ./scripts/environments/reload.nu {{ args }}
 
+# Set all environment nushell files as executable
+@set-executable *args:
+    ./scripts/environments/set-executable.nu {{ args }}
+
 # Sort environment .gitignore files
 @sort-gitignores *args:
     ./scripts/environments/sort-gitignores.nu {{ args }}

@@ -105,6 +105,11 @@ repos:
         entry: just environments readme
         language: system
         pass_filenames: false
+      - id: set-executable
+        name: set-executable
+        entry: just environments set-executable
+        language: system
+        pass_filenames: false
       - id: sort-gitignores
         name: sort-gitignores
         entry: just sort-gitignores
