@@ -50,7 +50,7 @@ export def display-just-help [
       )
     } else {
       try {
-        return (^just ...$args $recipe --quiet)
+        return (^just ...$args $recipe --quiet err> /dev/null)
       } catch {
         return
       }
@@ -81,12 +81,123 @@ export def display-just-help [
   }
 }
 
+def get-sortable-environment [
+  alias: record<
+    alias: string,
+    environment: string,
+    recipe: string
+  >
+] {
+  if ($alias.environment == •) {
+    null 
+  } else {
+    $alias.environment
+  }
+}
+
+export def display-aliases [
+  sort_by_environment # Sort aliases by environment name
+  sort_by_recipe # Sort recipe by original recipe name
+  --environment: string # View aliases for $environment only
+  --justfile: string # Which Justfile to use
+] {
+  # TODO: include module aliases in main Justfile
+  # TODO: remove space when no environment name present
+
+  let justfile = if ($justfile | is-empty) {
+    "Justfile"
+  } else {
+    $justfile
+  }
+
+  let aliases = (
+    open $justfile
+    | lines
+    | where {str starts-with  alias}
+    | str replace "alias " ""
+    | each {
+        |alias|
+
+        let parts = (
+          $alias
+          | split row ":="
+          | str trim
+        )
+
+        let recipe_parts = ($parts | last | split row "::")
+
+        {
+          alias: ($parts | first)
+
+          environment: (
+            if ($recipe_parts | length) > 1 {
+              ($recipe_parts | first)
+            } else {
+              "•"
+            }
+          )
+
+          recipe: ($recipe_parts | last)
+        }
+      }
+  )
+
+  let aliases = if ($environment | is-not-empty) {
+    $aliases
+    | where environment =~ $environment
+  } else {
+    $aliases
+  }
+
+  if ($aliases | is-empty) {
+    return
+  }
+
+  let aliases = if ($environment | is-empty) and $sort_by_environment {
+    $aliases
+    | sort-by --custom {
+        |a, b|
+
+        (get-sortable-environment $a) < (get-sortable-environment $b)
+      }
+  } else if $sort_by_recipe {
+    $aliases
+    | sort-by recipe
+  } else {
+    $aliases
+    | sort-by alias
+  }
+
+  print (
+    $aliases
+    | each {
+        |alias|
+
+        let alias_name = $"(ansi magenta_bold)($alias.alias)(ansi reset)"
+        let environment = $"(ansi cyan_bold)($alias.environment)(ansi reset)"
+
+        $"($alias_name) => ($environment) ($alias.recipe)"
+      }
+    | to text
+    | column -t
+    | str replace --all "•" " "
+  )
+}
+
 # View module aliases
-def "main aliases" [] {
-  open Justfile
-  | lines
-  | where {str starts-with  alias}
-  | to text
+def "main aliases" [
+  environment?: string # View aliases for $environment only
+  --justfile: string # Which Justfile to use
+  --sort-by-environment # Sort aliases by environment name
+  --sort-by-recipe # Sort recipe by original recipe name
+] {
+  (
+    display-aliases
+      $sort_by_environment
+      $sort_by_recipe
+      --environment $environment
+      --justfile $justfile
+  )
 }
 
 # View help text

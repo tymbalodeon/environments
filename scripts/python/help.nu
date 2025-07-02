@@ -1,14 +1,20 @@
 #!/usr/bin/env nu
 
 use ../environment.nu get-project-path
+use ../help.nu display-aliases
 use ../help.nu display-just-help
 
 # View module aliases
-def "main aliases" [] {
-  open just/python.just
-  | lines
-  | where {str starts-with  alias}
-  | to text
+def "main aliases" [
+  --sort-by-environment # Sort aliases by environment name
+  --sort-by-recipe # Sort recipe by original recipe name
+] {
+  (
+    display-aliases
+      $sort_by_environment
+      $sort_by_recipe
+      --justfile just/python.just
+  )
 }
 
 # View help text
