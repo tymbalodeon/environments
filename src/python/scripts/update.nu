@@ -18,6 +18,7 @@ def main [
       }
 
       if ($dependencies | is-not-empty) {
+        uv remove --dev ...$dependencies out+err> /dev/null
         uv add --dev ...$dependencies
       }
     } else if $all or $prod {
@@ -28,6 +29,7 @@ def main [
       }
 
       if ($dependencies | is-not-empty) {
+        uv remove ...$dependencies out+err> /dev/null
         uv add ...$dependencies
       }
     }
