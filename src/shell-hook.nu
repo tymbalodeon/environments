@@ -141,7 +141,15 @@ def generate-gitignore-file [
   mut comments = []
   mut previous_comment = []
 
-  for line in (open .gitignore | lines | append ["\n"]) {
+  let gitignore_lines = try {
+    open .gitignore
+    | lines
+    | append ["\n"]
+  } catch {
+    []
+  }
+
+  for line in $gitignore_lines {
     if ($line | str starts-with  "#") {
       $previous_comment = ($previous_comment | append $line)
     } else {
