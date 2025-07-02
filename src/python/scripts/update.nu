@@ -30,7 +30,7 @@ def main [
       if ($dependencies | is-not-empty) {
         uv add ...$dependencies
       }
-    } 
+    }
 
     taplo format pyproject.toml out+err> /dev/null
   } else {
