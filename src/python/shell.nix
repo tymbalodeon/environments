@@ -11,6 +11,6 @@
   ];
 
   shellHook = ''
-    uv sync >/dev/null 2>&1 && source .venv/bin/activate
+    uv sync &>/dev/null && source .venv/bin/activate
   '';
 }

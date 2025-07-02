@@ -16,7 +16,7 @@ def "main remove" [] {
 
 def main [] {
   try { uv init --bare err> /dev/null }
-  uv add --dev bpython pytest
+  uv add --dev bpython pytest out+err> /dev/null
   taplo format pyproject.toml out+err> /dev/null
 
   if (uv python pin | complete | get exit_code) != 0 {
