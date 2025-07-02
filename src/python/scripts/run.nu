@@ -13,7 +13,7 @@ def --wrapped main [...args: string] {
     $args
   } else {
     $args
-    | prepnd $command
+    | prepend $command
   }
 
   uv run ...$args
