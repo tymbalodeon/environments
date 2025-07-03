@@ -88,7 +88,7 @@ def get-sortable-environment [
   >
 ] {
   if ($alias.environment == •) {
-    null 
+    null
   } else {
     $alias.environment
   }
