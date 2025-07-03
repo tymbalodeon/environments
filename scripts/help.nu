@@ -103,7 +103,6 @@ export def display-aliases [
 ] {
   # TODO: add color always/never feature
   # TODO: remove space when no environment name present
-  # FIXME: no-submodule-aliases should still include the main recipes
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
@@ -144,14 +143,20 @@ export def display-aliases [
 
   let aliases = if $no_submodule_aliases {
     $aliases
-    | where {$in.alias == $in.recipe}
+    | where {$in.environment == • or $in.alias == $in.recipe}
   } else {
     $aliases
   }
 
   let aliases = if ($environment | is-not-empty) {
     $aliases
-    | where environment =~ $environment
+    | where {
+        if $environment == default {
+          $in.environment == •
+        } else {
+          $in.environment =~ $environment
+        }
+      }
   } else {
     $aliases
   }
@@ -208,6 +213,24 @@ def "main aliases" [
       --justfile $justfile
   )
 }
+
+# View default recipe aliases
+def "main aliases default" [
+  --justfile: string # Which Justfile to use
+  --sort-by-environment # Sort aliases by environment name
+  --sort-by-recipe # Sort recipe by original recipe name
+  --no-submodule-aliases # Don't include submodule aliases
+] {
+  (
+    display-aliases
+      $no_submodule_aliases
+      $sort_by_environment
+      $sort_by_recipe
+      --environment default
+      --justfile $justfile
+  )
+}
+
 
 # View help text
 def main [
