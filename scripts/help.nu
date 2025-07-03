@@ -33,7 +33,6 @@ export def display-just-help [
   }
 
   let script = (find-script $recipe)
-
   mut recipe_is_module = false
 
   let script = if ($script | is-empty) {
@@ -100,10 +99,9 @@ export def display-aliases [
   sort_by_recipe # Sort recipe by original recipe name
   --environment: string # View aliases for $environment only
   --justfile: string # Which Justfile to use
+  --no-submodule-aliases # Don't include submodule aliases
 ] {
-  # TODO: include module aliases in main Justfile
   # TODO: remove space when no environment name present
-
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
@@ -141,6 +139,13 @@ export def display-aliases [
         }
       }
   )
+
+  let aliases = if $no_submodule_aliases {
+    $aliases
+    | where {$in.alias == $in.recipe}
+  } else {
+    $aliases
+  }
 
   let aliases = if ($environment | is-not-empty) {
     $aliases

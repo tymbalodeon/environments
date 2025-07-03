@@ -534,7 +534,33 @@ def generate-justfile-and-scripts [
           | where recipe == $recipe.recipe
           | length
         ) == 1 {
-          $"alias ($recipe.recipe) := ($recipe.environment)::($recipe.recipe)"
+          let submodule_alias = (
+            open just/python.just
+            | lines
+            | where {$in | str ends-with $":= ($recipe.recipe)"}
+          )
+
+          let submodule_alias = if ($submodule_alias | is-not-empty) {
+            let alias = (
+              $submodule_alias
+              | first
+              | split row " := "
+              | split row "alias "
+              | drop
+              | where {is-not-empty}
+            )
+
+            if ($alias | is-not-empty) {
+              let alias = ($alias | first)
+              $"alias ($alias) := ($recipe.environment)::($recipe.recipe)"
+            }
+          }
+
+          let recipe_name = $recipe.recipe
+          let environment = $recipe.environment
+
+          $submodule_alias
+          | append $"alias ($recipe_name) := ($environment)::($recipe_name)"
         }
       }
   )
@@ -542,6 +568,7 @@ def generate-justfile-and-scripts [
   if ($submodule_recipes | length) > 0 {
     "\n"
     | append $submodule_recipes
+    | flatten
     | save --append Justfile
   }
 

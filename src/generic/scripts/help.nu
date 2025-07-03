@@ -33,7 +33,6 @@ export def display-just-help [
   }
 
   let script = (find-script $recipe)
-
   mut recipe_is_module = false
 
   let script = if ($script | is-empty) {
@@ -96,14 +95,14 @@ def get-sortable-environment [
 }
 
 export def display-aliases [
-  sort_by_environment # Sort aliases by environment name
-  sort_by_recipe # Sort recipe by original recipe name
+  no_submodule_aliases: bool # Don't include submodule aliases
+  sort_by_environment: bool # Sort aliases by environment name
+  sort_by_recipe: bool # Sort recipe by original recipe name
   --environment: string # View aliases for $environment only
   --justfile: string # Which Justfile to use
 ] {
-  # TODO: include module aliases in main Justfile
+  # TODO: add color always/never feature
   # TODO: remove space when no environment name present
-
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
@@ -141,6 +140,13 @@ export def display-aliases [
         }
       }
   )
+
+  let aliases = if $no_submodule_aliases {
+    $aliases
+    | where {$in.alias == $in.recipe}
+  } else {
+    $aliases
+  }
 
   let aliases = if ($environment | is-not-empty) {
     $aliases
@@ -190,9 +196,11 @@ def "main aliases" [
   --justfile: string # Which Justfile to use
   --sort-by-environment # Sort aliases by environment name
   --sort-by-recipe # Sort recipe by original recipe name
+  --no-submodule-aliases # Don't include submodule aliases
 ] {
   (
     display-aliases
+      $no_submodule_aliases
       $sort_by_environment
       $sort_by_recipe
       --environment $environment
