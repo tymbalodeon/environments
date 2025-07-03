@@ -88,7 +88,7 @@ def get-sortable-environment [
   >
 ] {
   if ($alias.environment == •) {
-    null 
+    null
   } else {
     $alias.environment
   }
@@ -103,6 +103,7 @@ export def display-aliases [
 ] {
   # TODO: add color always/never feature
   # TODO: remove space when no environment name present
+  # FIXME: no-submodule-aliases should still include the main recipes
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
