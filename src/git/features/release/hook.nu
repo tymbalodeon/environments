@@ -24,9 +24,9 @@ def get-signature [username: string] {
 }
 
 def main [] {
-  # if (cog init | complete | get exit_code) != 0 {
-  #   return
-  # }
+  if (cog init | complete | get exit_code) != 0 {
+    return
+  }
 
   # TODO: handle non-github
   let repo_info = (parse-git-origin (git remote get-url origin))
