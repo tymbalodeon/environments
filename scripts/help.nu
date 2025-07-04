@@ -103,7 +103,6 @@ export def display-aliases [
   --environment: string
   --justfile: string
 ] {
-  # TODO: remove space when no environment name present
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
