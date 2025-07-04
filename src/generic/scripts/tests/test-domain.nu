@@ -2,7 +2,7 @@ use std assert
 
 use ../domain.nu parse-git-origin
 
-let expected_domain = "github"
+let expected_domain = "github.com"
 let expected_owner = "tymbalodeon"
 let expected_repo = "environments"
 

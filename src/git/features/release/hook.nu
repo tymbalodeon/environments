@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use ../../../generic/scripts/domain.nu parse-git-origin
+
 def "main remove" [] {
   rm --force cog.toml
 }
@@ -22,17 +24,12 @@ def get-signature [username: string] {
 }
 
 def main [] {
-  if (cog init | complete | get exit_code) != 0 {
-    return
-  }
+  # if (cog init | complete | get exit_code) != 0 {
+  #   return
+  # }
 
-  # TODO: can this be pulled from another file (domain.nu)?
   # TODO: handle non-github
-  let repo_info = (
-    git remote get-url origin
-    | parse "git@{remote}:{owner}/{repository}.git"
-    | first
-  )
+  let repo_info = (parse-git-origin (git remote get-url origin))
 
   open cog.toml
   | upsert ignore_merge_commits true
@@ -44,8 +41,8 @@ def main [] {
       }
     ]
   | upsert changelog.owner $repo_info.owner
-  | upsert changelog.remote $repo_info.remote
-  | upsert changelog.repository $repo_info.repository
+  | upsert changelog.remote $repo_info.domain
+  | upsert changelog.repository $repo_info.repo
   | upsert changelog.template remote
   | save --force cog.toml
 }
