@@ -183,6 +183,11 @@ export def display-aliases [
 
   let use_color = (use-colors $color)
 
+  let no_environments = (
+    $aliases.environment
+    | all {$in == •}
+  )
+
   print (
     $aliases
     | each {
@@ -194,13 +199,17 @@ export def display-aliases [
           $alias.alias
         }
 
-        let environment = if $use_color {
-          $"(ansi cyan_bold)($alias.environment)(ansi reset)"
+        if $no_environments {
+          $"($alias_name) => ($alias.recipe)"
         } else {
-          $alias.environment
-        }
+          let environment = if $use_color {
+            $"(ansi cyan_bold)($alias.environment)(ansi reset)"
+          } else {
+            $alias.environment
+          }
 
-        $"($alias_name) => ($environment) ($alias.recipe)"
+          $"($alias_name) => ($environment) ($alias.recipe)"
+        }
       }
     | to text
     | column -t

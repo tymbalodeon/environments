@@ -6,6 +6,7 @@ use ../help.nu display-just-help
 
 # View module aliases
 def "main aliases" [
+  --color = "auto" # When to use colored output
   --sort-by-environment # Sort aliases by environment name
   --sort-by-recipe # Sort recipe by original recipe name
   --no-submodule-aliases # Don't include submodule aliases
@@ -15,6 +16,7 @@ def "main aliases" [
       $no_submodule_aliases
       $sort_by_environment
       $sort_by_recipe
+      --color $color
       --justfile just/python.just
   )
 }
