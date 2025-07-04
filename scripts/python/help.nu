@@ -25,6 +25,7 @@ def "main aliases" [
 def main [
   recipe?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
+  --color = "always" # When to use colored output
 ] {
   let environment = "python"
 
@@ -32,6 +33,7 @@ def main [
     display-just-help
       $recipe
       $subcommands
+      --color $color
       --environment $environment
       --justfile (get-project-path $"just/($environment).just")
   )
