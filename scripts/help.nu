@@ -1,5 +1,6 @@
 #!/usr/bin/env nu
 
+use color.nu use-colors
 use find-script.nu
 
 export def display-just-help [
@@ -95,13 +96,13 @@ def get-sortable-environment [
 }
 
 export def display-aliases [
-  no_submodule_aliases: bool # Don't include submodule aliases
-  sort_by_environment: bool # Sort aliases by environment name
-  sort_by_recipe: bool # Sort recipe by original recipe name
-  --environment: string # View aliases for $environment only
-  --justfile: string # Which Justfile to use
+  no_submodule_aliases: bool
+  sort_by_environment: bool
+  sort_by_recipe: bool
+  --color: string
+  --environment: string
+  --justfile: string
 ] {
-  # TODO: add color always/never feature
   # TODO: remove space when no environment name present
   let justfile = if ($justfile | is-empty) {
     "Justfile"
@@ -180,13 +181,24 @@ export def display-aliases [
     | sort-by alias
   }
 
+  let use_color = (use-colors $color)
+
   print (
     $aliases
     | each {
         |alias|
 
-        let alias_name = $"(ansi magenta_bold)($alias.alias)(ansi reset)"
-        let environment = $"(ansi cyan_bold)($alias.environment)(ansi reset)"
+        let alias_name = if $use_color {
+          $"(ansi magenta_bold)($alias.alias)(ansi reset)"
+        } else {
+          $alias.alias
+        }
+
+        let environment = if $use_color {
+          $"(ansi cyan_bold)($alias.environment)(ansi reset)"
+        } else {
+          $alias.environment
+        }
 
         $"($alias_name) => ($environment) ($alias.recipe)"
       }
@@ -199,6 +211,7 @@ export def display-aliases [
 # View module aliases
 def "main aliases" [
   environment?: string # View aliases for $environment only
+  --color = "auto" # When to use colored output
   --justfile: string # Which Justfile to use
   --sort-by-environment # Sort aliases by environment name
   --sort-by-recipe # Sort recipe by original recipe name
@@ -209,6 +222,7 @@ def "main aliases" [
       $no_submodule_aliases
       $sort_by_environment
       $sort_by_recipe
+      --color $color
       --environment $environment
       --justfile $justfile
   )
@@ -216,6 +230,7 @@ def "main aliases" [
 
 # View default recipe aliases
 def "main aliases default" [
+  --color = "auto" # When to use colored output
   --justfile: string # Which Justfile to use
   --sort-by-environment # Sort aliases by environment name
   --sort-by-recipe # Sort recipe by original recipe name
@@ -226,6 +241,7 @@ def "main aliases default" [
       $no_submodule_aliases
       $sort_by_environment
       $sort_by_recipe
+      --color $color
       --environment default
       --justfile $justfile
   )
