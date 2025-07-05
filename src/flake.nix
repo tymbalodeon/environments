@@ -38,7 +38,12 @@
             in
               pkgs.mkShellNoCC (
                 let
-                  shell = import ./${environment}/shell.nix {inherit pkgs;};
+                  shell = let
+                    path = ./${environment}/shell.nix;
+                  in
+                    if builtins.pathExists path
+                    then import path {inherit pkgs;}
+                    else {};
 
                   toolchain =
                     pkgs.rust-bin.fromRustupToolchainFile
