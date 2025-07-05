@@ -25,35 +25,29 @@ def "main create" [
 
 # View remote repository
 def main [
-  --domain: string # The domain to fetch info from [default: auto-detected]
   --web # Open the remote repository website in the browser
 ] {
-  let domain = if ($domain | is-not-empty) {
-    $domain
-  } else {
-    try {
-      domain err> /dev/null
-    } catch {
-      return
-    }
+  let domain = try {
+    domain err> /dev/null
+  } catch {
+    return
   }
 
-  let args = [view]
-
-  let args = if $web {
-    $args
-    | append "--web"
-  } else {
-    $args
-  }
-
-  match $domain {
+  match (domain) {
     "github" => {
-      gh repo ...$args
+      if $web {
+        gh repo view --web
+      } else {
+        gh repo view
+      }
     }
 
     "gitlab" => {
-      glab repo ...$args
+      if $web {
+        glab repo view --web
+      } else {
+        glab repo view
+      }
     }
   }
 }
