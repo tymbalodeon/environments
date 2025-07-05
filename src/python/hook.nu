@@ -23,8 +23,6 @@ def main [] {
     | first
   }
 
-  print $root
-
   if ($root | is-not-empty) {
     cd $root
   }
