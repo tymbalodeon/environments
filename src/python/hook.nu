@@ -15,6 +15,20 @@ def "main remove" [] {
 }
 
 def main [] {
+  let root = try {
+    open .environments.toml
+    | get environments
+    | where name == python
+    | get root
+    | first
+  }
+
+  print $root
+
+  if ($root | is-not-empty) {
+    cd $root
+  }
+
   try { uv init --bare err> /dev/null }
   uv add --dev bpython pytest out+err> /dev/null
   taplo format pyproject.toml out+err> /dev/null
