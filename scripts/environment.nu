@@ -596,15 +596,24 @@ def "main remove" [
       taplo format .helix/languages.toml out+err> /dev/null
     }
 
+    let features_directory = (
+      get-environment-path $"($environment.name)/features"
+    )
+
+    let feature_hooks = if ($features_directory | path exists) {
+      ls $features_directory
+      | get name
+      | each {
+          print $in
+          get-environment-path $"($features_directory)/($in)/hook.nu"
+        }
+    } else {
+      []
+    }
+
     for hook_file in (
       get-environment-path $"($environment.name)/hook.nu"
-      | append (
-          ls (get-environment-path $"($environment.name)/features")
-          | get name
-          | each {
-              get-environment-path $"($environment.name)/features/($in)/hook.nu"
-            }
-        )
+      | append $feature_hooks
       | flatten
       | where {path exists}
     ) {

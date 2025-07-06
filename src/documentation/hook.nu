@@ -4,7 +4,7 @@ use ../generic/scripts/domain.nu
 
 def "main remove" [] {
   rm --force book.toml
-  rm --force recursive documentation
+  rm --force --recursive book documentation
 }
 
 def main [] {

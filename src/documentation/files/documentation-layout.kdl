@@ -8,7 +8,7 @@ layout {
 
         pane {
             command "hx"
-            args "src/main.rs"
+            args "documentation"
         }
 
         pane size=2 borderless=true {
@@ -16,14 +16,14 @@ layout {
         }
     }
 
-    tab name="clippy" {
+    tab name="mdbook" {
         pane size=1 borderless=true {
             plugin location="zellij:tab-bar"
         }
 
         pane {
-            command "cargo"
-            args "clippy"
+            command "mdbook"
+            args "serve"
         }
 
         pane size=2 borderless=true {
