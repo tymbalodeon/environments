@@ -1,8 +1,8 @@
 set working-directory := ".."
 
-# Compile documentation
-@compile *args:
-    ./scripts/documentation/compile.nu {{ args }}
+# View help text
+@help *args:
+    ./scripts/documentation/help.nu {{ args }}
 
 # Open a pre-configured development environment
 @dev *args: open
