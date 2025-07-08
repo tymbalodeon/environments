@@ -231,7 +231,7 @@ def get-aliases [
 
   let aliases = if $no_submodule_aliases {
     $aliases
-    | where {$in.environment == • or $in.alias == $in.recipe}
+    | where {($in.environment | is-empty) or $in.alias == $in.recipe}
   } else {
     $aliases
   }
@@ -240,9 +240,10 @@ def get-aliases [
     $aliases
     | where {
         if $environment == default {
-          $in.environment | is-empty
+          $in.environment
+          | is-empty
         } else {
-          $in.environment =~ $environment
+          ($in.environment | is-not-empty) and $in.environment =~ $environment
         }
       }
   } else {
