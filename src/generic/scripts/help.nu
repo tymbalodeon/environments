@@ -42,7 +42,53 @@ def append-main-aliases [
     }
   }
 
-  $help_text.item
+  let environment_aliases = if ("just" | path exists) {
+    ls just
+    | get name
+    | each {
+        |file|
+
+        open $file
+        | lines
+        | where {$in | str starts-with "# alias "}
+        | each {
+            {
+              alias: ($in | split row "# alias " | last)
+              environment: ($file | path basename | path parse | get stem)
+            }
+          }
+      }
+    | flatten
+  }
+
+  let lines = (
+    $help_text.item
+    | each {
+        |line|
+
+        mut environment_line = $line
+
+        for environment in $environment_aliases {
+          if (
+            $line
+            | str trim
+            | str starts-with $"($environment.environment):"
+          ) {
+            let alias = $environment.alias
+
+            $environment_line = (
+              $"($line) (ansi magenta)[alias: ($alias)](ansi reset)"
+            )
+
+            break
+          }
+        }
+
+        $environment_line
+    }
+  )
+
+  $lines
   | to text --no-newline
 }
 

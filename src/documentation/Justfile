@@ -1,3 +1,5 @@
+# alias docs
+
 set working-directory := ".."
 
 # View help text

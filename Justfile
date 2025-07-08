@@ -63,6 +63,10 @@ alias src := view-source
 @release *args:
     ./scripts/release.nu  {{ args }}
 
+[private]
+@py *args:
+    just python {{ args }}
+
 mod environments "just/environments.just"
 mod python "just/python.just"
 

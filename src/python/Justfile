@@ -1,3 +1,5 @@
+# alias py
+
 set working-directory := ".."
 
 # View help text
