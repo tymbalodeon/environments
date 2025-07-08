@@ -304,6 +304,7 @@ def get-available-environments [] {
 export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
+  --aliases # Show environment aliases
   --feature: string # List files for $feature only (requires $environment)
   --features # Show features
 ] {
