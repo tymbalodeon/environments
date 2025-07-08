@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use color.nu use-colors
+use environment.nu get-environment-path
 use find-script.nu
 
 def append-main-aliases [
@@ -48,15 +49,25 @@ def append-main-aliases [
     | each {
         |file|
 
-        open $file
-        | lines
-        | where {$in | str starts-with "# alias "}
-        | each {
-            {
-              alias: ($in | split row "# alias " | last)
-              environment: ($file | path basename | path parse | get stem)
+        let environment = (
+          $file
+          | path basename
+          | path parse
+          | get stem
+        )
+
+        let alias_file = (get-environment-path $"($environment)/alias")
+
+        if ($alias_file | path exists)  {
+          open $alias_file
+          | lines
+          | each {
+              {
+                alias: $in
+                environment: $environment
+              }
             }
-          }
+        }
       }
     | flatten
   }

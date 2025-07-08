@@ -46,7 +46,7 @@ def get-features [
   }
 }
 
-def get-environment-path [path?: string] {
+export def get-environment-path [path?: string] {
   let environments_base = $env.ENVIRONMENTS
 
   if ($path | is-empty) {
@@ -59,18 +59,15 @@ def get-environment-path [path?: string] {
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
 ] {
-  let valid_environments = (
-    ls --short-names (get-environment-path)
-    | where type == dir
-    | get name
-  )
-
+  let valid_environments = (get-available-environments)
   mut invalid_environments = []
 
   for environment in $environments {
     mut invalid_environment = {valid-name: true}
 
-    if $environment.name not-in $valid_environments {
+    if $environment.name not-in $valid_environments.name and (
+      $environment.name not-in ($valid_environments.aliases | flatten)
+    ) {
       $invalid_environment = (
         $invalid_environment
         | insert name $environment.name
@@ -131,7 +128,17 @@ def validate-environments [
   | each {
       |environment|
 
+      let name = if ($environment not-in $valid_environments.name) {
+        $valid_environments
+        | where {$environment.name in $in.aliases}
+        | get name
+        | first
+      } else {
+        $environment
+      }
+
       $environment
+      | update name $name
       | update features (
           $environment.features
           | where {
@@ -214,6 +221,11 @@ export def "main add" [
   ...environments: string # Environments to add
 ] {
   let environments = (parse-environments $environments)
+
+  if ($environments | is-empty) {
+    return
+  }
+
   mut environments = $environments
 
   if (".environments.toml" | path exists) {
@@ -269,6 +281,23 @@ def get-available-environments [] {
   ls --short-names (get-environment-path)
   | where type == dir
   | get name
+  | each {
+      |environment|
+
+      let alias_file = (get-environment-path $"($environment)/alias")
+
+      let aliases = if ($alias_file | path exists) {
+        open $alias_file
+        | lines
+      } else {
+        []
+      }
+
+      {
+        aliases: $aliases
+        name: $environment
+      }
+  }
 }
 
 # List environments and files
@@ -279,7 +308,8 @@ export def "main list" [
   --features # Show features
 ] {
   let environments = if ($environment | is-empty) {
-    let environments = (get-available-environments)
+    # TODO: add option to display aliases
+    let environments = (get-available-environments).name
 
     if $features {
       $environments
@@ -381,23 +411,25 @@ def "main list active" [
   --local # Show local environments
   --user # Show only user installed environments [default]
 ] {
+  # TODO: add aliases
   if not (".environments.toml" | path exists) {
     return
   }
 
   let environments = (open .environments.toml).environments
+  let valid_environments = (get-available-environments).name
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
-    | any {|item| $item}
+    | any {$in}
   ) {
     get-local-environment-name just
     | append (
         get-local-environment-name nix
       )
     | uniq
-    | where {$in not-in (get-available-environments)}
-    | each {|environment| {name: $environment}}
+    | where {$in not-in $valid_environments}
+    | each {{name: $in}}
   } else {
     []
   }
@@ -412,7 +444,7 @@ def "main list active" [
     $local_environments
   } else {
     $environments
-    | where {$in not-in (get-available-environments)}
+    | where {$in not-in $valid_environments}
   }
 
   let environments = if $features {
@@ -732,8 +764,9 @@ def "main source" [
   environment?: string # The environment whose file to view
   file?: string # The file to view
 ] {
+  # TODO: add ability to specify environment as alias
   let environment = if ($environment | is-empty) {
-    get-available-environments
+    (get-available-environments).name
     | to text
     | fzf
   } else {
