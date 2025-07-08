@@ -262,7 +262,7 @@ def "main inputs" [] {
   | from json
   | get locks.nodes.root.inputs
   | columns
-  | to text --no-newline 
+  | to text --no-newline
 }
 
 def get-available-environments [] {

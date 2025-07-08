@@ -9,6 +9,7 @@ Available environments:
 <!-- environments start -->
 
 - c
+- documentation
 - git
 - haskell
 - java
