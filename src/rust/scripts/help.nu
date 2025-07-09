@@ -17,6 +17,6 @@ def main [
       $subcommands
       --color $color
       --environment $environment
-      --justfile (get-project-path $"just/($environment).just")
+      --justfile (get-project-path $".environments/just/($environment).just")
   )
 }
