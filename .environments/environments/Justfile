@@ -1,0 +1,25 @@
+set working-directory := "../.."
+
+# View help text
+@help *args:
+    .environments/environments/scripts/help.nu {{ args }}
+
+# Update init flake and pre-commit hooks
+@update *args:
+    .environments/environments/scripts/update.nu {{ args }}
+
+# Update README
+@readme *args:
+    .environments/environments/scripts/readme.nu {{ args }}
+
+# Reload environment
+@reload *args:
+    .environments/environments/scripts/reload.nu {{ args }}
+
+# Set all environment nushell files as executable
+@set-executable *args:
+    .environments/environments/scripts/set-executable.nu {{ args }}
+
+# Sort environment .gitignore files
+@sort-gitignores *args:
+    .environments/environments/scripts/sort-gitignores.nu {{ args }}

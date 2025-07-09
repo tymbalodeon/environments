@@ -1,6 +1,6 @@
 use std assert
 
-use ../domain.nu parse-git-origin
+use ../../../generic/scripts/domain.nu parse-git-origin
 
 let expected_domain = "github.com"
 let expected_owner = "tymbalodeon"

@@ -1,8 +1,5 @@
-def get-environment-path [
-  environment: any
-  path: string
-] {
-  let environment = if (
+def get-environment-name [environment: any] {
+  if (
     $environment
     | describe --detailed
     | get type
@@ -11,8 +8,17 @@ def get-environment-path [
   } else {
     $environment.name
   }
+}
 
-  $"($env.ENVIRONMENTS)/($environment)/($path)"
+def get-local-environment-directory [environment: any] {
+  $".environments/(get-environment-name $environment)"
+}
+
+def get-environment-path [
+  environment: any
+  path: string
+] {
+  $"($env.ENVIRONMENTS)/(get-environment-name $environment)/($path)"
 }
 
 def copy-directory-files [directory: string] {
@@ -23,21 +29,6 @@ def copy-directory-files [directory: string] {
   for file in (ls $directory) {
     ^cp --recursive $file.name .
     chmod --recursive +w ($file.name | path basename)
-  }
-}
-
-def get-local-filename [file: string environment: string] {
-  if (
-    $file
-    | path parse
-    | get extension
-  ) == templ {
-    $file
-    | str replace .templ ""
-  } else if $file == context.toml {
-    $"tera/($environment).toml"
-  } else {
-    $file
   }
 }
 
@@ -63,11 +54,7 @@ def copy-files [
 
     for directory in $files_directories {
       for file in (ls $directory) {
-        let local_file = (
-          get-local-filename ($file.name | path basename) $environment
-        )
-
-        rm --force --recursive $local_file
+        rm --force --recursive ($file.name | path basename)
       }
     }
   }
@@ -82,7 +69,6 @@ def copy-files [
 
           if ($files | path exists) {
             for file in (ls --short-names $files | get name) {
-              let local_file = (get-local-filename $file $environment.name)
               rm --force $file
             }
           }
@@ -117,19 +103,10 @@ def generate-file [
       get-environment-path $environment.name $file
       | append (
           $environment.features
-          | each {
-              |feature|
-
-              get-environment-path $environment $"features/($feature)/($file)"
-            }
+          | each {get-environment-path $environment $"features/($in)/($file)"}
         )
       | where {path exists}
-      | each {
-          |file|
-
-          open $file
-          | str trim
-        }
+      | each {open | str trim}
     }
   | str trim
   | where {is-not-empty}
@@ -268,134 +245,45 @@ def generate-justfile-and-scripts [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
 ] {
-  let local_justfiles = if (".environments/just" | path exists) {
-    ls --short-names .environments/just
-    | get name
-    | path parse
-    | get stem
-    | where {$in not-in (get-available-environments)}
-  } else {
-    []
-  }
-
-  for environment in $inactive_environments {
-    let environment_justfile = $".environments/just/($environment).just"
-
-    if ($environment_justfile | path exists) {
-      rm --force $environment_justfile
-    }
-
-    let environment_scripts = $".environments/scripts/($environment)"
-
-    if ($environment_scripts | path exists) {
-      rm --force --recursive $environment_scripts
-    }
-  }
-
   for environment in $active_environments {
-    let features = (get-environment-path $environment.name features)
+    let scripts = (get-environment-path $environment scripts)
 
-    if ($features | path exists) {
-      for feature in (ls $features | get name) {
-        if ($feature | path split | last) not-in $environment.features {
-          let scripts = $"($feature)/scripts"
+    if ($scripts | path exists) {
+      let local_scripts = (
+        $"(get-local-environment-directory $environment)/scripts"
+      )
 
-          if ($scripts | path exists) {
-            let filenames = (ls --short-names $scripts | get name)
+      mkdir $local_scripts
 
-            for filename in $filenames {
-              let file = if ($"($feature)/Justfile" | path exists) {
-                $".environments/scripts/($environment.name)/($filename)"
-              } else {
-                $".environments/scripts/($filename)"
-              }
-
-              rm --force --recursive $file
-            }
-          }
-        }
+      for file in (fd --exclude tests "" $scripts | lines) {
+        ^cp $file $local_scripts
       }
     }
-  }
 
-  ensure-directory-exists .environments/scripts
+    if ($environment.features | is-not-empty) {
+      let features = (get-environment-path $environment features)
 
-  try {
-    for file in (ls (".environments/scripts/*" | into glob) | where type == file) {
-      rm --force $file.name
-    }
-  }
+      if ($features | path exists) {
+        let local_scripts = (
+          $"(get-local-environment-directory $environment)/scripts"
+        )
 
-  let script_files = (
-    $active_environments
-    | each {
-        |environment|
+        mkdir $local_scripts
 
-        {
-          source: (get-environment-path $environment scripts)
-          environment: $environment.name
+        for file in (
+          ls $features
+          | get name
+          | each {$"($in)/scripts"}
+          | where {path exists}
+          | each {ls $in | get name}
+          | flatten
+        ) {
+          ^cp $file $local_scripts
         }
-        | append (
-            $environment.features
-            | each {
-                |feature|
-
-                let feature_path = (
-                  $"(get-environment-path $environment $"features/($feature)")"
-                )
-
-                if ($feature_path | path exists) {
-                  {
-                    source: $"($feature_path)/scripts"
-
-                    environment: (
-                      if ($"($feature_path)/Justfile" | path exists) {
-                        $environment.name
-                      } else {
-                        "generic"
-                      }
-                    )
-                  }
-                }
-              }
-          )
-        | where {is-not-empty}
-        | flatten
-        | where {$in.source | path exists}
-        | each {
-            |item|
-
-            {
-              path: (
-                fd --exclude tests --type file "" $item.source
-                | lines
-              )
-
-              environment: $item.environment
-            }
-          }
-        | flatten
       }
-    | flatten
-  )
 
-  ensure-directory-exists .environments/scripts
-
-  for file in $script_files {
-    let local_directory = if $file.environment == generic {
-      ".environments/scripts"
-    } else {
-      let local_directory = $".environments/scripts/($file.environment)"
-      ensure-directory-exists $local_directory
-      $local_directory
     }
-
-    let basename = ($file.path | path basename)
-    ^cp --recursive $file.path $"($local_directory)/($basename)"
   }
-
-  chmod --recursive +w .environments/scripts
-  ensure-directory-exists .environments/just
 
   for environment in (
     $active_environments
@@ -406,16 +294,14 @@ def generate-justfile-and-scripts [
     let text = (
       $environment.features
       | each {
-          |feature|
-
           let features_directory = (
-            get-environment-path $environment $"features/($feature)"
+            get-environment-path $environment $"features/($in)"
           )
 
           if ($features_directory | path exists) {
             fd Justfile $features_directory
             | lines
-            | each {|file| open $file}
+            | each {open}
             | flatten
           }
         }
@@ -432,11 +318,18 @@ def generate-justfile-and-scripts [
     if ($text | is-not-empty) {
       $text
       | to text --no-newline
-      | save --force $".environments/just/($environment.name).just"
+      | save --force $"(get-local-environment-directory $environment)/Justfile"
     }
   }
 
-  chmod --recursive +w .environments/just
+  let non_default_environments = (
+    ls --short-names .environments
+    | where type == dir
+    | where name != generic
+    | get name
+    | uniq
+    | sort
+  )
 
   open (get-environment-path generic Justfile)
   | append (
@@ -446,16 +339,14 @@ def generate-justfile-and-scripts [
 
           $environment.features
           | each {
-              |feature|
-
               let features_directory = (
-                get-environment-path $environment $"features/($feature)"
+                get-environment-path $environment $"features/($in)"
               )
 
               if ($features_directory | path exists) {
                 fd --extension just "" $features_directory
                 | lines
-                | each {open $in}
+                | each {open}
                 | flatten
               }
             }
@@ -464,20 +355,35 @@ def generate-justfile-and-scripts [
       | flatten
     )
   | append (
-      (
-        $active_environments
-        | get name
-        | where {$in != generic}
-      ) ++ $local_justfiles
-      | uniq
-      | sort
+      $non_default_environments
       | each {
           |environment|
 
-          let alias_file = (get-environment-path $environment alias)
+          let alias_file = (get-environment-path $environment aliases)
 
-          if ($alias_file | path exists) {
-            open $alias_file
+          let path = if (
+            $alias_file 
+            | path exists
+          ) {
+            $alias_file
+          } else {
+            let alias_file = (
+              ".environments"
+              | path join (
+                  $alias_file
+                  | path dirname
+                  | path basename
+                )
+              | path join aliases
+            ) 
+
+            if ($alias_file | path exists) {
+              $alias_file
+            }
+          }
+
+          if ($path | is-not-empty) {
+            open $path
             | lines
             | each {
                 let alias = ($in | split row "# alias " | last)
@@ -492,17 +398,13 @@ def generate-justfile-and-scripts [
       | where {is-not-empty}
     )
   | append (
-      (
-        $active_environments
-        | get name
-        | where {$in != generic}
-      ) ++ $local_justfiles
-      | uniq
-      | sort
+      $non_default_environments
       | each {
           |environment|
 
-          let justfile = $".environments/just/($environment).just"
+          let justfile = (
+            $"(get-local-environment-directory $environment)/Justfile"
+          )
 
           if ($justfile | path exists) {
             $"mod ($environment) \"($justfile)\""
@@ -517,12 +419,18 @@ def generate-justfile-and-scripts [
   let generic_recipes = (
     just --summary
     | split row " "
-    | where {|recipe| "::" not-in $recipe}
+    | where {"::" not-in $in}
   )
 
   let submodule_recipes = (
-    ls .environments/just
+    ls .environments
     | get name
+    | each {
+        ls $in
+        | where {($in.name | path parse | get stem) == Justfile}
+        | get name
+      }
+    | flatten
     | each {
         |justfile|
 
@@ -537,7 +445,7 @@ def generate-justfile-and-scripts [
         )
 
         {
-          environment: ($justfile | path parse | get stem)
+          environment: ($justfile | path dirname | path parse | get stem)
 
           recipe: (
             just --justfile $justfile --summary
@@ -569,9 +477,9 @@ def generate-justfile-and-scripts [
           let environment = $recipe.environment
 
           let submodule_alias = (
-            open $".environments/just/($environment).just"
+            open $"(get-local-environment-directory $environment)/Justfile"
             | lines
-            | where {$in | str ends-with $":= ($recipe_name)"}
+            | where {str ends-with $":= ($recipe_name)"}
           )
 
           let submodule_alias = if ($submodule_alias | is-not-empty) {
@@ -685,7 +593,7 @@ def main [] {
       toml
       yaml
     ]
-    | each {|environment| {name: $environment}}
+    | each {{name: $in}}
   )
 
   let active_environments = if (
@@ -711,7 +619,8 @@ def main [] {
           []
         }
 
-        $environment | upsert features $features
+        $environment
+        | upsert features $features
       }
   )
 
@@ -720,6 +629,27 @@ def main [] {
     | lines
     | where {$in not-in $active_environments.name}
   )
+
+  for environment in (
+    $active_environments
+    | append $inactive_environments
+  ) {
+    rm --force --recursive (get-local-environment-directory $environment)
+  }
+
+  for environment in $active_environments {
+    if not (
+      [Justfile scripts] 
+      | each {get-environment-path $environment $in}
+      | any {path exists}
+    ) {
+      continue
+    }
+    
+    let directory = (get-local-environment-directory $environment)
+    mkdir $directory
+    chmod --recursive +w $directory
+  }
 
   copy-files $active_environments $inactive_environments
   generate-gitignore-file $active_environments

@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
-use ../environment.nu "main list"
+use ../../generic/scripts/environment.nu get-project-path
+use ../../generic/scripts/environment.nu "main list"
 
 def generate-readme-text [text: string target: string] {
   let readme = (get-project-path README.md)

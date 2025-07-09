@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ./files.nu get-files
+use files.nu get-files
 
 # Compile pdfs
 export def main [

@@ -1,6 +1,6 @@
 use std assert
 
-use ../find-script.nu get-script
+use ../../../generic/scripts/find-script.nu get-script
 
 let scripts = [
   scripts/annotate.nu

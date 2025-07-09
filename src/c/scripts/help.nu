@@ -1,10 +1,10 @@
 #!/usr/bin/env nu
 
-use ../help.nu display-aliases
-use ../help.nu display-just-help
+use ../../generic/scripts/help.nu display-aliases
+use ../../generic/scripts/help.nu display-just-help
 
 def get-environment-justfile [ ] {
-  ".environments/just/c.just"
+  ".environments/c/Justfile"
 }
 
 # View module aliases

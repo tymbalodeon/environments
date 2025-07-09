@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
+use ../../generic/scripts/environment.nu get-project-path
 use files.nu get-compilation-status
 use files.nu get-files
 use files.nu get-lilypond-output-path

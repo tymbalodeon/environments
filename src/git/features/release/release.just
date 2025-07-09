@@ -1,3 +1,3 @@
 # Create a new release
 @release *args:
-    ./scripts/release.nu  {{ args }}
+    .environments/git/scripts/release.nu  {{ args }}

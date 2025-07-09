@@ -2,40 +2,40 @@ set working-directory := "../.."
 
 # View help text
 @help *args:
-    .environments/scripts/tree-sitter/help.nu {{ args }}
+    .environments/tree-sitter/scripts/help.nu {{ args }}
 
 # Generate parser
 @generate:
-    .environments/scripts/tree-sitter/generate.nu
+    .environments/tree-sitter/scripts/generate.nu
 
 # Install dependencies
 @install:
-    .environments/scripts/tree-sitter/install.nu
+    .environments/tree-sitter/scripts/install.nu
 
 # Parse file
 parse *args:
-    .environments/scripts/tree-sitter/parse.nu {{ args }}
+    .environments/tree-sitter/scripts/parse.nu {{ args }}
 
 # Test parser
 test *args:
-    .environments/scripts/tree-sitter/test.nu {{ args }}
+    .environments/tree-sitter/scripts/test.nu {{ args }}
 
 # Highlight file
 highlight *args:
-    .environments/scripts/tree-sitter/highlight.nu {{ args }}
+    .environments/tree-sitter/scripts/highlight.nu {{ args }}
 
 # Open file
 open *args:
-    .environments/scripts/tree-sitter/open.nu {{ args }}
+    .environments/tree-sitter/scripts/open.nu {{ args }}
 
 # Copy queries to helix directory
 install-queries:
-    .environments/scripts/tree-sitter/install-queries.nu
+    .environments/tree-sitter/scripts/install-queries.nu
 
 # Add the grammar to helix
 @install-grammar: && install-queries
-    .environments/scripts/tree-sitter/install-grammar.nu
+    .environments/tree-sitter/scripts/install-grammar.nu
 
 # Report states
 report-states *args:
-    .environments/scripts/tree-sitter/report-states.nu {{ args }}
+    .environments/tree-sitter/scripts/report-states.nu {{ args }}

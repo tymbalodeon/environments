@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use ./files.nu get-files
-use ./files.nu get-lilypond-version
+use files.nu get-files
+use files.nu get-lilypond-version
 
 # Update dependencies and score LilyPond version
 def main [

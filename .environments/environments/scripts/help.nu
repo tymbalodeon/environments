@@ -1,13 +1,13 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
-use ../help.nu display-just-help
+use ../../generic/scripts/environment.nu get-project-path
+use ../../generic/scripts/help.nu display-just-help
 
 # View help text
 def main [
   recipe?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
-  --color = "auto" # When to use colored output
+  --color = "always" # When to use colored output
 ] {
   let environment = "environments"
 
@@ -17,6 +17,6 @@ def main [
       $subcommands
       --color $color
       --environment $environment
-      --justfile (get-project-path $"just/($environment).just")
+      --justfile .environments/environments/Justfile
   )
 }

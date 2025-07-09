@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../environment.nu get-project-path
+use ../../generic/scripts/environment.nu get-project-path
 
 # Update pre-commit hooks
 def "main pre-commit" [

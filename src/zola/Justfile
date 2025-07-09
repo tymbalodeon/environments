@@ -3,8 +3,8 @@ set working-directory := "../.."
 
 # View help text
 @help *args:
-    .environments/scripts/zola/help.nu {{ args }}
+    .environments/zola/scripts/help.nu {{ args }}
 
 # Serve the site
 @start *args:
-    .environments/scripts/zola/start.nu {{ args }}
+    .environments/zola/scripts/start.nu {{ args }}

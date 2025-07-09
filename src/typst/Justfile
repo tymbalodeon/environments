@@ -2,7 +2,7 @@ set working-directory := "../.."
 
 # View help text
 @help *args:
-    .environments/scripts/typst/help.nu {{ args }}
+    .environments/typst/scripts/help.nu {{ args }}
 
 # Compile file
 @compile *args:
@@ -14,4 +14,4 @@ set working-directory := "../.."
 
 # Watch file and recompile on changes
 @watch *args:
-    .environments/scripts/typst/watch.nu {{ args }}
+    .environments/typst/scripts/watch.nu {{ args }}

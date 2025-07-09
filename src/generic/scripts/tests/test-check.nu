@@ -1,6 +1,6 @@
 use std assert
 
-use ../check.nu get-pre-commit-hook-names
+use ../../../generic/scripts/check.nu get-pre-commit-hook-names
 
 #[test]
 def test-get-pre-commit-hook-names [] {

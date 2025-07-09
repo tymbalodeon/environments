@@ -2,16 +2,16 @@ set working-directory := "../.."
 
 # View help text
 @help *args:
-    .environments/scripts/java/help.nu {{ args }}
+    .environments/java/scripts/help.nu {{ args }}
 
 # Remove compiled files
 @clean *args:
-    .environments/scripts/java/clean.nu {{ args }}
+    .environments/java/scripts/clean.nu {{ args }}
 
 # Compile
 @compile *args:
-    .environments/scripts/java/compile.nu {{ args }}
+    .environments/java/scripts/compile.nu {{ args }}
 
 # Run
 @run *args:
-    .environments/scripts/java/run.nu {{ args }}
+    .environments/java/scripts/run.nu {{ args }}
