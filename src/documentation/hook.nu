@@ -17,7 +17,7 @@ def main [] {
   }
 
   let title = do --ignore-errors {
-    open .environments.toml
+    open .environments/environments.toml
     | get environments
     | where name == documentation
     | get title

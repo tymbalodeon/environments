@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
 
 export def --env main [] {
-  if (".environments.toml" | path exists) {
+  if (".environments/environments.toml" | path exists) {
     let python = (
-      open .environments.toml
+      open .environments/environments.toml
       | get environments
       | where name == python
     )

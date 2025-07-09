@@ -1,16 +1,16 @@
-set working-directory := ".."
+set working-directory := "../.."
 
 # View help text
 @help *args:
-    ./scripts/documentation/help.nu {{ args }}
+    .environments/scripts/documentation/help.nu {{ args }}
 
 # Open a pre-configured development environment
 @dev *args: open
-    ./scripts/documentation/dev.nu {{ args }}
+    .environments/scripts/documentation/dev.nu {{ args }}
 
 # Serve documentation files and recompile on changes
 @serve *args: open
-    ./scripts/documentation/serve.nu {{ args }}
+    .environments/scripts/documentation/serve.nu {{ args }}
 
 [private]
 open:

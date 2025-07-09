@@ -16,7 +16,7 @@ def "main remove" [] {
 
 def main [] {
   let root = do --ignore-errors {
-    open .environments.toml
+    open .environments/environments.toml
     | get environments
     | where name == python
     | get root

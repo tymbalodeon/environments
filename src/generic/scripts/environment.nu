@@ -228,8 +228,8 @@ export def "main add" [
 
   mut environments = $environments
 
-  if (".environments.toml" | path exists) {
-    for environment in (open .environments.toml).environments {
+  if (".environments/environments.toml" | path exists) {
+    for environment in (open .environments/environments.toml).environments {
       if ($environment.name in $environments.name) {
         let existing_environment = (
           $environments
@@ -264,7 +264,7 @@ export def "main add" [
   }
 
   convert-to-toml $environments
-  | save --force .environments.toml
+  | save --force .environments/environments.toml
 
   main activate
 }
@@ -358,8 +358,12 @@ export def "main list" [
       | to text
       | column -t -s •
     } else {
-      $environments
-      | each {append-aliases $in}
+      if $aliases {
+        $environments
+        | each {append-aliases $in}
+      } else {
+        $environments.name
+      }
     }
   } else if ($path | is-empty) {
     let files = if ($feature | is-not-empty) {
@@ -438,20 +442,20 @@ def "main list active" [
   --local # Show local environments
   --user # Show only user installed environments [default]
 ] {
-  if not (".environments.toml" | path exists) {
+  if not (".environments/environments.toml" | path exists) {
     return
   }
 
-  let environments = (open .environments.toml).environments
+  let environments = (open .environments/environments.toml).environments
   let valid_environments = (get-available-environments)
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
     | any {$in}
   ) {
-    get-local-environment-name just
+    get-local-environment-name .environments/just
     | append (
-        get-local-environment-name nix
+        get-local-environment-name .environments/nix
       )
     | uniq
     | where {$in not-in $valid_environments.name}
@@ -591,7 +595,7 @@ def "main remove" [
   --force # Force removal even if environment(s) not currently active
 ] {
   if not $force and (
-    not (".environments.toml" | path exists) or (
+    not (".environments/environments.toml" | path exists) or (
       $environments | is-empty
     )
   ) {
@@ -604,7 +608,7 @@ def "main remove" [
     return
   }
 
-  let existing_environments = (open .environments.toml).environments
+  let existing_environments = (open .environments/environments.toml).environments
 
   let environments_to_remove = (
     $existing_environments
@@ -761,9 +765,9 @@ def "main remove" [
 
     if ($user_environments | is-not-empty) {
       convert-to-toml $user_environments
-      | save --force .environments.toml
+      | save --force .environments/environments.toml
     } else {
-      rm .environments.toml
+      rm .environments/environments.toml
     }
 
     main activate
