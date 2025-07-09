@@ -264,33 +264,6 @@ def get-available-environments [] {
   | get name
 }
 
-# FIXME: remove functions if not needed elsewhere
-def get-environment-from-justfile [justfile: string] {
-  $justfile
-  | path basename
-  | path parse
-  | get stem
-}
-
-# FIXME: remove functions if not needed elsewhere
-def get-environment-alias [justfile: string] {
-  if ($justfile | path exists) {
-    let environment = (get-environment-from-justfile $justfile)
-
-    open $justfile
-    | lines
-    | where {$in | str starts-with "# alias "}
-    | each {
-        let alias = ($in | split row "# alias " | last)
-
-        $"[private]
-@($alias) *args:
-    just ($environment) {{ args }}
-"
-      }
-  }
-}
-
 def generate-justfile-and-scripts [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
@@ -496,7 +469,24 @@ def generate-justfile-and-scripts [
       ) ++ $local_justfiles
       | uniq
       | sort
-      | each {get-environment-alias $"just/($in).just"}
+      | each {
+          |environment|
+
+          let alias_file = (get-environment-path $environment alias)
+
+          if ($alias_file | path exists) {
+            open $alias_file
+            | lines
+            | each {
+                let alias = ($in | split row "# alias " | last)
+
+                $"[private]
+@($alias) *args:
+    just ($environment) {{ args }}
+"
+              }
+          }
+        }
       | where {is-not-empty}
     )
   | append (

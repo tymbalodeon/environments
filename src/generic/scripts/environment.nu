@@ -46,7 +46,7 @@ def get-features [
   }
 }
 
-def get-environment-path [path?: string] {
+export def get-environment-path [path?: string] {
   let environments_base = $env.ENVIRONMENTS
 
   if ($path | is-empty) {
@@ -59,18 +59,15 @@ def get-environment-path [path?: string] {
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
 ] {
-  let valid_environments = (
-    ls --short-names (get-environment-path)
-    | where type == dir
-    | get name
-  )
-
+  let valid_environments = (get-available-environments)
   mut invalid_environments = []
 
   for environment in $environments {
     mut invalid_environment = {valid-name: true}
 
-    if $environment.name not-in $valid_environments {
+    if $environment.name not-in $valid_environments.name and (
+      $environment.name not-in ($valid_environments.aliases | flatten)
+    ) {
       $invalid_environment = (
         $invalid_environment
         | insert name $environment.name
@@ -131,7 +128,17 @@ def validate-environments [
   | each {
       |environment|
 
+      let name = if ($environment not-in $valid_environments.name) {
+        $valid_environments
+        | where {$environment.name in $in.aliases}
+        | get name
+        | first
+      } else {
+        $environment
+      }
+
       $environment
+      | update name $name
       | update features (
           $environment.features
           | where {
@@ -214,6 +221,11 @@ export def "main add" [
   ...environments: string # Environments to add
 ] {
   let environments = (parse-environments $environments)
+
+  if ($environments | is-empty) {
+    return
+  }
+
   mut environments = $environments
 
   if (".environments.toml" | path exists) {
@@ -269,12 +281,44 @@ def get-available-environments [] {
   ls --short-names (get-environment-path)
   | where type == dir
   | get name
+  | each {
+      |environment|
+
+      let alias_file = (get-environment-path $"($environment)/alias")
+
+      let aliases = if ($alias_file | path exists) {
+        open $alias_file
+        | lines
+      } else {
+        []
+      }
+
+      {
+        aliases: $aliases
+        name: $environment
+      }
+  }
+}
+
+def append-aliases [environment: record<name: string aliases: list<string>>] {
+  if ($environment.aliases | is-empty) {
+    $environment.name
+  } else {
+    $environment.name
+    | append (
+        $environment.aliases
+        | each {$"[alias: ($in)]"}
+      )
+    | flatten
+    | str join " "
+  }
 }
 
 # List environments and files
 export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
+  --aliases # Show environment aliases
   --feature: string # List files for $feature only (requires $environment)
   --features # Show features
 ] {
@@ -286,24 +330,36 @@ export def "main list" [
       | each {
         |environment|
 
-        let features_path = (get-environment-path $"($environment)/features")
+        let features_path = (
+          get-environment-path $"($environment.name)/features"
+        )
 
         let features = if ($features_path | path exists) {
-          ls --short-names (get-environment-path $"($environment)/features")
+          ls --short-names $features_path
           | get name
           | each {$"+($in)"}
-          | str join " "
+          | str join " • "
         } else {
           ""
         }
 
-        [$environment $features "\n"]
+        let environment = if $aliases and (
+          $environment.aliases
+          | is-not-empty
+        ) {
+          append-aliases $environment
+        } else {
+          $environment.name
+        }
+
+        [$environment • $features "\n"]
         | str join " "
       }
       | to text
-      | column -t
+      | column -t -s •
     } else {
       $environments
+      | each {append-aliases $in}
     }
   } else if ($path | is-empty) {
     let files = if ($feature | is-not-empty) {
@@ -375,6 +431,7 @@ def get-default-environments [] {
 
 # List installed environments
 def "main list active" [
+  --aliases # Show environment aliases
   --all # Show all installed environments
   --default # Show only default installed environments
   --features # Show active features
@@ -386,18 +443,19 @@ def "main list active" [
   }
 
   let environments = (open .environments.toml).environments
+  let valid_environments = (get-available-environments)
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
-    | any {|item| $item}
+    | any {$in}
   ) {
     get-local-environment-name just
     | append (
         get-local-environment-name nix
       )
     | uniq
-    | where {$in not-in (get-available-environments)}
-    | each {|environment| {name: $environment}}
+    | where {$in not-in $valid_environments.name}
+    | each {{name: $in}}
   } else {
     []
   }
@@ -412,7 +470,7 @@ def "main list active" [
     $local_environments
   } else {
     $environments
-    | where {$in not-in (get-available-environments)}
+    | where {$in not-in $valid_environments.name}
   }
 
   let environments = if $features {
@@ -469,6 +527,28 @@ def "main list active" [
         | append $features
         | str join " "
       }
+  } else {
+    $environments
+  }
+
+  let environments = if $aliases {
+    $environments
+    | each {
+        |environment|
+
+        let aliases = (
+          $valid_environments
+          | where name == $environment
+          | get aliases
+          | flatten
+        )
+
+        if ($aliases | is-not-empty) {
+          append-aliases {name: $environment aliases: $aliases}
+        } else {
+          $environment
+        }
+    }
   } else {
     $environments
   }
@@ -611,10 +691,7 @@ def "main remove" [
     let feature_hooks = if ($features_directory | path exists) {
       ls $features_directory
       | get name
-      | each {
-          print $in
-          get-environment-path $"($features_directory)/($in)/hook.nu"
-        }
+      | each {get-environment-path $"($features_directory)/($in)/hook.nu"}
     } else {
       []
     }
@@ -727,17 +804,36 @@ def select-file [files: table<path: string, name: string>] {
   | first
 }
 
+def get-environment [environment: string] {
+  let environments = (get-available-environments)
+
+  if $environment in $environments.name {
+    $environment
+  } else {
+    let matches = (
+      $environments
+      | where {$environment in $in.aliases}
+    )
+
+    if ($matches | is-not-empty) {
+      $matches
+      | first
+      | get name
+    }
+  }
+}
+
 # View the contents of an environment file
 def "main source" [
   environment?: string # The environment whose file to view
   file?: string # The file to view
 ] {
   let environment = if ($environment | is-empty) {
-    get-available-environments
+    (get-available-environments).name
     | to text
     | fzf
   } else {
-    $environment
+    get-environment $environment
   }
 
   let environment_path = (get-environment-path $environment)
@@ -749,7 +845,24 @@ def "main source" [
   let file = if ($file | is-empty) {
     select-file (list-short-names $environment_path)
   } else {
-    let files = (list-short-names $environment_path $file)
+    let file_path = $"($environment_path)/($file)"
+
+    let environment_path = if ($file_path | path type) == dir or (
+      $file
+      | path parse
+      | get parent
+      | is-not-empty
+    ) {
+      $file_path
+    } else {
+      $environment_path
+    }
+
+    let files = if ($environment_path | path type) == dir {
+      list-short-names $environment_path
+    } else {
+      [{path: $environment_path}]
+    }
 
     if ($files | length) > 1 {
       select-file $files
@@ -760,6 +873,7 @@ def "main source" [
 
       $files
       | first
+      | get path
     }
   }
 
