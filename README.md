@@ -9,7 +9,7 @@ Available environments:
 <!-- environments start -->
 
 - c
-- documentation
+- documentation [alias: docs]
 - git
 - haskell
 - java
@@ -18,7 +18,7 @@ Available environments:
 - lilypond
 - markdown
 - nix
-- python
+- python [alias: py]
 - rust
 - toml
 - tree-sitter
