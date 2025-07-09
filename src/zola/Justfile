@@ -1,10 +1,10 @@
 set dotenv-load := true
-set working-directory := ".."
+set working-directory := "../.."
 
 # View help text
 @help *args:
-    ./scripts/zola/help.nu {{ args }}
+    .environments/scripts/zola/help.nu {{ args }}
 
 # Serve the site
 @start *args:
-    ./scripts/zola/start.nu {{ args }}
+    .environments/scripts/zola/start.nu {{ args }}

@@ -1,17 +1,17 @@
-set working-directory := ".."
+set working-directory := "../.."
 
 # View help text
 @help *args:
-    ./scripts/c/help.nu {{ args }}
+    .environments/scripts/c/help.nu {{ args }}
 
 # Remove compiled files
 @clean *args:
-    ./scripts/c/clean.nu {{ args }}
+    .environments/scripts/c/clean.nu {{ args }}
 
 # Compile
 @compile *args:
-    ./scripts/c/compile.nu {{ args }}
+    .environments/scripts/c/compile.nu {{ args }}
 
 # Run
 @run *args:
-    ./scripts/c/run.nu {{ args }}
+    .environments/scripts/c/run.nu {{ args }}
