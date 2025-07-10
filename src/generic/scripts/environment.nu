@@ -410,13 +410,6 @@ export def "main list" [
   | str join "\n"
 }
 
-def get-local-environment-name [directory: string] {
-  ls --short-names $directory
-  | get name
-  | path parse
-  | get stem
-}
-
 def get-default-environments [] {
   [
     generic
@@ -455,11 +448,9 @@ def "main list active" [
     [$all $default $user]
     | any {$in}
   ) {
-    get-local-environment-name .environments/just
-    | append (
-        get-local-environment-name .environments/nix
-      )
-    | uniq
+    ls --short-names .environments
+    | where type == dir
+    | get name
     | where {$in not-in $valid_environments.name}
     | each {{name: $in}}
   } else {
@@ -499,13 +490,59 @@ def "main list active" [
     $environments.name
   }
 
+  let environments = if $aliases {
+    $environments
+    | each {
+        |environment|
+
+        let name = if ($environment | describe) == string {
+          $environment
+        } else {
+          $environment.name
+        }
+
+        let aliases = (
+          $valid_environments
+          | where name == $name
+          | get aliases
+          | flatten
+        )
+
+        if ($aliases | is-not-empty) {
+          let display = (
+            append-aliases {
+              name: $name
+              aliases: $aliases
+            }
+          )
+
+          if $features {
+            {
+              name: $display
+              features: $environment.features
+            }
+          } else {
+            $display
+          }
+        } else {
+          $environment
+        }
+    }
+  } else {
+    $environments
+  }
+
   let environments = if $features {
     mut unique_environments = []
 
     for environment in $environments {
       if $environment.name in $unique_environments.name {
         if (
-          ($unique_environments | where name == $environment.name | first).features
+          (
+            $unique_environments
+            | where name == $environment.name
+            | first
+          ).features
           | length
         ) == 0 {
           $unique_environments = (
@@ -530,6 +567,7 @@ def "main list active" [
         )
 
         $environment.name
+        | append •
         | append $features
         | str join " "
       }
@@ -537,32 +575,11 @@ def "main list active" [
     $environments
   }
 
-  let environments = if $aliases {
-    $environments
-    | each {
-        |environment|
-
-        let aliases = (
-          $valid_environments
-          | where name == $environment
-          | get aliases
-          | flatten
-        )
-
-        if ($aliases | is-not-empty) {
-          append-aliases {name: $environment aliases: $aliases}
-        } else {
-          $environment
-        }
-    }
-  } else {
-    $environments
-  }
-
   $environments
   | uniq
   | sort
-  | str join "\n"
+  | to text
+  | column -t -s •
 }
 
 def get-environment-files [
