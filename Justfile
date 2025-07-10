@@ -68,6 +68,7 @@ alias src := view-source
     just python {{ args }}
 
 mod environments ".environments/environments/Justfile"
+mod nix ".environments/nix/Justfile"
 mod python ".environments/python/Justfile"
 
 alias add := python::add
@@ -80,6 +81,5 @@ alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run
 alias set-executable := environments::set-executable
-alias shell := python::shell
 alias sort-gitignores := environments::sort-gitignores
 alias test := python::test
