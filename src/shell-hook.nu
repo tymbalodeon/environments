@@ -362,7 +362,7 @@ def generate-justfile-and-scripts [
           let alias_file = (get-environment-path $environment aliases)
 
           let path = if (
-            $alias_file 
+            $alias_file
             | path exists
           ) {
             $alias_file
@@ -375,7 +375,7 @@ def generate-justfile-and-scripts [
                   | path basename
                 )
               | path join aliases
-            ) 
+            )
 
             if ($alias_file | path exists) {
               $alias_file
@@ -639,13 +639,13 @@ def main [] {
 
   for environment in $active_environments {
     if not (
-      [Justfile scripts] 
+      [Justfile scripts]
       | each {get-environment-path $environment $in}
       | any {path exists}
     ) {
       continue
     }
-    
+
     let directory = (get-local-environment-directory $environment)
     mkdir $directory
     chmod --recursive +w $directory
