@@ -128,13 +128,13 @@ def validate-environments [
   | each {
       |environment|
 
-      let name = if ($environment not-in $valid_environments.name) {
+      let name = if ($environment.name not-in $valid_environments.name) {
         $valid_environments
         | where {$environment.name in $in.aliases}
         | get name
         | first
       } else {
-        $environment
+        $environment.name
       }
 
       $environment
@@ -269,6 +269,40 @@ export def "main add" [
   main activate
 }
 
+# Open .environments/environments.toml file
+def "main edit" [] {
+  ^$env.EDITOR .environments/environments.toml
+}
+
+# Get environment settings
+def "main get" [environment: string key: string] {
+  let environment = (parse-environments [$environment])
+
+  if ($environment | is-empty) {
+    return
+  }
+
+  let environment = ($environment | first | get name)
+
+  let items = (
+    open .environments/environments.toml
+    | get environments
+    | where name == $environment
+  )
+
+  if ($items | is-empty) {
+    return
+  }
+
+  try {
+    $items
+    | get $key
+    | first
+    | to text --no-newline
+  }
+}
+
+# List flake inputs
 def "main inputs" [] {
   nix flake info --json err> /dev/null
   | from json
