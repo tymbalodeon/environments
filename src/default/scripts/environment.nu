@@ -274,8 +274,32 @@ def "main edit" [] {
   ^$env.EDITOR .environments/environments.toml
 }
 
+def get-environment-settings [environment: string] {
+  let settings = (
+    open .environments/environments.toml
+    | get environments
+    | where name == $environment
+  )
+
+  if ($settings | is-not-empty) {
+    $settings
+    | first
+  }
+}
+
 # Get environment settings
-def "main get" [environment: string key: string] {
+def "main get" [
+  environment?: string # Environment name or alias
+  key?: string # Name of the key whose value to get
+] {
+  # TODO: list valid keys?
+  if ($environment | is-empty) {
+    return (
+      open --raw .environments/environments.toml
+      | str trim
+    )
+  }
+  
   let environment = (parse-environments [$environment])
 
   if ($environment | is-empty) {
@@ -283,21 +307,23 @@ def "main get" [environment: string key: string] {
   }
 
   let environment = ($environment | first | get name)
+  let settings = (get-environment-settings $environment)
 
-  let items = (
-    open .environments/environments.toml
-    | get environments
-    | where name == $environment
-  )
-
-  if ($items | is-empty) {
+  if ($settings | is-empty) {
     return
   }
 
+  if ($key | is-empty) {
+    return (
+      $settings
+      | to toml
+      | str trim
+    )
+  }
+
   try {
-    $items
+    $settings
     | get $key
-    | first
     | to text --no-newline
   }
 }
@@ -827,6 +853,58 @@ def "main remove" [
   }
 }
 
+def "main set" [
+  environment: string # Environment name or alias
+  key: string # Name of the key whose value to set
+  value: string # New value to set for the key
+] {
+  # TODO: list valid keys for an environment?
+  let environment = (parse-environments [$environment])
+
+  if ($environment | is-empty) {
+    return
+  }
+
+  let environment = ($environment | first | get name)
+  let settings = (get-environment-settings $environment)
+
+  if ($settings | is-empty) {
+    return
+  }
+
+  let key = ($key | str downcase)
+
+  if $key in [features name] {
+    print-error $"cannot set ($key) \(use `add`/`remove`)"
+    exit 1
+  }
+
+  if $environment == python and (
+    $key not-in [root features]
+  ) or ($environment != python and $key != features) {
+    print-error $"unrecognized key \"($key)\""
+    exit 1
+  }
+
+  let environments_file = (open .environments/environments.toml)
+
+  $environments_file
+  | update environments (
+      $environments_file.environments
+      | each {
+          if ($in.name == $environment) {
+            $settings
+            | upsert $key $value
+          } else {
+            $in
+          }
+      }
+    )
+  | save --force .environments/environments.toml
+
+  main activate
+}
+
 def list-short-names [directory: string file?: string] {
   let search = if ($file | is-not-empty) {
     $file
@@ -959,6 +1037,57 @@ def "main test" [
   }
 
   nu --commands $command --include-path $env.NUTEST
+}
+
+def "main unset" [
+  environment: string # Environment name or alias
+  key: string # Name of the key whose value to set
+] {
+  let environment = (parse-environments [$environment])
+
+  if ($environment | is-empty) {
+    return
+  }
+
+  let environment = ($environment | first | get name)
+  let settings = (get-environment-settings $environment)
+
+  if ($settings | is-empty) {
+    return
+  }
+
+  let key = ($key | str downcase)
+
+  if $key == name {
+    return
+  }
+
+  if $key == features {
+    print-error "cannot unset features (use `add`/`remove`)"
+    exit 1
+  }
+
+  let environments = (open .environments/environments.toml)
+
+  if ($key not-in ($environments.environments | columns)) {
+    return
+  }
+
+  $environments
+  | update environments (
+      $environments.environments
+      | each {
+          if ($in.name == $environment) {
+            $settings
+            | reject $key
+          } else {
+            $in
+          }
+      }
+    )
+  | save --force .environments/environments.toml
+
+  main activate
 }
 
 # Update environment dependencies
