@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use ../../generic/scripts/help.nu display-aliases
-use ../../generic/scripts/help.nu display-just-help
+use ../../default/scripts/help.nu display-aliases
+use ../../default/scripts/help.nu display-just-help
 
 def get-environment-justfile [ ] {
   ".environments/zola/Justfile"

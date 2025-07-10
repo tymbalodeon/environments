@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
 use compile.nu
-use ../../generic/scripts/environment.nu get-project-path
-use ../../generic/scripts/environment.nu get-project-root
+use ../../default/scripts/environment.nu get-project-path
+use ../../default/scripts/environment.nu get-project-root
 use files.nu get-files
 use files.nu get-lilypond-output-path
 use files.nu get-title

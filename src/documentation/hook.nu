@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../generic/scripts/domain.nu
+use ../default/scripts/domain.nu
 
 def "main remove" [] {
   rm --force book.toml

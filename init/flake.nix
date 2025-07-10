@@ -24,7 +24,7 @@
                 (pkgs.writers.writeNuBin
                   "environment"
                   {}
-                  (builtins.readFile ../src/generic/scripts/environment.nu))
+                  (builtins.readFile ../src/default/scripts/environment.nu))
               ]}"
             ];
           } (builtins.readFile ./init.nu);

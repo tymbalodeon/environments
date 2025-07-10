@@ -6,7 +6,7 @@ def main [...environments: string] {
   git init
   let project_root = (git rev-parse --show-toplevel)
 
-  http get $"($remote_url)/src/generic/flake.nix"
+  http get $"($remote_url)/src/default/flake.nix"
   | save --force $"($project_root)/flake.nix"
 
   git add .

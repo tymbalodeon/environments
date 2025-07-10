@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../../generic/scripts/environment.nu get-project-path
+use ../../default/scripts/environment.nu get-project-path
 
 # Manage scores settings
 export def main [

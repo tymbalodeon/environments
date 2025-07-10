@@ -53,4 +53,4 @@ Once installed, new environments can be added with `just environment add
 can be upgraded to the lates version by running `just environment update`.
 Environments can also be removed with `just environment remove [ENVIRONMENT]...`
 (with no environments specified, this will remove all enviornments except the
-generic one).
+default one).

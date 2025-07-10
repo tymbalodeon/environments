@@ -287,7 +287,7 @@ def generate-justfile-and-scripts [
 
   for environment in (
     $active_environments
-    | where {$in.name != generic}
+    | where {$in.name != default}
   ) {
     let justfile = (get-environment-path $environment Justfile)
 
@@ -325,13 +325,13 @@ def generate-justfile-and-scripts [
   let non_default_environments = (
     ls --short-names .environments
     | where type == dir
-    | where name != generic
+    | where name != default
     | get name
     | uniq
     | sort
   )
 
-  open (get-environment-path generic Justfile)
+  open (get-environment-path default Justfile)
   | append (
       $active_environments
       | each {
@@ -416,7 +416,7 @@ def generate-justfile-and-scripts [
   | str join "\n"
   | save --force Justfile
 
-  let generic_recipes = (
+  let default_recipes = (
     just --summary
     | split row " "
     | where {"::" not-in $in}
@@ -466,9 +466,9 @@ def generate-justfile-and-scripts [
 
         if (
           (
-            $generic_recipes
+            $default_recipes
             | wrap recipe
-            | insert environment generic
+            | insert environment default
           ) ++ $submodule_recipes
           | where recipe == $recipe.recipe
           | length
@@ -525,7 +525,7 @@ def get-environment-pre-commit-hooks [
     return
   }
 
-  if $environment.name == generic {
+  if $environment.name == default {
     open $pre_commit_config
     | to yaml
   } else {
@@ -585,7 +585,7 @@ def run-hooks [
 def main [] {
   let active_environments = (
     [
-      generic
+      default
       git
       just
       markdown
