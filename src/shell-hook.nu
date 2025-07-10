@@ -657,4 +657,6 @@ def main [] {
   generate-justfile-and-scripts $active_environments $inactive_environments
   generate-pre-commit-config-file $active_environments $inactive_environments
   run-hooks $active_environments $inactive_environments
+
+  chmod +w --recursive .environments
 }
