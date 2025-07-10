@@ -2,4 +2,4 @@ set working-directory := "../.."
 
 # View help text
 @help:
-    just --list --justfile haskell.just
+    just --list --justfile .environments/haskell/Justfile
