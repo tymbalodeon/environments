@@ -5,7 +5,7 @@ def get-random-file [files: list<string>] {
   | get (random int 0..$max_index)
 }
 
-export def open-temporary-file [file: string] {
+export def open-temporary-file [file?: string] {
   let files = (
     ls test/corpus/**/*
     | where type == file
