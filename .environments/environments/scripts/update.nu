@@ -1,13 +1,11 @@
 #!/usr/bin/env nu
 
-use ../../generic/scripts/environment.nu get-project-path
-
 # Update pre-commit hooks
 def "main pre-commit" [
   --verbose # Show errors
 ] {
   for environment in (
-    ls (get-project-path src)
+    ls src
     | where type == dir
     | get name
   ) {
@@ -27,7 +25,7 @@ def "main pre-commit" [
 
 # Update init flake
 def "main init" [] {
-  cd (get-project-path init)
+  cd init
   nix flake update
 }
 
