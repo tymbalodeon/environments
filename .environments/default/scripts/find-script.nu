@@ -55,7 +55,7 @@ export def get-script [
     ($matching_scripts | length) > 1
   ) and ($environment | is-empty) {
     $matching_scripts
-    | where {|script| ($script | path parse | get parent) == $scripts_directory}
+    | where {($in | path parse | get parent) == $scripts_directory}
   } else {
     $matching_scripts
   }
@@ -89,5 +89,5 @@ export def main [recipe: string] {
     | lines
   )
 
-  get-script $recipe $scripts $scripts_directory
+  get-script $recipe $scripts .environments
 }
