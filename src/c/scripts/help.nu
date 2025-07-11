@@ -5,7 +5,7 @@ use ../../default/scripts/help.nu display-just-help
 
 # View module aliases
 def "main aliases" [
-  --color = "auto" # When to use colored output
+  --color = "auto" # When to use colored output {always|auto|never}
   --sort-by-environment # Sort aliases by environment name
   --sort-by-recipe # Sort recipe by original recipe name
   --no-submodule-aliases # Don't include submodule aliases
@@ -24,7 +24,7 @@ def "main aliases" [
 def main [
   recipe?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
-  --color = "always" # When to use colored output
+  --color = "always" # When to use colored output {always|auto|never}
 ] {
   (
     display-just-help

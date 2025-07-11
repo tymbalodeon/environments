@@ -348,7 +348,7 @@ export def "main list" [
   environment?: string # An environment whose files to lise
   path?: string # An environment path whose files to list
   --aliases # Show environment aliases
-  --color = "auto" # When to use colored output
+  --color = "auto" # When to use colored output {always|auto|never}
   --feature: string # List files for $feature only (requires $environment)
   --features # Show features
 ] {
@@ -486,7 +486,7 @@ def get-default-environments [] {
 def "main list active" [
   --aliases # Show environment aliases
   --all # Show all installed environments
-  --color = "auto" # When to use colored output
+  --color = "auto" # When to use colored output {always|auto|never}
   --default # Show only default installed environments
   --features # Show active features
   --local # Show local environments
