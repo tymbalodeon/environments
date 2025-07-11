@@ -3,10 +3,6 @@
 use ../../default/scripts/help.nu display-aliases
 use ../../default/scripts/help.nu display-just-help
 
-def get-environment-justfile [ ] {
-  ".environments/rust/Justfile"
-}
-
 # View module aliases
 def "main aliases" [
   --color = "auto" # When to use colored output
@@ -20,7 +16,7 @@ def "main aliases" [
       $sort_by_environment
       $sort_by_recipe
       --color $color
-      --justfile (get-environment-justfile)
+      --justfile .environments/rust/Justfile
   )
 }
 
@@ -36,6 +32,6 @@ def main [
       $subcommands
       --color $color
       --environment rust
-      --justfile (get-environment-justfile)
+      --justfile .environments/rust/Justfile
   )
 }

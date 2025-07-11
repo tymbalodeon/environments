@@ -1,14 +1,11 @@
 #!/usr/bin/env nu
 
-use ../../generic/scripts/environment.nu get-project-path
-use ../../generic/scripts/environment.nu "main list"
+use ../../default/scripts/environment.nu "main list"
 
 def generate-readme-text [text: string target: string] {
-  let readme = (get-project-path README.md)
-
   let text = $"<!-- ($target) start -->\n($text)\n<!-- ($target) end -->"
 
-  open $readme
+  open README.md
   | (
       str replace
         --regex (
@@ -17,7 +14,7 @@ def generate-readme-text [text: string target: string] {
 
         $text
     )
-  | save --force $readme
+  | save --force README.md
 }
 
 # Update repo link in README
