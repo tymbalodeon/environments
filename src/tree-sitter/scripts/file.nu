@@ -12,9 +12,11 @@ export def open-temporary-file [file?: string] {
     | get name
   )
 
-  let file = if ($file | path exists) {
+  let file = if ($file | is-empty) {
+    get-random-file $files
+  } else if ($file | path exists) {
     $file
-  } else if ($file | is-not-empty) {
+  } else {
     try {
       let files = (
         $files
@@ -34,8 +36,6 @@ export def open-temporary-file [file?: string] {
     } catch {
       return
     }
-  } else {
-    get-random-file $files
   }
 
   let temporary_file = (mktemp --tmpdir XXX.ck)
