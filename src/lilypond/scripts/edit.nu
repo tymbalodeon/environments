@@ -1,8 +1,6 @@
 #!/usr/bin/env nu
 
 use compile.nu
-use ../../default/scripts/environment.nu get-project-path
-use ../../default/scripts/environment.nu get-project-root
 use files.nu get-files
 use files.nu get-lilypond-output-path
 use files.nu get-title
@@ -48,12 +46,12 @@ def main [
     let layout_file = (mktemp --tmpdir $"($title)-XXX.kdl")
 
     (
-      cat (get-project-path zellij-layout-template.kdl)
+      cat lilypond-layout.kdl
       | str replace --all "[score]" $input_file
       | str replace --all "[score_directory]" ($input_file | path dirname)
       | str replace --all "[score_name]" $title
       | str replace --all "[output]" (get-lilypond-output-path $input_file)
-      | str replace --all "[helpers]" (get-project-root)
+      | str replace --all "[helpers]" (pwd)
     ) | save --force $layout_file
 
     compile $input_file --is-file

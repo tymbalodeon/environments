@@ -1,6 +1,5 @@
 #!/usr/bin/env nu
 
-use ../../default/scripts/environment.nu get-project-path
 use files.nu get-compilation-status
 use files.nu get-files
 use files.nu get-lilypond-output-path
@@ -64,7 +63,7 @@ def run-lilypond [file: path, force: bool] {
 
     (
       lilypond
-        --include (get-project-path helpers)
+        --include helpers
         --output (get-lilypond-output-path $file)
         $file
     )
