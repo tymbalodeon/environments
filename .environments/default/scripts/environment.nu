@@ -1,14 +1,5 @@
 #!/usr/bin/env nu
 
-export def get-project-root [] {
-  echo (git rev-parse --show-toplevel)
-}
-
-export def get-project-path [path: string] {
-  get-project-root
-  | path join $path
-}
-
 # Activate installed environments
 def "main activate" [] {
   if (which direnv | is-empty) {
@@ -19,7 +10,7 @@ def "main activate" [] {
   }
 
   "use flake"
-  | save --force (get-project-path .envrc)
+  | save --force .envrc
 
   direnv allow
 }
