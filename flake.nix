@@ -35,10 +35,16 @@
           (builtins.filter
             (path: builtins.pathExists path)
             (map
-              (environment: ./.environments/${environment.name}/shell.nix)
+              (item: ./.environments/${item.name}/shell.nix)
               (builtins.filter
-                (environment: environment.value == "directory")
-                (nixpkgs.lib.attrsets.attrsToList (builtins.readDir ./.environments)))));
+                (item: item.value == "directory")
+                (
+                  if (builtins.pathExists ./.environments)
+                  then
+                    nixpkgs.lib.attrsets.attrsToList
+                    (builtins.readDir ./.environments)
+                  else []
+                ))));
 
         pkgs = import nixpkgs {
           inherit system;
