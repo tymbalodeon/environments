@@ -1,6 +1,12 @@
 #!/usr/bin/env nu
 
-use color.nu use-colors
+export def use-colors [color: string] {
+  $color == "always" or (
+    $color != "never"
+  ) and (
+    is-terminal --stdout
+  )
+}
 
 # Activate installed environments
 def "main activate" [] {
