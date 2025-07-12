@@ -3,11 +3,22 @@
 export def choose-recipe [] {
   just --summary
   | split row " "
+  | each {
+      |recipe|
+
+      if :: in $recipe {
+        let parts = ($recipe | split row ::)
+
+       $".environments/($parts | first)/scripts/($parts | last).nu"
+      } else {
+        $".environments/default/scripts/($recipe).nu"
+      }
+  }
   | to text
   | (
       fzf
         --preview
-        $"bat --force-colorization {}.nu"
+        "bat --force-colorization {}"
     )
   | str trim
   | split row " "
