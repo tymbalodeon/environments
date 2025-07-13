@@ -147,7 +147,7 @@ def validate-environments [
     }
 }
 
-def parse-environments [environments: list<string>] {
+export def parse-environments [environments: list<string>] {
   let environments = (
     $environments
     | str downcase

@@ -1,5 +1,8 @@
 #!/usr/bin/env nu
 
+use environment.nu parse-environments
+use find-recipe.nu choose-recipe
+
 export def get-script [
   recipe: string
   scripts: list<string>
@@ -34,6 +37,16 @@ export def get-script [
       | find --no-highlight $environment
     } else {
       $matching_scripts
+    }
+  } else if ($matching_scripts | is-empty) {
+    print ONE
+    let environment = (parse-environments [$recipe])
+    print TWO
+
+    if ($environment | is-not-empty) {
+      choose-recipe $environment.name
+    } else {
+      return
     }
   } else {
     $matching_scripts

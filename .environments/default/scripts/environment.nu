@@ -147,7 +147,7 @@ def validate-environments [
     }
 }
 
-def parse-environments [environments: list<string>] {
+export def parse-environments [environments: list<string>] {
   let environments = (
     $environments
     | str downcase
@@ -1009,7 +1009,7 @@ def "main test" [
 }
 
 # Update environment dependencies
-def "main update" [
+export def "main update" [
   ...inputs: string # The name of the input(s) to update (leave blank to update all)
 ] {
   let update_environments = [environments env] | any {$in in $inputs}

@@ -20,5 +20,7 @@ def main [
     }
   }
 
+  print $recipe
+
   try { bat (find-script $recipe) }
 }
