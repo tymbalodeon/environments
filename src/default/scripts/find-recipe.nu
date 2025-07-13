@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 export def choose-recipe [] {
+  # TODO: get correct filename
   just --summary
   | split row " "
   | to text
