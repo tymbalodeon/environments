@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use color.nu use-colors
 use environment.nu get-environment-path
+use environment.nu use-colors
 use find-script.nu
 
 def append-main-aliases [
