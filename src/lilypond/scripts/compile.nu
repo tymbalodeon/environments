@@ -61,7 +61,7 @@ def run-lilypond [file: path, force: bool] {
   if $should_compile {
     print-message Compiling (
       $file
-      | str replace ./scores ""
+      | str replace ./scores/ ""
     ) --color green_bold
 
     (

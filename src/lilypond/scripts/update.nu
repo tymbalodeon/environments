@@ -4,10 +4,12 @@ use ../../default/scripts/environment.nu "main update"
 use files.nu get-files
 use files.nu get-lilypond-version
 
+# Update lilypond version
 def "main lilypond" [] {
   main update nixpkgs
 }
 
+# Update scores
 def "main scores" [] {
   for score in ((get-files "ly") ++ (get-files "ily")) {
     try {
@@ -23,7 +25,7 @@ def "main scores" [] {
   }
 }
 
-# Update dependencies and score LilyPond version
+# Update lilypond version and scores
 def main [] {
   main lilypond
   main scores
