@@ -27,6 +27,7 @@ Available environments:
 - typst
 - yaml
 - zola
+- environments
 
 <!-- environments end -->
 

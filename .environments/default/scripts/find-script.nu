@@ -37,9 +37,21 @@ export def get-script [
 
   let matching_scripts = if ($matching_scripts | length) > 1 {
     if ($environment | is-not-empty) {
+      let matches = (
+        $matching_scripts
+        | str replace .environments/ ""
+        | find --no-highlight $environment
+      )
+
       let matching_scripts = (
         $matching_scripts
-        | find --no-highlight $environment
+        | where {
+            |script|
+
+            $matches
+            | where {$in in $script}
+            | is-not-empty
+          }
       )
 
       if ($matching_scripts | is-empty) {

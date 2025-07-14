@@ -3,74 +3,71 @@ use std assert
 use ../../../default/scripts/find-script.nu get-script
 
 let scripts = [
-  scripts/annotate.nu
-  scripts/check.nu
-  scripts/dependencies.nu
-  scripts/diff-env.nu
-  scripts/domain.nu
-  scripts/environment.nu
-  scripts/environments/
-  scripts/environments/build.nu
-  scripts/environments/help.nu
-  scripts/environments/justfile.nu
-  scripts/environments/pre-commit-update.nu
-  scripts/find-recipe.nu
-  scripts/find-script.nu
-  scripts/help.nu
-  scripts/history.nu
-  scripts/init.nu
-  scripts/issue.nu
-  scripts/pre-commit-update.nu
-  scripts/python/add.nu
-  scripts/python/build.nu
-  scripts/python/clean.nu
-  scripts/python/command.nu
-  scripts/python/coverage.nu
-  scripts/python/deps.nu
-  scripts/python/help.nu
-  scripts/python/install.nu
-  scripts/python/profile.nu
-  scripts/python/release.nu
-  scripts/python/remove.nu
-  scripts/python/run.nu
-  scripts/python/shell.nu
-  scripts/python/test.nu
-  scripts/python/update.nu
-  scripts/python/version.nu
-  scripts/release.nu
-  scripts/remote.nu
-  scripts/stats.nu
-  scripts/test.nu
-  scripts/update.nu
-  scripts/update.nu
-  scripts/view-source.nu
+  .environments/default/scripts/check.nu
+  .environments/default/scripts/domain.nu
+  .environments/default/scripts/environment.nu
+  .environments/default/scripts/find-recipe.nu
+  .environments/default/scripts/find-script.nu
+  .environments/default/scripts/help.nu
+  .environments/default/scripts/history.nu
+  .environments/default/scripts/issue.nu
+  .environments/default/scripts/remote.nu
+  .environments/default/scripts/replace.nu
+  .environments/default/scripts/stats.nu
+  .environments/default/scripts/theme.nu
+  .environments/default/scripts/todo.nu
+  .environments/default/scripts/view-source.nu
+  .environments/environments/scripts/help.nu
+  .environments/environments/scripts/readme.nu
+  .environments/environments/scripts/reload.nu
+  .environments/environments/scripts/set-executable.nu
+  .environments/environments/scripts/sort-gitignores.nu
+  .environments/environments/scripts/update.nu
+  .environments/git/scripts/release.nu
+  .environments/nix/scripts/help.nu
+  .environments/nix/scripts/shell.nu
+  .environments/python/scripts/add.nu
+  .environments/python/scripts/cd-to-root.nu
+  .environments/python/scripts/command.nu
+  .environments/python/scripts/dependencies.nu
+  .environments/python/scripts/help.nu
+  .environments/python/scripts/pin.nu
+  .environments/python/scripts/profile.nu
+  .environments/python/scripts/remove.nu
+  .environments/python/scripts/run.nu
+  .environments/python/scripts/shell.nu
+  .environments/python/scripts/test.nu
+  .environments/python/scripts/update.nu
+  .environments/python/scripts/version.nu
 ]
 
 #[test]
 def test-get-script-help [] {
-  assert equal (get-script help $scripts scripts) scripts/help.nu
+  assert equal (
+    get-script default/help $scripts
+    ) .environments/default/scripts/help.nu
 }
 
 #[test]
 def test-get-script-environments-help [] {
   assert equal (
-    get-script environments/help $scripts scripts
-  ) scripts/environments/help.nu
+    get-script environments/help $scripts
+  ) .environments/environments/scripts/help.nu
 }
 
 #[test]
 def test-get-script-environments-help-colons [] {
   assert equal (
-    get-script environments::help $scripts scripts
-  ) scripts/environments/help.nu
+    get-script environments::help $scripts
+  ) .environments/environments/scripts/help.nu
 }
 
 #[test]
 def test-get-script-python [] {
   (
     assert equal
-      (get-script python/help $scripts scripts)
-      scripts/python/help.nu
+      (get-script python/help $scripts)
+      .environments/python/scripts/help.nu
   )
 }
 
@@ -78,7 +75,8 @@ def test-get-script-python [] {
 def test-get-script-python-colons [] {
   (
     assert equal
-      (get-script python::help $scripts scripts)
-      scripts/python/help.nu
+      (get-script python::help $scripts)
+      .environments/python/scripts/help.nu
+
   )
 }
