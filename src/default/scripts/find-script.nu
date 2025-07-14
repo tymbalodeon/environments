@@ -37,8 +37,16 @@ export def get-script [
 
   let matching_scripts = if ($matching_scripts | length) > 1 {
     if ($environment | is-not-empty) {
+      let matching_scripts = (
+        $matching_scripts
+        | find --no-highlight $environment
+      )
+
+      if ($matching_scripts | is-empty) {
+        return
+      }
+
       $matching_scripts
-      | find --no-highlight $environment
     } else {
       $matching_scripts
     }
@@ -54,8 +62,18 @@ export def get-script [
     $matching_scripts
   }
 
-  $matching_scripts
-  | first
+  if ($matching_scripts | length) > 1 {
+    $matching_scripts
+    | to text
+    | (
+        fzf
+          --preview
+          "bat --force-colorization {}"
+      )
+  } else {
+    $matching_scripts
+    | first
+  }
 }
 
 export def main [recipe: string] {

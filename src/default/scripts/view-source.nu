@@ -19,5 +19,11 @@ def main [
     choose-recipe
   }
 
-  bat (find-script $recipe)
+  let script = (find-script $recipe)
+
+  if ($script | is-empty) {
+    return
+  }
+
+  bat $script
 }
