@@ -2,6 +2,7 @@
 
 use environment.nu get-aliases-files
 use environment.nu get-environment-path
+use environment.nu print-warning
 use environment.nu use-colors
 use find-script.nu
 
@@ -68,6 +69,26 @@ def append-main-aliases [
       }
     | flatten
   )
+
+  let aliases = (
+    $aliases
+    | append $environment_aliases
+  )
+
+  let duplicates = (
+    $aliases
+    | where {
+        |alias|
+
+        ($aliases.alias | find $alias.alias | length) > 1
+      }
+    | get alias
+    | uniq
+  )
+
+  for duplicate in $duplicates {
+    print-warning $"duplicate alias \"($duplicate)\""
+  }
 
   let lines = (
     $help_text.item
