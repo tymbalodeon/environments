@@ -7,6 +7,10 @@ export def get-script [
   recipe: string
   scripts: list<string>
 ] {
+  if ($recipe | path exists) {
+    return $recipe
+  }
+
   let parts = (
     $recipe
     | split row "::"
@@ -38,13 +42,11 @@ export def get-script [
     } else {
       $matching_scripts
     }
-  } else if ($matching_scripts | is-empty) {
-    print ONE
+  } else if ($recipe | is-not-empty) and ($matching_scripts | is-empty) {
     let environment = (parse-environments [$recipe])
-    print TWO
 
     if ($environment | is-not-empty) {
-      choose-recipe $environment.name
+      return (choose-recipe ($environment | first | get name))
     } else {
       return
     }
@@ -52,10 +54,8 @@ export def get-script [
     $matching_scripts
   }
 
-  try {
-    $matching_scripts
-    | first
-  }
+  $matching_scripts
+  | first
 }
 
 export def main [recipe: string] {

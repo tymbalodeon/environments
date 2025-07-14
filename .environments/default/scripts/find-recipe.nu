@@ -3,14 +3,12 @@
 export def choose-recipe [environment?: string] {
   let recipes = (just --summary | split row " ")
 
-  if ($environment | is-not-empty) {
+  let recipes = if ($environment | is-not-empty) {
     $recipes
     | where {$"($environment)::" in $in}
   } else {
     $recipes
   }
-
-  print $recipes
 
   $recipes
   | each {
