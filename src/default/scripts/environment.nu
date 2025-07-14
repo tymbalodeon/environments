@@ -286,6 +286,12 @@ def get-available-environments [] {
   ls --short-names (get-environment-path)
   | where type == dir
   | get name
+  | append (
+      ls --short-names .environments
+      | where type == dir
+      | get name
+    )
+  | uniq
   | each {
       |environment|
 
