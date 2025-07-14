@@ -282,6 +282,28 @@ def "main inputs" [] {
   | to text --no-newline
 }
 
+export def get-aliases-files [environment: string] {
+  let aliases_file = $"($environment)/aliases"
+
+  [
+    (get-environment-path $aliases_file)
+    $".environments/($aliases_file)"
+  ]
+  | each {
+      |file|
+
+      if ($file | path exists) {
+        open $file
+        | lines
+      } else {
+        []
+      }
+    }
+  | flatten
+  | uniq
+  | sort
+}
+
 def get-available-environments [] {
   ls --short-names (get-environment-path)
   | where type == dir
@@ -295,27 +317,8 @@ def get-available-environments [] {
   | each {
       |environment|
 
-      let default_alias_file = (get-environment-path $"($environment)/aliases")
-      let local_alias_file = $".environments/($environment)/aliases"
-
-      let aliases = [
-        (get-environment-path $"($environment)/aliases")
-        $".environments/($environment)/aliases"
-      ]
-      | each {
-          |file|
-
-          if ($file | path exists) {
-            open $file
-            | lines
-          } else {
-            []
-          }
-        }
-      | flatten
-
       {
-        aliases: $aliases
+        aliases: (get-aliases-files $environment)
         name: $environment
       }
   }
