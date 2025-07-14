@@ -80,7 +80,11 @@ def append-main-aliases [
     | where {
         |alias|
 
-        ($aliases.alias | find $alias.alias | length) > 1
+        (
+          $aliases.alias
+          | where {$in == $alias.alias}
+          | length
+        ) > 1
       }
     | get alias
     | uniq

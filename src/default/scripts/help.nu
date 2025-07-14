@@ -80,9 +80,11 @@ def append-main-aliases [
     | where {
         |alias|
 
-        # TODO: be more precies (so that it doesn't count "restart" as a
-        # duplciate of "start", for example)
-        ($aliases.alias | find $alias.alias | length) > 1
+        (
+          $aliases.alias
+          | where {$in == $alias.alias}
+          | length
+        ) > 1
       }
     | get alias
     | uniq
