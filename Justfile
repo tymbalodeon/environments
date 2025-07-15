@@ -53,7 +53,7 @@ alias todos := todo
 @theme *args:
     .environments/default/scripts/theme.nu {{ args }}
 
-# View or open the source code for a recipe
+# View the source code for a recipe
 @source *args:
     .environments/default/scripts/source.nu {{ args }}
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use cd-to-root.nu
+use ../../default/scripts/cd-to-root.nu
 use command.nu
 
 def --wrapped main [...args: string] {

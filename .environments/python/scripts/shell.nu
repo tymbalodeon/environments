@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use cd-to-root.nu
+use ../../default/scripts/cd-to-root.nu
 
 # Open an interactive python shell
 def main [] {

@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use cd-to-root.nu
+use ../../default/scripts/cd-to-root.nu
 
 # Manage python version
 def main [version?: number] {

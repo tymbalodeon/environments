@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use cd-to-root.nu
+use ../../default/scripts/cd-to-root.nu
 
 # Update dependencies
 def main [
@@ -8,7 +8,7 @@ def main [
   --dev # Update only development dependencies
   --prod # Update only production dependencies
 ] {
-  use cd-to-root.nu
+  use ../../default/scripts/cd-to-root.nu
 
   if $breaking {
     let all = not $dev and not $prod

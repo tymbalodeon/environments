@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use cd-to-root.nu
+use ../../default/scripts/cd-to-root.nu
 use dependencies.nu get-dependencies
 
 def remove-version []: string -> string {
