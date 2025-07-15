@@ -1,8 +1,20 @@
 #!/usr/bin/env nu
 
-use ../../default/scripts/cd-to-root.nu
+def main [directory_or_path?: string] {
+  let files = if ($directory_or_path | path type) == file {
+    [$directory_or_path]
+  } else {
+    let directory = if ($directory_or_path | is-empty) {
+      "."
+    } else {
+      $directory_or_path
+    }
 
-def main [] {
-  cd-to-root tree-sitter
-  bun run tree-sitter generate --js-runtime bun
+    fd grammar --extension js $directory
+    | lines
+  }
+
+  for file in $files {
+    bun run tree-sitter generate --js-runtime bun $file
+  }
 }
