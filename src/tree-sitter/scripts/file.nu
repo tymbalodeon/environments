@@ -1,4 +1,3 @@
-use ../../default/scripts/cd-to-root.nu
 use ../../default/scripts/environment.nu print-warning
 
 def get-random-file [files: list<string>] {
@@ -9,10 +8,8 @@ def get-random-file [files: list<string>] {
 }
 
 export def open-temporary-file [file?: string] {
-  cd-to-root tree-sitter
-
   let files = (
-    ls test/corpus/**/*
+    ls **/test/corpus/**/*
     | where type == file
     | get name
   )
@@ -46,9 +43,10 @@ export def open-temporary-file [file?: string] {
   let extension = try {
     open tree-sitter.json
     | get grammars
+    | where {"file-types" in ($in | columns)}
     | get file-types
     | flatten
-    |first
+    | first
   } catch {
     print-warning "failed to determine language file extension"
   }
