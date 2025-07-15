@@ -4,7 +4,7 @@ use ../../default/scripts/cd-to-root.nu
 use command.nu
 
 def --wrapped main [...args: string] {
-  cd-to-root
+  cd-to-root python
 
   if "--self-help" in $args {
     return (help main)

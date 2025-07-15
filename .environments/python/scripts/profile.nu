@@ -7,7 +7,7 @@ use command.nu
 def main [
   ...args: string # Arguments to the command being profiled
 ] {
-  cd-to-root
+  cd-to-root python
 
   let output_directory = "profiles"
 

@@ -262,6 +262,8 @@ export def "main add" [
     }
   }
 
+  mkdir .environments
+
   convert-to-toml $environments
   | save --force .environments/environments.toml
 
@@ -309,9 +311,13 @@ def get-available-environments [] {
   | where type == dir
   | get name
   | append (
-      ls --short-names .environments
-      | where type == dir
-      | get name
+      if (".environments" | path exists) {
+        ls --short-names .environments
+        | where type == dir
+        | get name
+      } else {
+        []
+      }
     )
   | uniq
   | each {

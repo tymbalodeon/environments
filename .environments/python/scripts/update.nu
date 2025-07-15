@@ -8,7 +8,7 @@ def main [
   --dev # Update only development dependencies
   --prod # Update only production dependencies
 ] {
-  use ../../default/scripts/cd-to-root.nu
+  cd-to-root python
 
   if $breaking {
     let all = not $dev and not $prod
