@@ -262,6 +262,8 @@ export def "main add" [
     }
   }
 
+  mkdir .environments
+
   convert-to-toml $environments
   | save --force .environments/environments.toml
 
