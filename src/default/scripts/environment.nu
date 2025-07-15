@@ -309,9 +309,13 @@ def get-available-environments [] {
   | where type == dir
   | get name
   | append (
-      ls --short-names .environments
-      | where type == dir
-      | get name
+      if (".environments" | path exists) {
+        ls --short-names .environments
+        | where type == dir
+        | get name
+      } else {
+        []
+      }
     )
   | uniq
   | each {
