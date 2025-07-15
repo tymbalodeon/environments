@@ -37,6 +37,8 @@ export def choose-recipe [environment?: string] {
 def main [
   search_term?: string # Regex pattern to match
 ] {
+  # TODO: keep the environment name in the output text, so it's clear which
+  # environment a matching recipe belongs to
   let command = if ($search_term | is-empty) {
     choose-recipe
     | path parse

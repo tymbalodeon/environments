@@ -53,11 +53,11 @@ alias todos := todo
 @theme *args:
     .environments/default/scripts/theme.nu {{ args }}
 
-# View the source code for a recipe
-@view-source *args:
-    .environments/default/scripts/view-source.nu {{ args }}
+# View or open the source code for a recipe
+@source *args:
+    .environments/default/scripts/source.nu {{ args }}
 
-alias src := view-source
+alias src := source
 
 # Create a new release
 @release *args:

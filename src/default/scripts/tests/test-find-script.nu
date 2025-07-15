@@ -16,7 +16,7 @@ let scripts = [
   .environments/default/scripts/stats.nu
   .environments/default/scripts/theme.nu
   .environments/default/scripts/todo.nu
-  .environments/default/scripts/view-source.nu
+  .environments/default/scripts/source.nu
   .environments/environments/scripts/help.nu
   .environments/environments/scripts/readme.nu
   .environments/environments/scripts/reload.nu

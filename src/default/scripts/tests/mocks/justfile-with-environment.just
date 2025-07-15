@@ -56,10 +56,10 @@ alias find := find-recipe
 
 # View the source code for a recipe
 [no-cd]
-@view-source *recipe:
-    ./scripts/view-source.nu {{ recipe }}
+@source *recipe:
+    ./scripts/source.nu {{ recipe }}
 
-alias src := view-source
+alias src := source
 
 mod python "just/python.just"
 
