@@ -83,8 +83,10 @@ export def get-script [
           "bat --force-colorization {}"
       )
   } else {
-    $matching_scripts
-    | first
+    if ($matching_scripts | is-not-empty) {
+      $matching_scripts
+      | first
+    }
   }
 }
 
