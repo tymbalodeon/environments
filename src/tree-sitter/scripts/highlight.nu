@@ -4,7 +4,7 @@ use file.nu open-temporary-file
 use ../../default/scripts/environment.nu print-error
 
 def main [file?: string] {
-  let local_config_file = (fd config --json | lines)
+  let local_config_file = (fd config --extension json | lines)
 
   let args = if ($local_config_file | is-empty) {
     let user_config = try {
