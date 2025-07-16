@@ -58,6 +58,9 @@ def "main view" [
 def "main find" [
   search_term: string # Regex pattern to match
 ] {
+  # TODO: allow passing environment and recipe
+  # TODO: remove newline for passing a bad recipe
+
   let text = (just)
 
   let default_matches = try {
