@@ -19,6 +19,16 @@ def main [file?: string] {
       print-error "failed to read tree-sitter config file"
     }
 
+    let existing_config = (open $user_config)
+
+    $existing_config
+    | update parser-directories (
+        $existing_config.parser-directories
+        | append (pwd | path dirname)
+      )
+    | to json
+    | save --force  $user_config
+
     []
   } else {
     let config_file = ($local_config_file | first)
