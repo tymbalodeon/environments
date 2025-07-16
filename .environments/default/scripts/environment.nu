@@ -57,6 +57,7 @@ export def get-environment-path [path?: string] {
 
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
+  quiet = false
 ] {
   let valid_environments = (get-available-environments)
   mut invalid_environments = []
@@ -73,7 +74,9 @@ def validate-environments [
         | update valid-name false
       )
 
-      print-warning $"unrecognized environment: ($environment.name)"
+      if not $quiet {
+        print-warning $"unrecognized environment: ($environment.name)"
+      }
     }
 
     mut invalid_features = []
@@ -147,7 +150,7 @@ def validate-environments [
     }
 }
 
-export def parse-environments [environments: list<string>] {
+export def parse-environments [environments: list<string> quiet = false] {
   let environments = (
     $environments
     | str downcase
@@ -188,7 +191,7 @@ export def parse-environments [environments: list<string>] {
     }
   }
 
-  validate-environments $unique_environments
+  validate-environments $unique_environments $quiet
 }
 
 def convert-to-toml [environments: list<record>] {

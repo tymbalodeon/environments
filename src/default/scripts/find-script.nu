@@ -1,11 +1,44 @@
 #!/usr/bin/env nu
 
 use environment.nu parse-environments
-use find-recipe.nu choose-recipe
+
+export def choose-recipe [environment?: string] {
+  let recipes = (just --summary | split row " ")
+
+  let recipes = if ($environment | is-not-empty) {
+    $recipes
+    | where {$"($environment)::" in $in}
+  } else {
+    $recipes
+  }
+
+  $recipes
+  | each {
+      |recipe|
+
+      if :: in $recipe {
+        let parts = ($recipe | split row ::)
+
+       $".environments/($parts | first)/scripts/($parts | last).nu"
+      } else {
+        $".environments/default/scripts/($recipe).nu"
+      }
+  }
+  | to text
+  | (
+      fzf
+        --preview
+        "bat --force-colorization {}"
+    )
+  | str trim
+  | split row " "
+  | first
+}
 
 export def get-script [
   recipe: string
   scripts: list<string>
+  quiet = false
 ] {
   if ($recipe | path exists) {
     return $recipe
@@ -63,7 +96,7 @@ export def get-script [
       $matching_scripts
     }
   } else if ($recipe | is-not-empty) and ($matching_scripts | is-empty) {
-    let environment = (parse-environments [$recipe])
+    let environment = (parse-environments [$recipe] $quiet)
 
     if ($environment | is-not-empty) {
       return (choose-recipe ($environment | first | get name))
@@ -90,11 +123,11 @@ export def get-script [
   }
 }
 
-export def main [recipe: string] {
+export def main [recipe: string quiet = false] {
   let scripts = (
     fd --exclude tests --extension nu "" .environments
     | lines
   )
 
-  get-script $recipe $scripts
+  get-script $recipe $scripts $quiet
 }
