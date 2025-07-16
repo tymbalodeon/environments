@@ -1,11 +1,31 @@
 #!/usr/bin/env nu
 
 use file.nu open-temporary-file
-use ../../default/scripts/cd-to-root.nu
+use ../../default/scripts/environment.nu print-error
 
 def main [file?: string] {
+  let local_config_file = (fd config --json | lines)
+
+  let args = if ($local_config_file | is-empty) {
+    let user_config = try {
+      bun run tree-sitter init-config
+      | complete
+      | get stderr
+      | lines
+      | first
+      | split row ": "
+      | last
+    } catch {
+      print-error "failed to read tree-sitter config file"
+    }
+
+    []
+  } else {
+    let config_file = ($local_config_file | first)
+    [--config-path $config_file]
+  }
+
   let temporary_file = (open-temporary-file $file)
-  cd-to-root tree-sitter
-  bun run tree-sitter highlight $temporary_file --config-path config.json
+  bun run tree-sitter highlight $temporary_file ...$args
   rm $temporary_file
 }
