@@ -24,11 +24,11 @@ def "main activate" [] {
 }
 
 export def print-error [message: string] {
-  print $"(ansi red_bold)error(ansi reset): ($message)"
+  print --stderr $"(ansi red_bold)error(ansi reset): ($message)"
 }
 
 export def print-warning [message: string] {
-  print $"(ansi yellow_bold)warning(ansi reset): ($message)"
+  print --stderr $"(ansi yellow_bold)warning(ansi reset): ($message)"
 }
 
 def get-features [
@@ -57,7 +57,7 @@ export def get-environment-path [path?: string] {
 
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
-  quiet = false
+  quiet: bool
 ] {
   let valid_environments = (get-available-environments)
   mut invalid_environments = []

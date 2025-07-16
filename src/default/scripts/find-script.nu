@@ -36,28 +36,45 @@ export def choose-recipe [environment?: string] {
 }
 
 export def get-script [
-  recipe: string
   scripts: list<string>
-  quiet = false
+  path_or_environment_or_recipe?: string
+  recipe?: string
+  quiet = true
 ] {
-  if ($recipe | path exists) {
-    return $recipe
+  if ($path_or_environment_or_recipe | is-not-empty) and (
+    $path_or_environment_or_recipe | path exists
+  ) {
+    return $path_or_environment_or_recipe
   }
 
-  let parts = (
-    $recipe
+  let parts = if ($recipe | is-empty) and (
+    $path_or_environment_or_recipe
+    | is-not-empty
+  ) {
+    $path_or_environment_or_recipe
     | split row "::"
     | split row "/"
-  )
-
-  let environment = if ($parts | length) == 1 {
-    ""
-  } else {
-    $parts
-    | first
   }
 
-  let $recipe = ($parts | last)
+  let recipe = if ($recipe | is-not-empty) {
+    $recipe
+  } else if ($path_or_environment_or_recipe | is-not-empty) {
+    $parts
+    | last
+  } else {
+    return (choose-recipe)
+  }
+
+  let environment = if ($recipe | is-not-empty) {
+    $path_or_environment_or_recipe
+  } else if ($path_or_environment_or_recipe | is-not-empty) {
+    if ($parts | length) == 1 {
+      ""
+    } else {
+      $parts
+      | first
+    }
+  } 
 
   let matching_scripts = (
     $scripts
@@ -123,11 +140,15 @@ export def get-script [
   }
 }
 
-export def main [recipe: string quiet = false] {
+export def main [
+  environment_or_recipe?: string
+  recipe?: string
+  quiet = false
+] {
   let scripts = (
     fd --exclude tests --extension nu "" .environments
     | lines
   )
 
-  get-script $recipe $scripts $quiet
+  get-script $scripts $environment_or_recipe $recipe $quiet
 }
