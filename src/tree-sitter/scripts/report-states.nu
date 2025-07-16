@@ -12,7 +12,7 @@ def main [
     $rule
   }
 
-  let files = (get-grammar-files.nu $grammar_path)
+  let files = (get-grammar-files $grammar_path)
 
   for file in $files {
     (
