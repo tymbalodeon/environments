@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-def main [directory_or_path?: string] {
+export def main [directory_or_path?: string] {
   let directory_or_path = if ($directory_or_path | is-empty) {
     "."
   } else {
