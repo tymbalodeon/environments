@@ -41,24 +41,26 @@ let scripts = [
   .environments/python/scripts/version.nu
 ]
 
+# FIXME: no choose-recipe in tests
+
 #[test]
 def test-get-script-help [] {
   assert equal (
-    get-script default/help $scripts
+    get-script $scripts help
     ) .environments/default/scripts/help.nu
 }
 
 #[test]
 def test-get-script-environments-help [] {
   assert equal (
-    get-script environments/help $scripts
+    get-script $scripts environments help
   ) .environments/environments/scripts/help.nu
 }
 
 #[test]
 def test-get-script-environments-help-colons [] {
   assert equal (
-    get-script environments::help $scripts
+    get-script $scripts environments::help
   ) .environments/environments/scripts/help.nu
 }
 
@@ -66,7 +68,7 @@ def test-get-script-environments-help-colons [] {
 def test-get-script-python [] {
   (
     assert equal
-      (get-script python/help $scripts)
+      (get-script $scripts python/help)
       .environments/python/scripts/help.nu
   )
 }
@@ -75,7 +77,7 @@ def test-get-script-python [] {
 def test-get-script-python-colons [] {
   (
     assert equal
-      (get-script python::help $scripts)
+      (get-script $scripts python::help)
       .environments/python/scripts/help.nu
 
   )

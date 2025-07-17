@@ -172,11 +172,8 @@ export def display-just-help [
     | where {"::" not-in $in}
   )
 
-  # TODO: does this make sense, or should it be quiet always or quiet never?
-  let quiet = ($recipe_or_subcommand | is-empty)
-
   let parsed_environments = if ($environment_or_recipe | is-not-empty) {
-    parse-environments [$environment_or_recipe] $quiet
+    parse-environments [$environment_or_recipe] true
   } else {
     []
   }
