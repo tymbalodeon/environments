@@ -156,7 +156,8 @@ export def display-just-help [
   subcommands?: list<string>
   --color: string
 ] {
-  # TODO: allow recipe aliases
+  # TODO: if there are no matches in default, try main alias, if there are
+  # duplicates, use fzf
   
   let summary = (just --summary | split row " ")
 
@@ -205,16 +206,34 @@ export def display-just-help [
     if ($recipe_or_subcommand in $environment_recipes) {
       $recipe_or_subcommand
     } else {
-      return
+      let aliases = (get-aliases false false false --environment $environment)
+
+      if ($recipe_or_subcommand in $aliases.alias) {
+        $aliases
+        | where alias == $recipe_or_subcommand
+        | first
+        | get recipe
+      } else {
+        return
+      }
     }
   } else if ($recipe_or_subcommand | is-empty) and (
     $environment_or_recipe in $default_recipes
   ) {
     $environment_or_recipe
-  } else if ($environment_or_recipe | is-not-empty) and (
-    $environment_or_recipe != $environment
-  ) {
-      return
+  } else if ($environment_or_recipe | is-not-empty) {
+    if ($environment_or_recipe != $environment) {
+      let aliases = (get-aliases true false false --environment default)
+
+      if ($environment_or_recipe in $aliases.alias) {
+        $aliases
+        | where alias == $environment_or_recipe
+        | first
+        | get recipe
+      } else {
+        return
+      }
+    }
   } else {
     if ($environments | is-not-empty) {
       print (main-help $environment --color $color)
@@ -262,6 +281,7 @@ def get-aliases [
   --environment: string
   --justfile: string
 ] {
+  # TODO: add environment aliases
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
