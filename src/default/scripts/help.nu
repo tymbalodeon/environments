@@ -156,9 +156,6 @@ export def display-just-help [
   subcommands?: list<string>
   --color: string
 ] {
-  # TODO: if there are no matches in default, try main alias, if there are
-  # duplicates, use fzf
-  
   let summary = (just --summary | split row " ")
 
   let environments = (
@@ -193,7 +190,7 @@ export def display-just-help [
     return (main-help --color $color)
   }
 
-  let recipe = if ($recipe_or_subcommand | is-not-empty) and (
+  let recipe_or_script = if ($recipe_or_subcommand | is-not-empty) and (
     $environment 
     | is-not-empty
   ) {
@@ -231,7 +228,28 @@ export def display-just-help [
         | first
         | get recipe
       } else {
-        return
+        let matching_scripts = (
+          $summary
+          | where {$environment_or_recipe in $in}
+        )
+
+        if ($matching_scripts | is-not-empty) {
+          $matching_scripts
+          | each {
+              |recipe|
+
+              let parts = (
+                $recipe
+                | split row ::
+              )
+
+              find-script ($parts | first) ($parts | last)
+            }
+          | to text
+          | fzf --preview "bat --force-colorization {}"
+        } else {
+          return
+        }
       }
     }
   } else {
@@ -242,7 +260,11 @@ export def display-just-help [
     return
   }
 
-  let script = (find-script $environment $recipe)
+  let script = if ($recipe_or_script | path exists) {
+    $recipe_or_script
+  } else {
+    find-script $environment $recipe_or_script
+  }
 
   if (rg "^def main --wrapped" $script | is-not-empty) {
     if ($subcommands | is-empty) {
@@ -281,7 +303,6 @@ def get-aliases [
   --environment: string
   --justfile: string
 ] {
-  # TODO: add environment aliases
   let justfile = if ($justfile | is-empty) {
     "Justfile"
   } else {
