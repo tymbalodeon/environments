@@ -263,6 +263,12 @@ export def display-just-help [
   let script = if ($recipe_or_script | path exists) {
     $recipe_or_script
   } else {
+    let environment = if ($environment | is-empty) {
+      "default"
+    } else {
+      $environment
+    }
+
     find-script $environment $recipe_or_script
   }
 
