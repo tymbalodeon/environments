@@ -24,6 +24,10 @@ alias env := environment
 @issue *args:
     .environments/default/scripts/issue.nu {{ args }}
 
+# View README file
+@readme *args:
+    .environments/default/scripts/readme.nu  {{ args }}
+
 # View or open recipes
 @recipe *args:
     .environments/default/scripts/recipe.nu  {{ args }}
@@ -65,9 +69,9 @@ mod python ".environments/python/Justfile"
 alias add := python::add
 alias deps := python::dependencies
 alias dependencies := python::dependencies
+alias generate-readme := environments::generate-readme
 alias pin := python::pin
 alias profile := python::profile
-alias readme := environments::readme
 alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run

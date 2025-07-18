@@ -4,13 +4,13 @@ set working-directory := "../.."
 @help *args:
     .environments/environments/scripts/help.nu {{ args }}
 
+# Update README
+@generate-readme *args:
+    .environments/environments/scripts/generate-readme.nu {{ args }}
+
 # Update init flake and pre-commit hooks
 @update *args:
     .environments/environments/scripts/update.nu {{ args }}
-
-# Update README
-@readme *args:
-    .environments/environments/scripts/readme.nu {{ args }}
 
 # Reload environment
 @reload *args:
