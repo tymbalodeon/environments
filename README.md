@@ -38,14 +38,13 @@ _On non-NixOS systems:_ Install Nix using the Determinate Systems
 
 Initialize an existing project:
 
-<!-- `init` start -->
+<!-- init start -->
 
 ```sh
-nix run github:tymbalodeon/environments?dir=init# --no-write-lock-file \
-  init [ENVIRONMENT]...
+nix run github.com:tymbalodeon/environments?dir=init# [ENVIRONMENT]...
 ```
 
-<!-- `init` end -->
+<!-- init end -->
 
 If [`direnv`](https://direnv.net/) is installed, the `devShell` can be activated
 by running `just environment activate`.

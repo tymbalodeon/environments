@@ -2,8 +2,8 @@
 
 use ../../default/scripts/environment.nu "main list"
 
-def generate-readme-text [text: string target: string] {
-  let text = $"<!-- ($target) start -->\n($text)\n<!-- ($target) end -->"
+def generate-readme-text [section: record<text: string target: string>] {
+  let target = $section.target
 
   open README.md
   | (
@@ -12,13 +12,23 @@ def generate-readme-text [text: string target: string] {
           $"<!-- ($target) start -->\(.|\\s\)*<!-- ($target) end -->"
         )
 
-        $text
+        $"<!-- ($target) start -->\n($section.text)\n<!-- ($target) end -->"
     )
   | save --force README.md
 }
 
 # Update repo link in README
 def main [] {
+  let repo_info = try {
+    git remote get-url origin
+    | parse "git@{domain}:{user}/{repo}.git"
+    | first
+  }
+
+  let remote_url = if ($repo_info | is-not-empty) {
+    $"($repo_info.domain):($repo_info.user)/($repo_info.repo)?dir=init#"
+  }
+
   let sections = [
     {
       target: environments
@@ -31,20 +41,26 @@ def main [] {
         | to text
       )
     }
-
-    {
-      target: init
-
-      # TODO: generate the url dynamically using git
-      text: "```sh
-nix run github:tymbalodeon/environments?dir=init# --no-write-lock-file \\
-  init [ENVIRONMENT]...
-```"
-    }
   ]
 
+  let sections = if ($remote_url | is-not-empty) {
+    $sections
+    | append (
+        {
+          target: init
+
+          text: $"```sh
+nix run ($remote_url) [ENVIRONMENT]...
+```"
+        }
+      
+    )
+  } else {
+    $sections
+  }
+
   for section in $sections {
-    generate-readme-text $section.text $section.target
+    generate-readme-text $section
   }
 
   prettier --write README.md

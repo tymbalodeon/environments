@@ -558,7 +558,7 @@ def "main list active" [
   }
 
   let environments = (open .environments/environments.toml).environments
-  let valid_environments = (get-available-environments)
+  let valid_environments = (get-available-environments --exclude-local)
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
