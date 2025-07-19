@@ -273,6 +273,23 @@ export def "main add" [
   main activate
 }
 
+# Open local shell(s) in $EDITOR
+def "main edit shell" [] {
+  let shells = (fd --extension nix shell .environments | lines)
+
+  let shell = if ($shells | length) > 1 {
+    $shells
+    | to text
+    | fzf
+  } else {
+    $shells
+    | first
+  }
+
+  
+  ^$env.EDITOR $shell
+}
+
 # Open .environments/environments.toml file
 def "main edit" [] {
   ^$env.EDITOR .environments/environments.toml
