@@ -72,6 +72,17 @@ def get-todos [
 
   let available_environments = (get-available-environments)
 
+  # TODO: allow globs
+  let excluded_paths = if (".environments/environments.toml" | path exists) {
+    open .environments/environments.toml
+    | get environments
+    | where name == default
+    | first
+    | get todo.exclude_paths
+  } else {
+    []
+  }
+
   let matches = (
     $matches
     | lines
@@ -85,6 +96,16 @@ def get-todos [
         }
 
         let path = $match.path.text
+
+        if ($path in $excluded_paths) {
+          return false
+        }
+
+        for excluded_path in $excluded_paths {
+          if ($path | str starts-with $excluded_path) {
+            return false
+          }
+        }
 
         if not ($path | str starts-with .environments) {
           $path
