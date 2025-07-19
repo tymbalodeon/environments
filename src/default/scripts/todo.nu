@@ -104,7 +104,7 @@ def get-todos [
 
         let path = $match.path.text
 
-        if ($path in $excluded_paths) {
+        if ($path | str starts-with .git) or ($path in $excluded_paths) {
           return false
         }
 
