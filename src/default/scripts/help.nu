@@ -234,19 +234,29 @@ export def display-just-help [
         )
 
         if ($matching_scripts | is-not-empty) {
-          $matching_scripts
-          | each {
-              |recipe|
+          let matching_scripts = (
+            $matching_scripts
+            | each {
+                |recipe|
 
-              let parts = (
-                $recipe
-                | split row ::
-              )
 
-              find-script ($parts | first) ($parts | last)
-            }
-          | to text
-          | fzf --preview "bat --force-colorization {}"
+                let parts = (
+                  $recipe
+                  | split row ::
+                )
+
+                find-script ($parts | first) ($parts | last)
+              }
+          )
+
+          if ($matching_scripts | length) > 1 {
+            $matching_scripts
+            | to text
+            | fzf --preview "bat --force-colorization {}"
+          } else {
+            $matching_scripts
+            | first
+          }
         } else {
           return
         }

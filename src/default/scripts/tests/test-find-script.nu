@@ -41,13 +41,11 @@ let scripts = [
   .environments/python/scripts/version.nu
 ]
 
-# FIXME: no choose-recipe in tests
-
 #[test]
 def test-get-script-help [] {
   assert equal (
-    get-script $scripts help
-    ) .environments/default/scripts/help.nu
+    get-script $scripts check
+    ) .environments/default/scripts/check.nu
 }
 
 #[test]
