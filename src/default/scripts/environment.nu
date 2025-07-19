@@ -326,7 +326,7 @@ export def get-aliases-files [environment: string] {
   | sort
 }
 
-def get-available-environments [] {
+export def get-available-environments [] {
   ls --short-names (get-environment-path)
   | where type == dir
   | get name

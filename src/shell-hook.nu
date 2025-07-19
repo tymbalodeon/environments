@@ -253,7 +253,7 @@ def generate-justfile-and-scripts [
         $"(get-local-environment-directory $environment)/scripts"
       )
 
-      mkdir $local_scripts
+      ensure-directory-exists $local_scripts
 
       for file in (fd --exclude tests "" $scripts | lines) {
         ^cp $file $local_scripts
@@ -268,7 +268,7 @@ def generate-justfile-and-scripts [
           $"(get-local-environment-directory $environment)/scripts"
         )
 
-        mkdir $local_scripts
+        ensure-directory-exists $local_scripts
 
         for file in (
           ls $features
@@ -647,7 +647,7 @@ def main [] {
     }
 
     let directory = (get-local-environment-directory $environment)
-    mkdir $directory
+    ensure-directory-exists $directory
     chmod --recursive +w $directory
   }
 
@@ -657,6 +657,5 @@ def main [] {
   generate-justfile-and-scripts $active_environments $inactive_environments
   generate-pre-commit-config-file $active_environments $inactive_environments
   run-hooks $active_environments $inactive_environments
-
   chmod +w --recursive .environments
 }

@@ -3,4 +3,8 @@ name = "git"
 features = ["release"]
 
 [[environments]]
+name = "default"
+todo.exclude_paths = ["one", "two"]
+
+[[environments]]
 name = "python"
