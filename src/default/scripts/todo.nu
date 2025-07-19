@@ -74,11 +74,15 @@ def get-todos [
 
   # TODO: allow globs
   let excluded_paths = if (".environments/environments.toml" | path exists) {
-    open .environments/environments.toml
-    | get environments
-    | where name == default
-    | first
-    | get todo.exclude_paths
+    try {
+      open .environments/environments.toml
+      | get environments
+      | where name == default
+      | first
+      | get todo.exclude_paths
+    } catch {
+      []
+    }
   } else {
     []
   }
