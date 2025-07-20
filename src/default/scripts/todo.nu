@@ -75,7 +75,6 @@ def get-todos [
     | get name
   )
 
-  # TODO: allow globs
   let excluded_paths = if (".environments/environments.toml" | path exists) {
     try {
       open .environments/environments.toml
@@ -109,8 +108,16 @@ def get-todos [
         }
 
         for excluded_path in $excluded_paths {
-          if ($path | str starts-with $excluded_path) {
+          let files_to_exclude = (ls ($excluded_path | into glob) | get name)
+
+          if $path in $files_to_exclude {
             return false
+          }
+
+          for file in $files_to_exclude {
+            if ($path | str starts-with $file) {
+              return false
+            }
           }
         }
 

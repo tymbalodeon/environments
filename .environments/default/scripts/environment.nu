@@ -543,14 +543,15 @@ def get-default-environments [] {
   }
 }
 
-# List active environments
+# List installed environments
 def "main list active" [
   --aliases # Show environment aliases
+  --all # Show all installed environments
   --color = "auto" # When to use colored output {always|auto|never}
-  --default # Show only default active environments
+  --default # Show only default installed environments
   --features # Show active features
   --local # Show local environments
-  --user # Show only user active environments
+  --user # Show only user installed environments [default]
 ] {
   if not (".environments/environments.toml" | path exists) {
     return
@@ -558,8 +559,6 @@ def "main list active" [
 
   let environments = (open .environments/environments.toml).environments
   let valid_environments = (get-available-environments --exclude-local)
-
-  let all = [$default $local $user] | all {not $in}
 
   let local_environments = if $all or $user or not (
     [$all $default $user]
@@ -717,13 +716,6 @@ def "main list active" [
   } else {
     $text
   }
-}
-
-
-# List default environments
-def "main list default" [] {
-  (get-default-environments).name
-  | to text --no-newline
 }
 
 def get-environment-files [
