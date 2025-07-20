@@ -181,9 +181,13 @@ export def display-just-help [
     | where {"::" not-in $in}
   )
 
-  let parsed_environments = if ($environment_or_recipe | is-not-empty) {
-    parse-environments [$environment_or_recipe] true
-  } else {
+  let parsed_environments = try {
+    if ($environment_or_recipe | is-not-empty) {
+      parse-environments [$environment_or_recipe] true
+    } else {
+      []
+    }
+  } catch {
     []
   }
 
