@@ -6,7 +6,8 @@
     fd
     fzf
     just
-    lychee
+    # FIXME (doesn't build)
+    # lychee
     markdown-oxide
     marksman
     nodePackages.prettier
