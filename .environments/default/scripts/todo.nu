@@ -40,10 +40,10 @@ def "main open" [
   ^$env.EDITOR (
     (
       get-todos
-        $exclude_path
         $sort_by_keyword
         never
         $path
+        $exclude_path
         --keyword $keyword
     )
     | get $index
@@ -61,10 +61,10 @@ def get-comment-token-pattern [] {
 }
 
 def get-todos [
-  exclude_path: string
   sort_by_keyword: bool
   color: string
   path?: string
+  exclude_path?: string
   --keyword: string
 ] {
   let pattern = $"(get-comment-token-pattern) \(FIXME|NOTE|TODO\)"
@@ -98,7 +98,12 @@ def get-todos [
     []
   }
 
-  let excluded_paths = ($excluded_paths | append $exclude_path)
+  let excluded_paths = if ($exclude_path | is-not-empty) {
+    $excluded_paths
+    | append $exclude_path
+  } else {
+    $excluded_paths
+  }
 
   let matches = (
     $matches
@@ -219,10 +224,10 @@ def main [
 ] {
   let todos = (
     get-todos
-      $exclude_path
       $sort_by_keyword
       $color
       $path
+      $exclude_path
       --keyword $keyword
   )
 
