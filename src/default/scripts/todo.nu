@@ -53,6 +53,7 @@ def get-comment-token-pattern [] {
 }
 
 def get-todos [
+  exclude_path: string
   sort_by_keyword: bool
   color: string
   path?: string
@@ -88,6 +89,8 @@ def get-todos [
   } else {
     []
   }
+
+  let excluded_paths = ($excluded_paths | append $exclude_path)
 
   let matches = (
     $matches
@@ -202,10 +205,18 @@ def get-todos [
 def main [
   path?: string # A path to search for keywords
   --color = "auto" # When to use colored output {always|auto|never}
+  --exclude-path: string # Path (or glob) to exclude when searching for TODO comments
   --keyword: string # Filter to the specified keyword
   --sort-by-keyword # Sort by todo keyword
 ] {
-  let todos = (get-todos $sort_by_keyword $color $path --keyword $keyword)
+  let todos = (
+    get-todos
+      $exclude_path
+      $sort_by_keyword
+      $color
+      $path
+      --keyword $keyword
+  )
 
   let width = (
     (
