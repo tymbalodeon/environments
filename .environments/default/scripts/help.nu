@@ -270,6 +270,18 @@ export def display-just-help [
     return
   }
 
+  if ($environment | is-not-empty) and (
+    $recipe_or_script
+    | is-empty
+  ) {
+    return (
+      just
+        --color always
+        --justfile $".environments/($environment)/Justfile"
+        --list
+    )
+  }
+
   let script = if ($recipe_or_script | is-not-empty) and (
     $recipe_or_script
     | path exists
