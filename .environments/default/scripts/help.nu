@@ -270,7 +270,10 @@ export def display-just-help [
     return
   }
 
-  let script = if ($recipe_or_script | path exists) {
+  let script = if ($recipe_or_script | is-not-empty) and (
+    $recipe_or_script
+    | path exists
+  ) {
     $recipe_or_script
   } else {
     let environment = if ($environment | is-empty) {
