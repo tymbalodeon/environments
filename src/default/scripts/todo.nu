@@ -7,6 +7,7 @@ use environment.nu use-colors
 def "main open" [
   index?: int # Open todo at $index as it appears in `todo` with the same options
   path?: string # A path to search for keywords
+  --exclude-path: string # Path (or glob) to exclude when searching for TODO comments
   --keyword: string # Filter to the specified keyword
   --sort-by-keyword # Sort by todo keyword
 ] {
@@ -37,7 +38,14 @@ def "main open" [
   }
 
   ^$env.EDITOR (
-    get-todos $sort_by_keyword never $path --keyword $keyword
+    (
+      get-todos
+        $exclude_path
+        $sort_by_keyword
+        never
+        $path
+        --keyword $keyword
+    )
     | get $index
     | get file
   )
