@@ -6,6 +6,7 @@
 .helix/config.toml
 .venv
 __pycache__/
+book
 dist/
 init/flake.lock
 src/**/uv.lock

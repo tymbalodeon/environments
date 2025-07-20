@@ -59,9 +59,18 @@ alias todos := todo
     .environments/git/scripts/release.nu  {{ args }}
 
 [private]
+@doc *args:
+    just documentation {{ args }}
+
+[private]
+@docs *args:
+    just documentation {{ args }}
+
+[private]
 @py *args:
     just python {{ args }}
 
+mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
 mod nix ".environments/nix/Justfile"
 mod python ".environments/python/Justfile"
@@ -69,12 +78,15 @@ mod python ".environments/python/Justfile"
 alias add := python::add
 alias deps := python::dependencies
 alias dependencies := python::dependencies
+alias dev := documentation::develop
+alias develop := documentation::develop
 alias generate-readme := environments::generate-readme
 alias pin := python::pin
 alias profile := python::profile
 alias reload := environments::reload
 alias remove := python::remove
 alias run := python::run
+alias serve := documentation::serve
 alias set-executable := environments::set-executable
 alias sort-gitignores := environments::sort-gitignores
 alias test := python::test

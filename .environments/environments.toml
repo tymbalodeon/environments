@@ -1,4 +1,7 @@
 [[environments]]
+name = "documentation"
+
+[[environments]]
 name = "git"
 features = ["release"]
 
