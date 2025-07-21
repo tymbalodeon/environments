@@ -132,7 +132,13 @@ def append-main-aliases [
             | str join ", "
           )
 
-          $"($line) (ansi magenta)[alias: ($aliases)](ansi reset)"
+          let alias = $"[alias: ($aliases)]"
+
+          let alias = if (use-colors $color) {
+            $"(ansi magenta)($alias)(ansi reset)"
+          }
+
+          $"($line) ($alias)"
         } else {
           $line
         }

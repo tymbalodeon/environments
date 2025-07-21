@@ -11,16 +11,13 @@ export def use-colors [color: string] {
 # Activate installed environments
 def "main activate" [] {
   if (which direnv | is-empty) {
-    print "Direnv (https://direnv.net/) is not installed."
-    print "Please install and try again."
+    nix develop
+  } else {
+    "use flake"
+    | save --force .envrc
 
-    exit 1
+    direnv allow
   }
-
-  "use flake"
-  | save --force .envrc
-
-  direnv allow
 }
 
 export def print-error [message: string] {
