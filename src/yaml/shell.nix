@@ -1,4 +1,4 @@
-{pkgs}: {
+{pkgs, ...}: {
   packages = with pkgs; [
     ansible-language-server
     yaml-language-server

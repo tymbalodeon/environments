@@ -5,7 +5,6 @@
   };
 
   outputs = {
-    inputs,
     nixpkgs,
     rust-overlay,
     ...
@@ -43,7 +42,7 @@
                     path = ./${environment}/shell.nix;
                   in
                     if builtins.pathExists path
-                    then import path {inherit inputs pkgs;}
+                    then import path {inherit pkgs;}
                     else {};
 
                   toolchain =

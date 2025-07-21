@@ -15,6 +15,7 @@
 
   outputs = {
     environments,
+    inputs,
     nixpkgs,
     nutest,
     systems,
@@ -31,7 +32,7 @@
 
         modules =
           map
-          (module: (import module {inherit pkgs;}))
+          (module: (import module {inherit inputs pkgs;}))
           (builtins.filter
             (path: builtins.pathExists path)
             (map

@@ -1,4 +1,4 @@
-{pkgs}: {
+{pkgs, ...}: {
   packages = with pkgs; [
     gyre-fonts
     lilypond-unstable-with-fonts
