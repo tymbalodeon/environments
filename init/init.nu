@@ -19,8 +19,8 @@ def main [
       $temporary_directory
   )
 
-  cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
+  cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
   nu $"($env.ENVIRONMENTS)/default/scripts/environment.nu" add ...$environments
   git add .
   rm --force --recursive $temporary_directory
