@@ -23,7 +23,7 @@ export def get-pre-commit-hook-names [config: record<repos: list<any>>] {
     let name = (
       if types in ($hook | columns) {
         $hook.types
-      } 
+      }
     )
 
     if ($name | is-not-empty) {

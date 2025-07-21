@@ -1,6 +1,8 @@
 # Configuration
 
-Some environments include configuration options that can be set in the `.environments/environments.toml` file. These options are documented below, with the default values shown.
+Some environments include configuration options that can be set in the
+`.environments/environments.toml` file. These options are documented below, with
+the default values shown.
 
 ## default
 

@@ -53,7 +53,7 @@ def main [] {
 nix run ($remote_url) [ENVIRONMENT]...
 ```"
         }
-      
+
     )
   } else {
     $sections
