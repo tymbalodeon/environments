@@ -212,7 +212,7 @@ export def display-just-help [
   }
 
   let recipe_or_script = if ($recipe_or_subcommand | is-not-empty) and (
-    $environment
+    $environment 
     | is-not-empty
   ) {
     let environment_recipes = (

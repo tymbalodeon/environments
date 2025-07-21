@@ -283,7 +283,7 @@ def "main edit shell" [] {
     | first
   }
 
-
+  
   ^$env.EDITOR $shell
 }
 
