@@ -1,15 +1,15 @@
-def main [...environments: string] {
-  let remote_url = (
-    "https://raw.githubusercontent.com/tymbalodeon/environments/trunk"
-  )
+#!/usr/bin/env nu
+
+# Initialize a directory
+def main [
+  ...environments: string # Environments to activate
+  --directory: string # Path to the directory to initialize
+] {
+  if ($directory | is-not-empty) {
+    cd $directory
+  }
 
   git init
-  let project_root = (git rev-parse --show-toplevel)
-
-  http get $"($remote_url)/src/default/flake.nix"
-  | save --force $"($project_root)/flake.nix"
-
-  git add .
 
   let temporary_directory = (mktemp --directory --tmpdir)
 
@@ -19,7 +19,9 @@ def main [...environments: string] {
       $temporary_directory
   )
 
+  cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
-  environment add ...$environments
+  nu $"($env.ENVIRONMENTS)/default/scripts/environment.nu" add ...$environments
+  git add .
   rm --force --recursive $temporary_directory
 }

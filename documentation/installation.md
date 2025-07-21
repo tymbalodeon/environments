@@ -18,7 +18,7 @@ and running the following, specifying the name(s) of any environments you want
 to activate, or leaving them blank to activate the default environment only:
 
 ```shell
-nix run github.com:tymbalodeon/environments?dir=init# [ENVIRONMENT]...
+nix run github.com:tymbalodeon/environments?dir=init# [--directory=<path>] [environment...]
 ```
 
 Once activated, environments can be managed via
