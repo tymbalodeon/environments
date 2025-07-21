@@ -31,7 +31,7 @@ repos:
     hooks:
       - id: alejandra-system
   - repo: https://github.com/astro/deadnix
-    rev: v1.3.0
+    rev: v1.3.1
     hooks:
       - id: deadnix
         args:
@@ -100,8 +100,8 @@ repos:
           - I
   - repo: local
     hooks:
-      - id: readme
-        name: readme
+      - id: generate-readme
+        name: generate-readme
         entry: just environments generate-readme
         language: system
         pass_filenames: false
@@ -112,12 +112,12 @@ repos:
         pass_filenames: false
       - id: sort-gitignores
         name: sort-gitignores
-        entry: just sort-gitignores
+        entry: just environments sort-gitignores
         language: system
         pass_filenames: false
       - id: test
         name: test
-        entry: just env test
+        entry: just environment test
         language: system
         pass_filenames: false
       - id: update-environments

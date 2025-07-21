@@ -32,10 +32,9 @@ def main [
 ] {
   (
     display-just-help
+      environments
       $recipe
       $subcommands
       --color $color
-      --environment environments
-      --justfile (get-environment-justfile)
   )
 }

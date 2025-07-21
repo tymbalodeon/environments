@@ -41,7 +41,7 @@ Initialize an existing project:
 <!-- init start -->
 
 ```sh
-nix run github.com:tymbalodeon/environments?dir=init# [--directory=<path>] [environment...]
+nix run github.com:tymbalodeon/environments?dir=init# [ENVIRONMENT]...
 ```
 
 <!-- init end -->
