@@ -84,6 +84,7 @@ alias generate-readme := environments::generate-readme
 alias pin := python::pin
 alias profile := python::profile
 alias reload := environments::reload
+alias rm := python::remove
 alias remove := python::remove
 alias run := python::run
 alias serve := documentation::serve
