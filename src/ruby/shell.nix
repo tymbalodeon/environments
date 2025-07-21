@@ -3,5 +3,5 @@
     ruby
   ];
 
-  shellHook = "export PATH=$PATH:$GEM_PATH";
+  shellHook = "export PATH=$PATH:$HOME/.local/share/gem/bin";
 }
