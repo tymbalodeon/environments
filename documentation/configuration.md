@@ -9,7 +9,7 @@ the default values shown.
 ```toml
 [[environments]]
 name = "default"
-todo.exclude_paths = [] # array of paths or globs to ignore in `just todo`
+todo.exclude_paths = [] # paths or globs to ignore in `just todo`
 ```
 
 ## python
@@ -17,5 +17,13 @@ todo.exclude_paths = [] # array of paths or globs to ignore in `just todo`
 ```toml
 [[environments]]
 name = "python"
-root = "" # The directory containing the `pyproject.toml` file
+root = "" # The directory containing `pyproject.toml`
+```
+
+## ruby
+
+```toml
+[[environments]]
+name = "ruby"
+root = "" # The directory containing `Gemfile`
 ```
