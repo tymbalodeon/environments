@@ -66,7 +66,7 @@ nix run ($remote_url) [ENVIRONMENT]...
   }
 
   for section in $sections {
-    generate-text $section 
+    generate-text $section
   }
 
   prettier --write README.md

@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../scripts/environments-file.nu get-root
+use ../.scripts/environments-file.nu get-root
 
 def "main remove" [] {
   (
