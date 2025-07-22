@@ -18,6 +18,10 @@ def generate-text [
           $"<!-- ($target) start -->\n($section.text)\n<!-- ($target) end -->"
       )
     | save --force $file
+
+    if ($file | path parse | get extension) == "md" {
+      prettier --write $file
+    }
   }
 }
 
