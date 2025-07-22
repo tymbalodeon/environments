@@ -1,0 +1,10 @@
+Style/FrozenStringLiteralComment:
+  Enabled: No
+Metrics/BlockLength:
+  Enabled: No
+Metrics/MethodLength:
+  Enabled: No
+Style/Documentation:
+  Enabled: No
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
