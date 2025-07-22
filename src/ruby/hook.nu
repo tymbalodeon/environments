@@ -1,18 +1,13 @@
 #!/usr/bin/env nu
 
+use ../scripts/environments-file.nu get-root
+
 def "main remove" [] {
   rm --force Gemfile
 }
 
 def main [] {
-  # TODO: make this a shared function
-  let root = do --ignore-errors {
-    open .environments/environments.toml
-    | get environments
-    | where name == ruby
-    | get root
-    | first
-  }
+  let root = (get-root ruby)
 
   if ($root | is-not-empty) {
     cd $root
