@@ -934,6 +934,8 @@ def "main remove" [
   }
 }
 
+alias "main rm" = main remove
+
 def list-short-names [directory: string file?: string] {
   let search = if ($file | is-not-empty) {
     $file

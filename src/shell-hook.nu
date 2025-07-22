@@ -53,7 +53,7 @@ def copy-files [
     | where {path exists}
 
     for directory in $files_directories {
-      for file in (ls $directory) {
+      for file in (ls --all $directory) {
         rm --force --recursive ($file.name | path basename)
       }
     }
@@ -68,7 +68,7 @@ def copy-files [
           let files = $"($feature)/files"
 
           if ($files | path exists) {
-            for file in (ls --short-names $files | get name) {
+            for file in (ls --all --short-names $files | get name) {
               rm --force $file
             }
           }
