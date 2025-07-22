@@ -26,7 +26,7 @@ def copy-directory-files [directory: string] {
     return
   }
 
-  for file in (ls $directory) {
+  for file in (ls --all $directory) {
     ^cp --recursive $file.name .
     chmod --recursive +w ($file.name | path basename)
   }
@@ -53,8 +53,8 @@ def copy-files [
     | where {path exists}
 
     for directory in $files_directories {
-      for file in (ls --all $directory) {
-        rm --force --recursive ($file.name | path basename)
+      for file in (ls --all $directory | get name) {
+        rm --force --recursive ($file | path basename)
       }
     }
   }
