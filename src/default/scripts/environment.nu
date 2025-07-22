@@ -1070,7 +1070,7 @@ def "main test" [
   nu --commands $command --include-path $env.NUTEST
 }
 
-# Update environment dependencies
+# Update environment inputs (see `environment inputs`)
 export def "main update" [
   ...inputs: string # The name of the input(s) to update (leave blank to update all)
 ] {
