@@ -20,6 +20,7 @@ Available environments:
 - markdown
 - nix
 - python
+- ruby
 - rust
 - toml
 - tree-sitter

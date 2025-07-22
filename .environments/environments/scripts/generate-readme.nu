@@ -2,19 +2,23 @@
 
 use ../../default/scripts/environment.nu "main list"
 
-def generate-readme-text [section: record<text: string target: string>] {
+def generate-text [
+  section: record<files: list<string> target: string text: string>
+] {
   let target = $section.target
 
-  open README.md
-  | (
-      str replace
-        --regex (
-          $"<!-- ($target) start -->\(.|\\s\)*<!-- ($target) end -->"
-        )
+  for file in $section.files {
+    open $file
+    | (
+        str replace
+          --regex (
+            $"<!-- ($target) start -->\(.|\\s\)*<!-- ($target) end -->"
+          )
 
-        $"<!-- ($target) start -->\n($section.text)\n<!-- ($target) end -->"
-    )
-  | save --force README.md
+          $"<!-- ($target) start -->\n($section.text)\n<!-- ($target) end -->"
+      )
+    | save --force $file
+  }
 }
 
 # Update repo link in README
@@ -31,6 +35,7 @@ def main [] {
 
   let sections = [
     {
+      files: [documentation/introduction.md README.md]
       target: environments
 
       text: (
@@ -47,6 +52,7 @@ def main [] {
     $sections
     | append (
         {
+          files: [README.md]
           target: init
 
           text: $"```sh
@@ -60,7 +66,7 @@ nix run ($remote_url) [ENVIRONMENT]...
   }
 
   for section in $sections {
-    generate-readme-text $section
+    generate-text $section 
   }
 
   prettier --write README.md

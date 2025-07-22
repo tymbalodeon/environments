@@ -11,7 +11,6 @@ ones.
 Available environments:
 
 <!-- environments start -->
-
 - c
 - default
 - documentation
@@ -24,6 +23,7 @@ Available environments:
 - markdown
 - nix
 - python
+- ruby
 - rust
 - toml
 - tree-sitter
