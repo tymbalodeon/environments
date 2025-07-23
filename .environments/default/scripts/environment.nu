@@ -335,6 +335,7 @@ def "main edit shell" [] {
 # Open .environments/environments.toml file
 def "main edit" [] {
   ^$env.EDITOR .environments/environments.toml
+  main activate
 }
 
 # List flake inputs
@@ -871,10 +872,19 @@ def "main remove" [
       | each {
           |column|
 
-          {
-            $column: (
-              $languages
+          let values = (
+            $languages
             | get $column
+          )
+
+          let values = if ($values | describe --detailed | get type) != list {
+            [$values]
+          } else {
+            $values
+          }
+
+          let values = (
+            $values
             | where {
                 let environment_languages = (
                   get-environment-files $environment languages.toml
@@ -884,9 +894,13 @@ def "main remove" [
                   $in not-in ($environment_languages | get $column)
                 )
               }
-            )
+          )
+
+          if ($values | is-not-empty) {
+            {$column: $values}
           }
         }
+      | where {is-not-empty}
       | into record
       | save --force .helix/languages.toml
 
