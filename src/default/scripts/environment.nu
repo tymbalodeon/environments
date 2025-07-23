@@ -335,6 +335,7 @@ def "main edit shell" [] {
 # Open .environments/environments.toml file
 def "main edit" [] {
   ^$env.EDITOR .environments/environments.toml
+  main activate
 }
 
 # List flake inputs
