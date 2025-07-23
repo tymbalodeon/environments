@@ -56,11 +56,12 @@ def main [] {
     $sections
     | append (
         {
-          files: [README.md]
+          files: [documentation/installation.md README.md]
           target: init
 
           text: $"```sh
-nix run ($remote_url) [ENVIRONMENT]...
+nix run \\
+  ($remote_url) [ENVIRONMENT]...
 ```"
         }
 

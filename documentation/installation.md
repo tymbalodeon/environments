@@ -17,9 +17,14 @@ Once installed, you can initialize and activate a repository by `cd`-ing into it
 and running the following, specifying the name(s) of any environments you want
 to activate, or leaving them blank to activate the default environment only:
 
-```shell
-nix run github.com:tymbalodeon/environments?dir=init# [--directory=<path>] [environment...]
+<!-- init start -->
+
+```sh
+nix run \
+  github.com:tymbalodeon/environments?dir=init# [ENVIRONMENT]...
 ```
+
+<!-- init end -->
 
 Once activated, environments can be managed via
 [just](https://just.systems/man/en/) and the included

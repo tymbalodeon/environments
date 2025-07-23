@@ -8,9 +8,9 @@ set working-directory := "../.."
 @check *args:
     .environments/environments/scripts/check.nu {{ args }}
 
-# Update README
-@generate-readme *args:
-    .environments/environments/scripts/generate-readme.nu {{ args }}
+# Generate dynamic values for README and documentation
+@generate-text *args:
+    .environments/environments/scripts/generate-text.nu {{ args }}
 
 # Update init flake and pre-commit hooks
 @update *args:
