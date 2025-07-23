@@ -12,6 +12,8 @@ set working-directory := "../.."
 @dependencies *args:
     .environments/ruby/scripts/dependencies.nu {{ args }}
 
+alias deps := dependencies
+
 # Remove dependencies
 @remove *args:
     .environments/ruby/scripts/remove.nu {{ args }}
