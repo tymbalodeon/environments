@@ -270,6 +270,52 @@ export def "main add" [
   main activate
 }
 
+# Open a local recipe in $EDITOR
+def "main edit recipe" [recipe?: string] {
+  let default_environments = (
+    get-available-environments --exclude-local
+    | get name
+  )
+
+  let recipes = (
+    fd --extension nu "" .environments
+    | lines
+    | where {
+        (
+          $in
+          | path split
+          | get 1
+        ) not-in $default_environments
+      }
+  )
+
+  let recipe = if ($recipe | is-empty) {
+    $recipes
+    | to text
+    | fzf
+  } else {
+    let recipe = (
+      $recipes
+      | find --no-highlight $recipe
+    )
+
+    if ($recipe | is-empty) {
+      return
+    }
+
+    if ($recipe | length) > 1 {
+      $recipe
+      | to text
+      | fzf
+    } else {
+      $recipe
+      | first
+    }
+  }
+
+  ^$env.EDITOR $recipe
+}
+
 # Open local shell(s) in $EDITOR
 def "main edit shell" [] {
   let shells = (fd --extension nix shell .environments | lines)
@@ -282,7 +328,6 @@ def "main edit shell" [] {
     $shells
     | first
   }
-
 
   ^$env.EDITOR $shell
 }
