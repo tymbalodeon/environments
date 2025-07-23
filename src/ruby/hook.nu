@@ -10,6 +10,7 @@ def main [] {
   let root = (get-root ruby)
 
   if ($root | is-not-empty) {
+    main remove
     cd $root
   }
 

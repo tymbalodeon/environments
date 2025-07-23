@@ -20,6 +20,7 @@ def main [] {
   let root = (get-root python)
 
   if ($root | is-not-empty) {
+    main remove
     cd $root
   }
 
