@@ -100,9 +100,9 @@ repos:
           - I
   - repo: local
     hooks:
-      - id: generate-readme
-        name: generate-readme
-        entry: just environments generate-readme
+      - id: generate-text
+        name: generate-text
+        entry: just environments generate-text
         language: system
         pass_filenames: false
       - id: set-executable

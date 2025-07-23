@@ -1,10 +1,12 @@
-Style/FrozenStringLiteralComment:
-  Enabled: No
+Layout/LineLength:
+  Max: 80
 Metrics/BlockLength:
   Enabled: No
 Metrics/MethodLength:
   Enabled: No
 Style/Documentation:
+  Enabled: No
+Style/FrozenStringLiteralComment:
   Enabled: No
 Style/StringLiterals:
   EnforcedStyle: double_quotes

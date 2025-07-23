@@ -3,3 +3,33 @@ set working-directory := "../.."
 # View help text
 @help *args:
     .environments/ruby/scripts/help.nu {{ args }}
+
+# Add dependencies
+@add *args:
+    .environments/ruby/scripts/add.nu {{ args }}
+
+# Show application dependencies
+@dependencies *args:
+    .environments/ruby/scripts/dependencies.nu {{ args }}
+
+# Remove dependencies
+@remove *args:
+    .environments/ruby/scripts/remove.nu {{ args }}
+
+alias rm := remove
+
+# Open an interactive ruby shell
+@shell *args:
+    .environments/ruby/scripts/shell.nu {{ args }}
+
+alias sh := shell
+
+# Run tests
+@test *args:
+    .environments/ruby/scripts/test.nu {{ args }}
+
+# Update dependencies
+@update *args:
+    .environments/ruby/scripts/update.nu {{ args }}
+
+alias up := update
