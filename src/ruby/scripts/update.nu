@@ -4,27 +4,21 @@ use ../../default/scripts/cd-to-root.nu
 
 # Update dependencies
 def main [
-  # TODO: implement me!
-  --breaking # Update to latest SemVer-breaking versions
+  ...dependencies: string # Dependencies to update
   --dev # Update only development dependencies
   --prod # Update only production dependencies
 ] {
-  # TODO: allow passing the names of dependencies?
   cd-to-root ruby
 
-  if $breaking {
-    # TODO: implement me!
-  } else {
-    let group = if $dev {
-      "dev"
-    } else if $prod {
-      "prod"
-    }
+  let group = if $dev {
+    "dev"
+  } else if $prod {
+    "prod"
+  }
 
-    if ($group | is-not-empty) {
-      bundle update --group $group
-    } else {
-      bundle update
-    }
+  if ($group | is-not-empty) {
+    bundle update --group $group
+  } else {
+    bundle update
   }
 }

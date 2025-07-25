@@ -4,11 +4,11 @@ use ../../default/scripts/cd-to-root.nu
 
 # Update dependencies
 def main [
+  ...dependencies: string # Dependencies to update
   --breaking # Update to latest SemVer-breaking versions
   --dev # Update only development dependencies
   --prod # Update only production dependencies
 ] {
-  # TODO: allow passing names of dependencies
   cd-to-root python
 
   if $breaking {
