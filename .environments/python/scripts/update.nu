@@ -8,6 +8,7 @@ def main [
   --dev # Update only development dependencies
   --prod # Update only production dependencies
 ] {
+  # TODO: allow passing names of dependencies
   cd-to-root python
 
   if $breaking {
