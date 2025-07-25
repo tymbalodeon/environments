@@ -9,7 +9,10 @@
   shellHook = "
     gem_bin_paths=$(
       ${pkgs.nushell}/bin/nu -c '
-        let bin_path = \"~/.local/share/gem/ruby\"
+        let bin_path = (
+          $env.HOME
+          | path join .local/share/gem/ruby
+        )
 
         if ($bin_path | path exists) {
           ls $bin_path
