@@ -320,6 +320,11 @@ def "main edit recipe" [recipe?: string] {
 def "main edit shell" [] {
   let shells = (fd --extension nix shell .environments | lines)
 
+  if ($shells | is-empty) {
+    # TODO: should this create the file instead of returning?
+    return
+  }
+
   let shell = if ($shells | length) > 1 {
     $shells
     | to text
