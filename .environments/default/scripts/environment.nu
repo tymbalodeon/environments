@@ -321,6 +321,7 @@ def "main edit shell" [] {
   let shells = (fd --extension nix shell .environments | lines)
 
   if ($shells | is-empty) {
+    # TODO: should this create the file instead of returning?
     return
   }
 

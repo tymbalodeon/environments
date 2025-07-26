@@ -201,7 +201,17 @@ def merge-environments-and-local-file [
   let file = (
     generate-file $active_environments $environment_file
     | flatten
-    | reduce {|a, b| $a | merge deep $b}
+    | reduce {
+        |a, b|
+
+        if $environment_file == languages.toml {
+          $a
+          | merge deep --strategy append $b
+        } else {
+          $a
+          | merge deep $b
+        }
+      }
   )
 
   let local_file = if ($local_file | is-empty) {
@@ -211,8 +221,18 @@ def merge-environments-and-local-file [
   }
 
   if ($local_file | path exists) {
-    $file
-    | merge deep --strategy overwrite (open $local_file)
+    if $environment_file == languages.toml {
+      let file = (
+        $file
+        | merge deep (open $local_file)
+      )
+
+      $file
+      | update language ($file.language | uniq | sort-by name)
+    } else {
+      $file
+      | merge deep --strategy overwrite (open $local_file)
+    }
   } else {
     $file
   }
