@@ -1,1 +1,2 @@
 max_line_length: 80
+retain_line_breaks_single: true
