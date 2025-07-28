@@ -20,14 +20,6 @@ auto-format = true
 
 [language.formatter]
 command = "alejandra"
-args = [
-  "--autocorrect",
-  "--fail-level",
-  "fatal",
-  "--stderr",
-  "--stdin",
-  "foo.rb",
-]
 
 [[language]]
 name = "python"

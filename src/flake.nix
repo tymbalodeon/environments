@@ -53,14 +53,20 @@
                   then
                     shell
                     // {
-                      packages = shell.packages ++ (with pkgs; [
-                        rust-analyzer-unwrapped
-                        toolchain
-                      ]);
+                      packages =
+                        shell.packages
+                        ++ (with pkgs; [
+                          rust-analyzer-unwrapped
+                          toolchain
+                        ]);
 
-                      shellHook = ''
-                        export RUST_SRC_PATH=${toolchain}/lib/rustlib/src/rust/library
-                      '';
+                      shellHook = let
+                        rust_src_path = "lib/rustlib/src/rust/library";
+                      in
+                        shell.shellHook
+                        ++ ''
+                          export RUST_SRC_PATH=${toolchain}/${rust_src_path}
+                        '';
                     }
                   else shell
               )
