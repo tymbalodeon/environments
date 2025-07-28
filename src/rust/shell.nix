@@ -9,6 +9,7 @@
       cargo-udeps
       cargo-watch
       libiconv
+      # FIXME: this doesn't fix rust helix healthcheck. Figure out why!
       lldb
       rust-analyzer
       zellij
