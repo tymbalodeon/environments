@@ -64,7 +64,7 @@
                         rust_src_path = "lib/rustlib/src/rust/library";
                       in
                         shell.shellHook
-                        ++ ''
+                        + ''
                           export RUST_SRC_PATH=${toolchain}/${rust_src_path}
                         '';
                     }
