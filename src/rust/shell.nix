@@ -9,6 +9,7 @@
       cargo-udeps
       cargo-watch
       libiconv
+      lldb
       rust-analyzer
       zellij
     ]
