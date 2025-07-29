@@ -224,7 +224,7 @@ def merge-environments-and-local-file [
     if $environment_file == languages.toml {
       let file = (
         $file
-        | merge deep (open $local_file)
+        | merge deep --strategy append (open $local_file)
       )
 
       $file
