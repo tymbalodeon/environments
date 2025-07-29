@@ -270,6 +270,18 @@ export def "main add" [
   main activate
 }
 
+# TODO: is it possible to alias this as "main edit languages"?
+
+# Open local helix configuration in $EDITOR
+def "main edit helix languages" [] {
+  ^$env.EDITOR .helix/languages.toml
+}
+
+# Open local helix configuration in $EDITOR
+def "main edit helix" [] {
+  ^$env.EDITOR .helix
+}
+
 # Open a local recipe in $EDITOR
 def "main edit recipe" [recipe?: string] {
   let default_environments = (
