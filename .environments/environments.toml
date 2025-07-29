@@ -4,6 +4,3 @@ name = "documentation"
 [[environments]]
 name = "git"
 features = ["release"]
-
-[[environments]]
-name = "python"

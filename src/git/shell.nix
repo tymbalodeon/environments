@@ -4,11 +4,12 @@
     delta
     gh
     git
+    # TODO: add a script to run gitleaks checks
+    # see https://github.com/gitleaks/gitleaks
+    gitleaks
     glab
     jujutsu
     nb
-    pre-commit
-    python312Packages.pre-commit-hooks
     serie
     tokei
   ];

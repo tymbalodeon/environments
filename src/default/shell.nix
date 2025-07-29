@@ -5,8 +5,8 @@
     eza
     fd
     fzf
-    just
     # FIXME (doesn't build)
+    # TODO: add a script to run this
     # lychee
     markdown-oxide
     marksman

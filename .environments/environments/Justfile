@@ -4,15 +4,11 @@ set working-directory := "../.."
 @help *args:
     .environments/environments/scripts/help.nu {{ args }}
 
-# Run pre-commit hooks
-@check *args:
-    .environments/environments/scripts/check.nu {{ args }}
-
 # Generate dynamic values for README and documentation
 @generate-text *args:
     .environments/environments/scripts/generate-text.nu {{ args }}
 
-# Update init flake and pre-commit hooks
+# Update init flake
 @update *args:
     .environments/environments/scripts/update.nu {{ args }}
 

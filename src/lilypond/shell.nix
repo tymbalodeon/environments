@@ -3,8 +3,6 @@
     gyre-fonts
     lilypond-unstable-with-fonts
     nushell
-    pre-commit
-    python312Packages.pre-commit-hooks
     watchexec
     zathura
     zellij

@@ -6,7 +6,7 @@
 @help *args:
     .environments/default/scripts/help.nu {{ args }}
 
-# Check flake and run pre-commit hooks
+# Check flake
 @check *args:
     .environments/default/scripts/check.nu {{ args }}
 
@@ -66,30 +66,18 @@ alias todos := todo
 @docs *args:
     just documentation {{ args }}
 
-[private]
-@py *args:
-    just python {{ args }}
-
 mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
 mod nix ".environments/nix/Justfile"
-mod python ".environments/python/Justfile"
 
-alias add := python::add
-alias deps := python::dependencies
-alias dependencies := python::dependencies
 alias dev := documentation::develop
 alias develop := documentation::develop
-alias format := python::format
 alias generate-text := environments::generate-text
-alias lint := python::lint
-alias pin := python::pin
-alias profile := python::profile
 alias reload := environments::reload
-alias rm := python::remove
-alias remove := python::remove
-alias run := python::run
 alias serve := documentation::serve
 alias set-executable := environments::set-executable
+alias sh := nix::shell
+alias shell := nix::shell
 alias sort-gitignores := environments::sort-gitignores
-alias test := python::test
+alias up := environments::update
+alias update := environments::update

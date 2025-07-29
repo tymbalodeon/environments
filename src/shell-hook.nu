@@ -193,62 +193,51 @@ def ensure-directory-exists [name: string] {
   chmod --recursive +w $name
 }
 
-def merge-environments-and-local-file [
-  active_environments: list<record<name: string, features: list<string>>>
-  environment_file: string
-  local_file?: string
- ] {
-  let file = (
-    generate-file $active_environments $environment_file
-    | flatten
-    | reduce {
-        |a, b|
-
-        if $environment_file == languages.toml {
-          $a
-          | merge deep --strategy append $b
-        } else {
-          $a
-          | merge deep $b
-        }
-      }
-  )
-
-  let local_file = if ($local_file | is-empty) {
-    $environment_file
-  } else {
-    $local_file
-  }
-
-  if ($local_file | path exists) {
-    if $environment_file == languages.toml {
-      let file = (
-        $file
-        | merge deep --strategy append (open $local_file)
-      )
-
-      $file
-      | update language ($file.language | uniq | sort-by name)
-    } else {
-      $file
-      | merge deep --strategy overwrite (open $local_file)
-    }
-  } else {
-    $file
-  }
-}
-
 def generate-helix-languages-file [
   active_environments: list<record<name: string, features: list<string>>>
 ] {
   ensure-directory-exists .helix
 
-  (
-    merge-environments-and-local-file
-      $active_environments
-      languages.toml
-      .helix/languages.toml
+  let environment_languages = (
+    generate-file $active_environments languages.toml
+    | flatten
+    | reduce {|a, b|  $a | merge deep --strategy append $b}
   )
+
+  let languages = if (".helix/languages.toml" | path exists) {
+    let languages = (
+      open .helix/languages.toml
+      | get language
+      | append $environment_languages.language
+      | uniq
+    )
+
+    mut merged_languages = []
+
+    for language in $languages {
+      if $language.name in $merged_languages.name {
+        $merged_languages = (
+          $merged_languages
+          | where name != $language.name
+          | append (
+              $merged_languages
+              | where name == $language.name
+              | first
+              | merge deep $language
+            )
+        )
+      } else {
+        $merged_languages = ($merged_languages | append $language)
+      }
+    }
+
+    $environment_languages
+    | update language ($merged_languages | uniq | sort-by name)
+  } else {
+    $environment_languages
+  }
+
+  $languages
   | to toml
   | save --force .helix/languages.toml
 
@@ -534,46 +523,6 @@ def generate-justfile-and-scripts [
   just --fmt --unstable
 }
 
-def get-environment-pre-commit-hooks [
-  environment: record<name: string, features: list<string>>
-] {
-  let pre_commit_config = (
-    get-environment-path $environment.name .pre-commit-config.yaml
-  )
-
-  if not ($pre_commit_config | path exists) {
-    return
-  }
-
-  if $environment.name == default {
-    open $pre_commit_config
-    | to yaml
-  } else {
-    $"# ($environment.name)\n"
-    | append (
-        open $pre_commit_config
-        | get repos
-        | to yaml
-      )
-    | str join
-  }
-}
-
-def generate-pre-commit-config-file [
-  active_environments: list<record<name: string, features: list<string>>>
-  inactive_environments: list<string>
-] {
-  (
-    merge-environments-and-local-file
-      $active_environments
-      .pre-commit-config.yaml
-  )
-  | to yaml
-  | save --force .pre-commit-config.yaml
-
-  yamlfmt .pre-commit-config.yaml
-}
-
 def run-hooks [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
@@ -675,7 +624,6 @@ def main [] {
   generate-gitignore-file $active_environments
   generate-helix-languages-file $active_environments
   generate-justfile-and-scripts $active_environments $inactive_environments
-  generate-pre-commit-config-file $active_environments $inactive_environments
   run-hooks $active_environments $inactive_environments
   chmod +w --recursive .environments
 }

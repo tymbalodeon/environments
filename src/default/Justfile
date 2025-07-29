@@ -6,7 +6,7 @@
 @help *args:
     .environments/default/scripts/help.nu {{ args }}
 
-# Check flake and run pre-commit hooks
+# Check flake
 @check *args:
     .environments/default/scripts/check.nu {{ args }}
 

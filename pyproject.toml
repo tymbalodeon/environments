@@ -1,9 +1,0 @@
-[project]
-name = "environments"
-version = "0.1.0"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = ["pre-commit-update>=0.7.0"]
-
-[dependency-groups]
-dev = ["bpython>=0.24", "pytest>=8.3.3"]
