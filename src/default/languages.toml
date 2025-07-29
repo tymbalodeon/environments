@@ -1,4 +1,0 @@
-[[language]]
-name = "just"
-auto-format = true
-formatter = { command = "just", args = ["--justfile", "/dev/stdin", "--dump"] }
