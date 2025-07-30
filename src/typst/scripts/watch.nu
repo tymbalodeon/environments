@@ -9,7 +9,7 @@ def main [file?: string] {
 
   let layout_file = (mktemp --tmpdir $"($file)-XXX.kdl")
 
-  cat typst-layout.kdl
+  cat $"($env.ENVIRONMENTS)/typst/layout.kdl"
   | str replace --all "[file]" $file
   | save --force $layout_file
 

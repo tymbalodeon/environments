@@ -2,5 +2,5 @@
 
 # Open a pre-configured development environment
 def main [] {
-  zellij --layout documentation-layout.kdl
+  zellij --layout $"($env.ENVIRONMENTS)/documentation/layout.kdl"
 }
