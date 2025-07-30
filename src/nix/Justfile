@@ -4,6 +4,10 @@ set working-directory := "../.."
 @help *args:
     .environments/nix/scripts/help.nu {{ args }}
 
+# Format nix files
+@format *args:
+    .environments/nix/scripts/format.nu {{ args }}
+
 # Open an interactive nix shell
 @shell *args:
     .environments/nix/scripts/shell.nu {{ args }}

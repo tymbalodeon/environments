@@ -72,6 +72,7 @@ mod nix ".environments/nix/Justfile"
 
 alias dev := documentation::develop
 alias develop := documentation::develop
+alias format := nix::format
 alias generate-text := environments::generate-text
 alias reload := environments::reload
 alias serve := documentation::serve

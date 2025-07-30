@@ -3,7 +3,6 @@
     # TODO: add a script that will run:
     # nix run github:DeterminateSystems/flake-checker
     # see https://github.com/DeterminateSystems/flake-checker
-    # TODO: add a script that will run the formatter
     alejandra
     # TODO: add a script that will run this
     deadnix
