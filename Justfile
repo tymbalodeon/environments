@@ -16,6 +16,10 @@
 
 alias env := environment
 
+# Format files
+@format *args:
+    .environments/default/scripts/format.nu {{ args }}
+
 # View project history
 @history *args:
     .environments/default/scripts/history.nu {{ args }}
@@ -72,7 +76,6 @@ mod nix ".environments/nix/Justfile"
 
 alias dev := documentation::develop
 alias develop := documentation::develop
-alias format := nix::format
 alias generate-text := environments::generate-text
 alias lint := nix::lint
 alias reload := environments::reload
