@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-# Lint python files
+# Lint nix files
 def main [
   ...paths: string # Files or directories to format
 ] {
@@ -10,6 +10,5 @@ def main [
     $paths
   }
 
-  # TODO: add option for --fix
-  ruff check ...$paths
+  statix fix ...$paths
 }

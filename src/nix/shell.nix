@@ -9,7 +9,6 @@
     flake-checker
     nil
     nixd
-    # TODO: add a script to run this
     statix
   ];
 }

@@ -74,6 +74,7 @@ alias dev := documentation::develop
 alias develop := documentation::develop
 alias format := nix::format
 alias generate-text := environments::generate-text
+alias lint := nix::lint
 alias reload := environments::reload
 alias serve := documentation::serve
 alias set-executable := environments::set-executable
