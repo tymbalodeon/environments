@@ -8,6 +8,8 @@ set working-directory := "../.."
 @format *args:
     .environments/nix/scripts/format.nu {{ args }}
 
+alias fmt := format
+
 # Lint nix files
 @lint *args:
     .environments/nix/scripts/lint.nu {{ args }}

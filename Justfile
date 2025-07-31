@@ -19,6 +19,8 @@ alias env := environment
 @format *args:
     .environments/default/scripts/format.nu {{ args }}
 
+alias fmt := format
+
 # View project history
 @history *args:
     .environments/default/scripts/history.nu {{ args }}
@@ -69,14 +71,27 @@ alias todos := todo
 @docs *args:
     just documentation {{ args }}
 
+[private]
+@envs *args:
+    just environments {{ args }}
+
+[private]
+@md *args:
+    just markdown {{ args }}
+
+[private]
+@yml *args:
+    just yaml {{ args }}
+
 mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
+mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
+mod yaml ".environments/yaml/Justfile"
 
 alias dev := documentation::develop
 alias develop := documentation::develop
 alias generate-text := environments::generate-text
-alias lint := nix::lint
 alias reload := environments::reload
 alias serve := documentation::serve
 alias set-executable := environments::set-executable

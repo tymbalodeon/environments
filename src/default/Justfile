@@ -19,6 +19,8 @@ alias env := environment
 @format *args:
     .environments/default/scripts/format.nu {{ args }}
 
+alias fmt := format
+
 # View project history
 @history *args:
     .environments/default/scripts/history.nu {{ args }}

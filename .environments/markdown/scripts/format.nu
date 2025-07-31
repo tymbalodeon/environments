@@ -2,9 +2,9 @@
 
 use ../../default/scripts/format.nu get-paths
 
-# Format python files
+# Format markdown files
 def main [
   ...paths: string # Files or directories to format
 ] {
-  ruff format ...(get-paths $paths)
+  prettier --write ...(get-paths $paths) out> /dev/null
 }

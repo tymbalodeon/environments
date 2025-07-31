@@ -5,6 +5,7 @@
     # see https://github.com/DeterminateSystems/flake-checker
     alejandra
     # TODO: add a script that will run this
+    # what's a good name for this? "prune"?
     deadnix
     flake-checker
     nil
