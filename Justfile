@@ -85,6 +85,7 @@ alias todos := todo
 
 mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
+mod just ".environments/just/Justfile"
 mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
 mod yaml ".environments/yaml/Justfile"
