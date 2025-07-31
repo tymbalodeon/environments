@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../../default/scripts/format.nu get-paths
+use ../../default/scripts/paths.nu get-paths
 
 # Format python files
 def main [

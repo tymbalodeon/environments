@@ -1,12 +1,6 @@
 #!/usr/bin/env nu
 
-export def get-paths [paths: list<string>] {
-  if ($paths | is-empty) {
-    ["."]
-  } else {
-    $paths
-  }
-}
+use paths.nu get-paths
 
 # TODO: only add this file if submodule formatters are present (they are
 # included in the default environments for now, but maybe they won't be later, or
