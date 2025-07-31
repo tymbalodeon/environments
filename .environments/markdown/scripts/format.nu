@@ -6,5 +6,5 @@ use ../../default/scripts/paths.nu get-paths
 def main [
   ...paths: string # Files or directories to format
 ] {
-  prettier --write ...(get-paths $paths) out> /dev/null
+  prettier --parser markdown --write ...(get-paths $paths) out> /dev/null
 }
