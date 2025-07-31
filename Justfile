@@ -85,6 +85,7 @@ alias todos := todo
 
 mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
+mod git ".environments/git/Justfile"
 mod just ".environments/just/Justfile"
 mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
@@ -93,6 +94,7 @@ mod yaml ".environments/yaml/Justfile"
 alias dev := documentation::develop
 alias develop := documentation::develop
 alias generate-text := environments::generate-text
+alias leaks := git::leaks
 alias reload := environments::reload
 alias serve := documentation::serve
 alias set-executable := environments::set-executable
