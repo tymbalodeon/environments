@@ -22,14 +22,6 @@ auto-format = true
 command = "alejandra"
 
 [[language]]
-name = "python"
-auto-format = true
-
-[language.formatter]
-command = "ruff"
-args = ["format", "-"]
-
-[[language]]
 name = "toml"
 auto-format = true
 

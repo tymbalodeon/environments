@@ -235,6 +235,7 @@ def generate-helix-languages-file [
     | update language ($merged_languages | uniq | sort-by name)
   } else {
     $environment_languages
+    | update language ($environment_languages.language | uniq | sort-by name)
   }
 
   $languages
