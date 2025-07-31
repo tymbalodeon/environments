@@ -6,5 +6,13 @@ use ../../default/scripts/paths.nu get-paths
 def main [
   ...paths: string # Files or directories to format
 ] {
-  prettier --parser markdown --write ...(get-paths $paths) out> /dev/null
+  let paths = if ($paths | is-empty) {
+    fd --extension md
+    | lines
+  } else {
+    get-paths $paths
+    | where {($in | path parse | get extension) == md}
+  }
+
+  prettier --parser markdown --write ...$paths out> /dev/null
 }

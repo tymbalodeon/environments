@@ -1,7 +1,5 @@
 #!/usr/bin/env nu
 
-use paths.nu get-paths
-
 # TODO: only add this file if submodule formatters are present (they are
 # included in the default environments for now, but maybe they won't be later, or
 # could be turned off?)
@@ -40,9 +38,8 @@ def main [
     | where {is-not-empty}
   )
 
-  let paths = (get-paths $paths)
-
   for justfile in $justfiles {
+    print $"Formatting ($justfile | path split | get 1) files..."
     just --justfile $justfile format ...$paths
   }
 }
