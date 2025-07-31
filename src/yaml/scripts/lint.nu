@@ -1,14 +1,10 @@
 #!/usr/bin/env nu
 
+use ../../default/scripts/paths.nu get-paths
+
 # Lint yaml files
 def main [
   ...paths: string # Files or directories to format
 ] {
-  let paths = if ($paths | is-empty) {
-    ["."]
-  } else {
-    $paths
-  }
-
-  yamllint ...$paths
+  yamllint ...(get-paths $paths)
 }

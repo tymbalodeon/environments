@@ -2,9 +2,9 @@
 
 use ../../default/scripts/paths.nu get-paths
 
-# Lint yaml files
+# Lint nix files
 def main [
   ...paths: string # Files or directories to format
 ] {
-  yamllint ...(get-paths $paths)
+  deadnix ...(get-paths $paths)
 }

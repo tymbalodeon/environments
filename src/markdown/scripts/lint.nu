@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../../default/scripts/format.nu get-paths
+use ../../default/scripts/paths.nu get-paths
 
 # Lint markdown files
 def main [
