@@ -165,20 +165,20 @@ def get-todos [
     }
 }
 
-# Open comment at $index in $EDITOR [alias: `edit`]
-def "main open" [
-  index?: int # Open todo at $index as it appears in `todo` with the same options
-  path?: string # A path to search for keywords
-  --exclude-path: string # Path (or glob) to exclude when searching for TODO comments
-  --keyword: string # Filter to the specified keyword
-  --sort-by-keyword # Sort by todo keyword
+def get-index [
+  random: bool
+  sort_by_keyword: bool
+  exclude_path?: string
+  keyword?: string
+  path?: string
+  index?: int
 ] {
   let keyword = if ($keyword | is-not-empty) {
     $keyword
     | str upcase
   }
 
-  let index = if ($index | is-empty) {
+  if ($index | is-empty) {
     let todos = if $sort_by_keyword {
       main --color never --keyword $keyword --sort-by-keyword $path
     } else {
@@ -189,7 +189,10 @@ def "main open" [
       return
     }
 
-    let todo = if ($todos | lines | length) == 1 {
+    let todo = if $random {
+      random int 0..(($todos | lines | length) - 1)
+      | into string
+    } else if ($todos | lines | length) == 1 {
       $todos
     } else {
       $todos
@@ -203,7 +206,15 @@ def "main open" [
   } else {
     $index
   }
+}
 
+def edit-todo [
+  sort_by_keyword: bool
+  exclude_path?: string
+  keyword?: string
+  path?: string
+  index?: int
+] {
   ^$env.EDITOR (
     (
       get-todos {
@@ -219,7 +230,69 @@ def "main open" [
   )
 }
 
+# Open comment at $index in $EDITOR [alias: `edit`]
+def "main open" [
+  index?: int # Open todo at $index as it appears in `todo` with the same options
+  path?: string # A path to search for keywords
+  --exclude-path: string # Path (or glob) to exclude when searching for TODO comments
+  --keyword: string # Filter to the specified keyword
+  --sort-by-keyword # Sort by todo keyword
+] {
+  # TODO: yo
+  let index = (
+    get-index
+      false
+      $sort_by_keyword
+      $exclude_path
+      $keyword
+      $path
+      $index
+  )
+
+  if ($index | is-empty) {
+    return
+  }
+
+  (
+    edit-todo
+      $sort_by_keyword
+      $exclude_path
+      $keyword
+      $path
+      $index
+  )
+}
+
 alias "main edit" = main open
+
+def "main random" [
+  path?: string # A path to search for keywords
+  --exclude-path: string # Path (or glob) to exclude when searching for TODO comments
+  --keyword: string # Filter to the specified keyword
+  --sort-by-keyword # Sort by todo keyword
+] {
+  let index = (
+    get-index
+      true
+      $sort_by_keyword
+      $exclude_path
+      $keyword
+      $path
+  )
+
+  if ($index | is-empty) {
+    return
+  }
+
+  (
+    edit-todo
+      $sort_by_keyword
+      $exclude_path
+      $keyword
+      $path
+      $index
+  )
+}
 
 def color [target: string color: string]: string -> string {
   $in
