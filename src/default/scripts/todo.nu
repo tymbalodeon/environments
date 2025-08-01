@@ -238,7 +238,6 @@ def "main open" [
   --keyword: string # Filter to the specified keyword
   --sort-by-keyword # Sort by todo keyword
 ] {
-  # TODO: yo
   let index = (
     get-index
       false
