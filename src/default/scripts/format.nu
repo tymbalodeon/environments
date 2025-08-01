@@ -1,9 +1,5 @@
 #!/usr/bin/env nu
 
-# TODO: only add this file if submodule formatters are present (they are
-# included in the default environments for now, but maybe they won't be later, or
-# could be turned off?)
-
 # Format files
 def main [
   ...paths: string # Files or directories to format

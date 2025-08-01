@@ -469,6 +469,29 @@ def generate-justfile-and-scripts [
     | sort-by recipe
   )
 
+  if not (
+    (
+      $submodule_recipes
+      | where recipe == format
+      | length
+    ) > 0
+  ) {
+    let text = (
+      open Justfile
+      | split row "\n\n"
+      | where {
+          $in != "alias fmt := format" and not (
+            $in
+            | str starts-with "# Format files"
+          )
+        }
+      | str join "\n\n"
+    )
+
+    $text
+    | save --force Justfile
+  }
+
   let submodule_recipes = (
     $submodule_recipes
     | each {
