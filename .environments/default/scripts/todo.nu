@@ -165,7 +165,7 @@ def get-todos [
     }
 }
 
-# Open comment at $index in $EDITOR
+# Open comment at $index in $EDITOR [alias: `edit`]
 def "main open" [
   index?: int # Open todo at $index as it appears in `todo` with the same options
   path?: string # A path to search for keywords
@@ -218,6 +218,8 @@ def "main open" [
     | get file
   )
 }
+
+alias "main edit" = main open
 
 def color [target: string color: string]: string -> string {
   $in
