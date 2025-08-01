@@ -270,12 +270,12 @@ export def "main add" [
   main activate
 }
 
-# TODO: is it possible to alias this as "main edit languages"?
-
-# Open local helix configuration in $EDITOR
+# Open local helix configuration in $EDITOR [alias: `edit languages`]
 def "main edit helix languages" [] {
   ^$env.EDITOR .helix/languages.toml
 }
+
+export alias "main edit languages" = main edit helix languages
 
 # Open local helix configuration in $EDITOR
 def "main edit helix" [] {
