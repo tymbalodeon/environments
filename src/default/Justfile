@@ -1,5 +1,5 @@
 [private]
-@default: help
+@_: help
 
 # View full help text, or for a specific recipe
 @help *args:

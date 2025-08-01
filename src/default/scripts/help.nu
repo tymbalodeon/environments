@@ -142,7 +142,7 @@ def append-main-aliases [
         } else {
           $line
         }
-    }
+      }
   )
 
   $lines
@@ -164,7 +164,53 @@ def main-help [environment?: string --color: string] {
       )
   )
 
-  return (append-main-aliases (just ...$args) --color $color)
+  let submodules = (
+    open .environments/environments.toml
+    | get environments
+    | where {"hide" in ($in | columns) and $in.hide}
+    | get name
+  )
+
+  let text = (just ...$args | lines | enumerate)
+
+  let text = if ($submodules | is-empty) {
+    $text.item
+    | to text
+  } else {
+    mut lines_to_remove = []
+    mut remove_line = false
+
+    for line in $text {
+      if ($line.item | str starts-with "    ") and (
+        $line.item
+        | find --regex "    [a-z]+:"
+        | is-not-empty
+      ) {
+        if (
+          $line.item
+          | find --regex $"\(($submodules | str join '|')\):"
+          | is-not-empty
+        ) {
+          $remove_line = true
+        } else {
+          $remove_line = false
+        }
+      }
+
+      if $remove_line {
+        $lines_to_remove = ($lines_to_remove | append $line.index)
+      }
+    }
+
+    let text = (
+      $text
+      | where {$in.index not-in $lines_to_remove}
+      | get item
+      | to text
+    )
+  }
+
+  append-main-aliases $text --color $color
 }
 
 export def display-just-help [
