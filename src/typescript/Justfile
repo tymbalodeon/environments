@@ -1,0 +1,15 @@
+set working-directory := "../.."
+
+# View help text
+@help *args:
+    .environments/typescript/scripts/help.nu {{ args }}
+
+# Format typescript files
+@format *args:
+    .environments/typescript/scripts/format.nu {{ args }}
+
+alias fmt := format
+
+# Lint typescript files
+@lint *args:
+    .environments/typescript/scripts/lint.nu {{ args }}
