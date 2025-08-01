@@ -251,6 +251,39 @@ def get-available-environments [] {
   | get name
 }
 
+def set-default-check [
+  name: string
+  submodule_recipes: list<
+    record<
+      environment: string
+      recipe: string
+    >
+  >
+] {
+  if not (
+    (
+      $submodule_recipes
+      | where recipe == $name
+      | length
+    ) > 0
+  ) {
+    let text = (
+      open Justfile
+      | split row "\n\n"
+      | where {
+          $in != $"alias fmt := ($name)" and not (
+            $in
+            | str starts-with $"# ($name | str upcase) files"
+          )
+        }
+      | str join "\n\n"
+    )
+
+    $text
+    | save --force Justfile
+  }
+}
+
 def generate-justfile-and-scripts [
   active_environments: list<record<name: string, features: list<string>>>
   inactive_environments: list<string>
@@ -469,27 +502,8 @@ def generate-justfile-and-scripts [
     | sort-by recipe
   )
 
-  if not (
-    (
-      $submodule_recipes
-      | where recipe == format
-      | length
-    ) > 0
-  ) {
-    let text = (
-      open Justfile
-      | split row "\n\n"
-      | where {
-          $in != "alias fmt := format" and not (
-            $in
-            | str starts-with "# Format files"
-          )
-        }
-      | str join "\n\n"
-    )
-
-    $text
-    | save --force Justfile
+  for recipe in [format lint] {
+    set-default-check $recipe $submodule_recipes
   }
 
   let submodule_recipes = (

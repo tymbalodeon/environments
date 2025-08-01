@@ -29,6 +29,10 @@ alias fmt := format
 @issue *args:
     .environments/default/scripts/issue.nu {{ args }}
 
+# Lint files
+@lint *args:
+    .environments/default/scripts/lint.nu {{ args }}
+
 # View README file
 @readme *args:
     .environments/default/scripts/readme.nu  {{ args }}
