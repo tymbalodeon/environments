@@ -12,6 +12,16 @@ set working-directory := "../.."
 @compile *args:
     .environments/c/scripts/compile.nu {{ args }}
 
+# Format c files
+@format *args:
+    .environments/c/scripts/format.nu {{ args }}
+
+alias fmt := format
+
+# Lint c files
+@lint *args:
+    .environments/c/scripts/lint.nu {{ args }}
+
 # Run
 @run *args:
     .environments/c/scripts/run.nu {{ args }}

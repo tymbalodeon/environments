@@ -1,0 +1,5 @@
+[[language]]
+name = "c"
+auto-format = true
+file-types = ["c", "h"]
+formatter = { command = "clang-format" }
