@@ -1,0 +1,15 @@
+set working-directory := "../.."
+
+# View help text
+@help *args:
+    .environments/python/scripts/help.nu {{ args }}
+
+# Format python files
+@format *args:
+    .environments/python/scripts/format.nu {{ args }}
+
+alias fmt := format
+
+# Lint python files
+@lint *args:
+    .environments/python/scripts/lint.nu {{ args }}
