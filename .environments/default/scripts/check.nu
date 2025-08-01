@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use ../../git/scripts/leaks.nu
+
 export def run-check [name: string paths: list<string>] {
   let justfiles = (
     open Justfile
@@ -38,7 +40,26 @@ export def run-check [name: string paths: list<string>] {
   }
 }
 
-# Check flake
+# Run checks
 export def main [] {
+  leaks
   nix flake check
+
+  let checks = (
+    just --summary
+    | split row " "
+    | where {
+        ($in | str ends-with :check) or (
+          $in
+          | str starts-with format
+        ) or (
+          $in
+          | str starts-with lint
+        )
+      }
+  )
+
+  for check in $checks {
+    just $check
+  }
 }
