@@ -890,13 +890,11 @@ def "main remove" [
         get-environment-files $environment languages.toml
       )
 
-      # TODO: keep if there are extra fields not in the environment definition
       let language = if language in ($local_languages | columns) {
         $local_languages.language
         | where name != $environment.name
       }
 
-      # TODO: keep if there are extra fields not in the environment definition
       let language_server = if language-server in ($local_languages | columns) {
         if language-server not-in ($environment_languages | columns) {
           $local_languages.language-server
