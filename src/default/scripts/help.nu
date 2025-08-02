@@ -202,12 +202,10 @@ def main-help [environment?: string --color: string] {
       }
     }
 
-    let text = (
-      $text
-      | where {$in.index not-in $lines_to_remove}
-      | get item
-      | to text
-    )
+    $text
+    | where {$in.index not-in $lines_to_remove}
+    | get item
+    | to text
   }
 
   append-main-aliases $text --color $color

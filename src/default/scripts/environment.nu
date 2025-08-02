@@ -354,6 +354,57 @@ def "main edit" [] {
   main activate
 }
 
+def update-hide [environments: list<string> value: bool] {
+  open .environments/environments.toml
+  | update environments (
+      open .environments/environments.toml
+      | get environments
+      | each {
+          |environment|
+
+          if $environment.name in $environments {
+            $environment
+            | upsert hide $value
+          } else {
+            $environment
+          }
+        }
+    )
+  | save --force .environments/environments.toml
+}
+
+# Hide environments in help text
+def "main hide" [...environments: string] {
+  let environments = ($environments | str downcase)
+  update-hide $environments true
+}
+
+# Unhide environments in help text
+def "main unhide" [...environments: string] {
+  let environments = ($environments | str downcase)
+  update-hide $environments false
+}
+
+# Hide default environments in help text
+def "main hide default" [] {
+  update-hide (get-default-environments).name true
+}
+
+# Unhide default environments in help text
+def "main unhide default" [] {
+  update-hide (get-default-environments).name false
+}
+
+# Hide help recipes for environments in help text
+def "main hide help" [...environments: string] {
+  print "Implement me"
+}
+
+# Unhide help recipes for environments in help text
+def "main unhide help" [...environments: string] {
+  print "Implement me"
+}
+
 # List flake inputs
 def "main inputs" [] {
   nix flake info --json err> /dev/null
