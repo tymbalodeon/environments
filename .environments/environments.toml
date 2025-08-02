@@ -4,4 +4,4 @@ name = "documentation"
 [[environments]]
 name = "git"
 features = ["release"]
-hide = false
+hide = true

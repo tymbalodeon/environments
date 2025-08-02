@@ -387,11 +387,13 @@ def "main unhide" [...environments: string] {
 
 # Hide default environments in help text
 def "main hide default" [] {
+  # FIXME: if the envs are not in the file, they need to be added
   update-hide (get-default-environments).name true
 }
 
 # Unhide default environments in help text
 def "main unhide default" [] {
+  # FIXME: if the envs have no overrides, they should be removed again
   update-hide (get-default-environments).name false
 }
 
