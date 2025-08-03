@@ -220,6 +220,17 @@ def main-help [environment?: string --color: string] {
     | to text --no-newline
   }
 
+  let text = if hide_help in ($environments | columns) and (
+    $environments.hide_help
+  ) {
+    $text
+    | lines
+    | where {$in | ansi strip | find --regex ' +help \*args' | is-empty}
+    | str join "\n"
+  } else {
+    $text
+  }
+
   append-main-aliases $text --color $color
 }
 

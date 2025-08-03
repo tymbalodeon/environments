@@ -440,14 +440,18 @@ def "main show default" [] {
   update-hide [default] false
 }
 
-# Hide help recipes for environments in help text
-def "main hide help" [...environments: string] {
-  print "Implement me"
+# Hide help recipes help text
+def "main hide help" [] {
+  open .environments/environments.toml
+  | upsert hide_help true
+  | save --force .environments/environments.toml
 }
 
-# Show help recipes for environments in help text
-def "main show help" [...environments: string] {
-  print "Implement me"
+# Show help recipes in help text
+def "main show help" [] {
+  open .environments/environments.toml
+  | reject hide_help
+  | save --force .environments/environments.toml
 }
 
 # List flake inputs
