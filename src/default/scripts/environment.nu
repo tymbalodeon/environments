@@ -974,7 +974,11 @@ def "main remove" [
 
       let language = if language in ($local_languages | columns) {
         $local_languages.language
-        | where name != $environment.name
+        | where name not-in (
+            $environment_languages.language
+            | first
+            | get name
+          )
       }
 
       let language_server = if language-server in (
