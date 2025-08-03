@@ -348,10 +348,30 @@ def "main edit shell" [] {
   ^$env.EDITOR $shell
 }
 
+def get-environments-file-with-features [] {
+  open .environments/environments.toml
+  | get environments
+  | each {
+    if features in ($in | columns) {
+      $in
+    } else {
+      $in
+      | insert features null
+    }
+  }
+}
+
 # Open .environments/environments.toml file
 def "main edit" [] {
+  let existing_file = (get-environments-file-with-features)
   ^$env.EDITOR .environments/environments.toml
-  main activate
+  let new_file = (get-environments-file-with-features)
+
+  if $new_file.name != $existing_file.name or (
+    $new_file.features != $existing_file.features
+  ) {
+    main activate
+  }
 }
 
 def update-hide [environments: list<string> value: bool] {
