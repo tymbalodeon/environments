@@ -4,6 +4,10 @@ set working-directory := "../.."
 @help *args:
     .environments/javascript/scripts/help.nu {{ args }}
 
+# Check javascript files
+@check *args:
+    .environments/javascript/scripts/check.nu {{ args }}
+
 # Format javascript files
 @format *args:
     .environments/javascript/scripts/format.nu {{ args }}

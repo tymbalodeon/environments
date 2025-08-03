@@ -4,6 +4,10 @@ set working-directory := "../.."
 @help *args:
     .environments/typescript/scripts/help.nu {{ args }}
 
+# Check typescript files
+@check *args:
+    .environments/typescript/scripts/check.nu {{ args }}
+
 # Format typescript files
 @format *args:
     .environments/typescript/scripts/format.nu {{ args }}
