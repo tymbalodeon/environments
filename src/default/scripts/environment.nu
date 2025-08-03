@@ -416,14 +416,16 @@ def "main unhide" [...environments: string] {
 
 # Hide default environments in help text
 def "main hide default" [] {
-  # FIXME: if the envs are not in the file, they need to be added
-  update-hide (get-default-environments).name true
+  open .environments/environments.toml
+  | upsert hide_default true
+  | save --force .environments/environments.toml
 }
 
 # Unhide default environments in help text
 def "main unhide default" [] {
-  # FIXME: if the envs have no overrides, they should be removed again
-  update-hide (get-default-environments).name false
+  open .environments/environments.toml
+  | reject hide_default
+  | save --force .environments/environments.toml
 }
 
 # Hide help recipes for environments in help text
@@ -666,7 +668,7 @@ export def "main list" [
   | str join "\n"
 }
 
-def get-default-environments [] {
+export def get-default-environments [] {
   [
     default
     git

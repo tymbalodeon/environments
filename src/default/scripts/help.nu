@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use environment.nu get-aliases-files
+use environment.nu get-default-environments
 use environment.nu parse-environments
 use environment.nu print-warning
 use environment.nu use-colors
@@ -164,16 +165,27 @@ def main-help [environment?: string --color: string] {
       )
   )
 
-  let submodules = (
-    open .environments/environments.toml
+  let environments = (open .environments/environments.toml)
+
+  let hidden_submodules = (
+    $environments
     | get environments
     | where {"hide" in ($in | columns) and $in.hide}
     | get name
   )
 
+  let hidden_submodules = if hide_default in ($environments | columns) and (
+    $environments.hide_default
+  ) {
+    $hidden_submodules
+    | append (get-default-environments).name
+  } else {
+    $hidden_submodules
+  }
+
   let text = (just ...$args | lines | enumerate)
 
-  let text = if ($submodules | is-empty) {
+  let text = if ($hidden_submodules | is-empty) {
     $text.item
     | to text
   } else {
@@ -188,7 +200,7 @@ def main-help [environment?: string --color: string] {
       ) {
         if (
           $line.item
-          | find --regex $"\(($submodules | str join '|')\):"
+          | find --regex $"\(($hidden_submodules | str join '|')\):"
           | is-not-empty
         ) {
           $remove_line = true
@@ -205,7 +217,7 @@ def main-help [environment?: string --color: string] {
     $text
     | where {$in.index not-in $lines_to_remove}
     | get item
-    | to text
+    | to text --no-newline
   }
 
   append-main-aliases $text --color $color
