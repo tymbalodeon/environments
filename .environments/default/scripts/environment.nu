@@ -432,12 +432,12 @@ def "main show" [...environments: string] {
 
 # Hide default environments in help text
 def "main hide default" [] {
-  update-hide $environments true
+  update-hide [default] true
 }
 
 # Show default environments in help text
 def "main show default" [] {
-  update-hide $environments false
+  update-hide [default] false
 }
 
 # Hide help recipes for environments in help text
