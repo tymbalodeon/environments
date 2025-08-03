@@ -384,48 +384,60 @@ def "main edit" [] {
 }
 
 def update-hide [environments: list<string> value: bool] {
-  open .environments/environments.toml
-  | update environments (
-      open .environments/environments.toml
-      | get environments
-      | each {
-          |environment|
+  let environments = (parse-environments $environments).name
+  let configuration = (open .environments/environments.toml)
 
-          if $environment.name in $environments {
-            $environment
-            | upsert hide $value
-          } else {
-            $environment
+  let configuration = (
+    $configuration
+    | update environments (
+        $configuration.environments
+        | each {
+            |environment|
+
+            if $environment.name in $environments {
+              $environment
+              | upsert hide $value
+            } else {
+              $environment
+            }
           }
-        }
-    )
+      )
+  )
+
+  let configuration = if default in $environments {
+    if $value {
+      $configuration
+      | upsert hide_default true
+    } else {
+      $configuration
+      | reject hide_default
+    }
+  } else {
+    $configuration
+  }
+
+  $configuration
   | save --force .environments/environments.toml
 }
 
 # Hide environments in help text
 def "main hide" [...environments: string] {
-  let environments = ($environments | str downcase)
   update-hide $environments true
 }
 
-# Unhide environments in help text
-def "main unhide" [...environments: string] {
-  let environments = ($environments | str downcase)
+# Show environments in help text
+def "main show" [...environments: string] {
   update-hide $environments false
 }
 
 # Hide default environments in help text
 def "main hide default" [] {
-  open .environments/environments.toml
-  | upsert hide_default true
-  | save --force .environments/environments.toml
+  update-hide $environments true
 }
 
-# Unhide default environments in help text
-def "main unhide default" [] {
-  open .environments/environments.toml
-  | reject hide_default
-  | save --force .environments/environments.toml
+# Show default environments in help text
+def "main show default" [] {
+  update-hide $environments false
 }
 
 # Hide help recipes for environments in help text
