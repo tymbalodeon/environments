@@ -335,7 +335,16 @@ def "main edit shell" [] {
   let shell = if ($shells | is-empty) {
     let local_environment = $".environments/(pwd | path split | last)"
     mkdir $local_environment
-    $"($local_environment)/shell.nix"
+    let shell = $"($local_environment)/shell.nix"
+
+    "{pkgs,...}: {
+  packages = with pkgs; [
+    
+  ];
+}"
+    | save $shell
+
+    $shell
   } else if ($shells | length) > 1 {
     $shells
     | to text
