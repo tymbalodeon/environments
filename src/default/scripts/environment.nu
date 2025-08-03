@@ -445,8 +445,8 @@ def "main hide help" [...environments: string] {
   print "Implement me"
 }
 
-# Unhide help recipes for environments in help text
-def "main unhide help" [...environments: string] {
+# Show help recipes for environments in help text
+def "main show help" [...environments: string] {
   print "Implement me"
 }
 
