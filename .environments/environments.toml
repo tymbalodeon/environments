@@ -1,3 +1,5 @@
+hide_help = true
+
 [[environments]]
 name = "documentation"
 
