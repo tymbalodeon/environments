@@ -977,7 +977,10 @@ def "main remove" [
         | where name != $environment.name
       }
 
-      let language_server = if language-server in ($local_languages | columns) {
+      let language_server = if language-server in (
+        $local_languages
+        | columns
+      ) {
         if language-server not-in ($environment_languages | columns) {
           $local_languages.language-server
         } else {
@@ -986,7 +989,9 @@ def "main remove" [
             let columns = (
               $local_languages.language-server
               | columns
-              | where {$in not-in ($environment_languages.language-server | columns)}
+              | where {
+                  $in not-in ($environment_languages.language-server | columns)
+                }
             )
 
             for column in $columns {
