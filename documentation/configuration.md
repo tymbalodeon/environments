@@ -4,12 +4,15 @@ Some environments include configuration options that can be set in the `.environ
 
 ## `just` output
 
-Running `just` will display a list of available commands. Commands can be hidden by adding the value `hide = true` to the environment configuration. Commands for all the default environments can be hidden by adding the global value `hide_default = true`.
+Running `just` will display a list of available commands. Commands can be hidden (but will still be callable) by adding the setting `hide = true` to an environment configuration. Commands for the default environments can be hidden by adding the global setting `hide_default = true`.
+
+Every environment comes with its own `help` recipe. These can all be hidden from the output of `just` by adding the global setting `hide_help = true`.
 
 ### global
 
 ```toml
 hide_default = true # Hide commands for default environments in `just` output
+hide_help = true # Hide help recipes in `just`output
 ```
 
 ### default
