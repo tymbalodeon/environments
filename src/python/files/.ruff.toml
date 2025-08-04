@@ -1,3 +1,6 @@
 exclude = [".git", ".ruff_cache", ".venv", "build", "dist"]
 indent-width = 4
 line-length = 79
+
+[lint]
+select = ["I"]
