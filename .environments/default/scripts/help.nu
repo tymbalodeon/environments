@@ -150,7 +150,7 @@ def append-main-aliases [
   | to text --no-newline
 }
 
-def main-help [environment?: string --color: string] {
+def main-help [all: bool environment?: string --color: string] {
   let args = (
     [
       --color $color
@@ -165,7 +165,10 @@ def main-help [environment?: string --color: string] {
       )
   )
 
-  let environments = if (".environments/environments.toml" | path exists) {
+  let environments = if not $all and (
+    ".environments/environments.toml"
+    | path exists
+  ) {
     open .environments/environments.toml
   }
 
@@ -242,6 +245,7 @@ def main-help [environment?: string --color: string] {
 }
 
 def get-help-text [
+  all: bool
   environment_or_recipe?: string
   recipe_or_subcommand?: string
   subcommands?: list<string>
@@ -282,7 +286,7 @@ def get-help-text [
   let environment = if ($environment_or_recipe in $environments) {
     $environment_or_recipe
   } else if ($environment_or_recipe | is-empty) {
-    return (main-help --color $color)
+    return (main-help $all --color $color)
   } else {
     if $environment_or_recipe == default and (
       $recipe_or_subcommand
@@ -376,7 +380,7 @@ def get-help-text [
       }
     }
   } else if ($environments | is-not-empty) {
-    return (main-help $environment --color $color)
+    return (main-help $all $environment --color $color)
   }
 
   if ($environment | is-not-empty) and (
@@ -422,14 +426,16 @@ def get-help-text [
 }
 
 export def display-just-help [
+  all: bool
   environment_or_recipe?: string
   recipe_or_subcommand?: string
   subcommands?: list<string>
   --color: string
-  --paging = "auto" # When to use pager {always|auto|never}
+  --paging = "auto"
 ] {
   let help_text = (
     get-help-text
+      $all
       $environment_or_recipe
       $recipe_or_subcommand
       $subcommands
@@ -646,10 +652,12 @@ def "main aliases default" [
 def "main default" [
   recipe_or_subcommand?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
+  --all # Display all help text, including hidden environments and recipes
   --color = "always" # When to use colored output {always|auto|never}
 ] {
   (
     display-just-help
+      $all
       default
       $recipe_or_subcommand
       $subcommands
@@ -662,11 +670,13 @@ def main [
   environment_or_recipe?: string # View help text for recipe
   recipe_or_subcommand?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
+  --all # Display all help text, including hidden environments and recipes
   --color = "always" # When to use colored output {always|auto|never}
   --paging = "auto" # When to use pager {always|auto|never}
 ] {
   (
     display-just-help
+      $all
       $environment_or_recipe
       $recipe_or_subcommand
       $subcommands
