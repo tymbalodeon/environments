@@ -8,6 +8,8 @@ Running `just` will display a list of available commands. Commands can be hidden
 
 Every environment comes with its own `help` recipe. These can all be hidden from the output of `just` by adding the global setting `hide_help = true`.
 
+To view hidden help text without updating the `.environments/environments.toml` file, run `just help --all`.
+
 ### global
 
 ```toml
