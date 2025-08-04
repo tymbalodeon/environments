@@ -426,10 +426,10 @@ def get-help-text [
 }
 
 export def display-just-help [
-  all: bool
   environment_or_recipe?: string
   recipe_or_subcommand?: string
   subcommands?: list<string>
+  all = true
   --color: string
   --paging = "auto"
 ] {
@@ -657,10 +657,10 @@ def "main default" [
 ] {
   (
     display-just-help
-      $all
       default
       $recipe_or_subcommand
       $subcommands
+      $all
       --color $color
   )
 }
@@ -676,10 +676,10 @@ def main [
 ] {
   (
     display-just-help
-      $all
       $environment_or_recipe
       $recipe_or_subcommand
       $subcommands
+      $all
       --color $color
       --paging $paging
   )
