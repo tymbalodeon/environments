@@ -12,13 +12,17 @@ set working-directory := "../.."
 @build *args:
     .environments/rust/scripts/build.nu {{ args }}
 
+# Check rust files
+@check *args:
+    .environments/rust/scripts/check.nu {{ args }}
+
 # Remove generated files
 @clean *args:
     .environments/rust/scripts/clean.nu {{ args }}
 
 # Run clippy
-@check *args:
-    .environments/rust/scripts/check.nu {{ args }}
+@clippy *args:
+    .environments/rust/scripts/clippy.nu {{ args }}
 
 # Show application dependencies
 @deps *args:
