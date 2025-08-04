@@ -17,8 +17,8 @@ set working-directory := "../.."
     .environments/rust/scripts/clean.nu {{ args }}
 
 # Run clippy
-@clippy *args:
-    .environments/rust/scripts/clippy.nu {{ args }}
+@check *args:
+    .environments/rust/scripts/check.nu {{ args }}
 
 # Show application dependencies
 @deps *args:
@@ -29,6 +29,12 @@ set working-directory := "../.."
     .environments/rust/scripts/develop.nu {{ args }}
 
 alias dev := develop
+
+# Format rust files
+@format *args:
+    .environments/rust/scripts/format.nu {{ args }}
+
+alias fmt := format
 
 # Install the application
 @install *args:
