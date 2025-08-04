@@ -49,9 +49,8 @@ def "main list" [
   )
 
   match $paging {
-    "always" | "auto" => ($themes | bat),
-    # "auto" => ($themes | bat),
-    _ => $themes
+    "never" => $themes,
+    _ => ($themes | bat)
   }
 }
 

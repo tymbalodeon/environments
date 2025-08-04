@@ -234,7 +234,7 @@ def main-help [environment?: string --color: string] {
   append-main-aliases $text --color $color
 }
 
-export def display-just-help [
+def get-help-text [
   environment_or_recipe?: string
   recipe_or_subcommand?: string
   subcommands?: list<string>
@@ -368,12 +368,8 @@ export def display-just-help [
         }
       }
     }
-  } else {
-    if ($environments | is-not-empty) {
-      print (main-help $environment --color $color)
-    }
-
-    return
+  } else if ($environments | is-not-empty) {
+    return (main-help $environment --color $color)
   }
 
   if ($environment | is-not-empty) and (
@@ -415,6 +411,27 @@ export def display-just-help [
     } else {
       nu $script ...$subcommands --help
     }
+  }
+}
+
+export def display-just-help [
+  environment_or_recipe?: string
+  recipe_or_subcommand?: string
+  subcommands?: list<string>
+  --color: string
+  --paging = "auto" # When to use pager {always|auto|never}
+] {
+  let help_text = (
+    get-help-text
+      $environment_or_recipe
+      $recipe_or_subcommand
+      $subcommands
+      --color $color
+  )
+
+  match $paging {
+    "never" => $help_text,
+    _ => ($help_text | bat)
   }
 }
 
@@ -639,6 +656,7 @@ def main [
   recipe_or_subcommand?: string # View help text for recipe
   ...subcommands: string  # View help for a recipe subcommand
   --color = "always" # When to use colored output {always|auto|never}
+  --paging = "auto" # When to use pager {always|auto|never}
 ] {
   (
     display-just-help
@@ -646,5 +664,6 @@ def main [
       $recipe_or_subcommand
       $subcommands
       --color $color
+      --paging $paging
   )
 }
