@@ -151,11 +151,39 @@ def append-main-aliases [
 }
 
 def main-help [all: bool environment?: string --color: string] {
-  let args = (
-    [
+  let environments = if not $all and (
+    ".environments/environments.toml"
+    | path exists
+  ) {
+    open .environments/environments.toml
+  }
+
+  let hide_help = ($environments | is-not-empty) and (
+    "hide_help" in ($environments | columns)
+  ) and (
+    $environments.hide_help
+  )
+
+  let args = [
       --color $color
       --list
     ]
+
+  let args = if not $hide_help {
+    $args
+    | append [
+      --list-heading $"(
+        ansi default_bold
+      )use `just help` for more options \(see `just help --help`\)(
+        ansi reset
+      )\n"
+    ]
+  } else {
+    $args
+  }
+
+  let args = (
+    $args
     | append (
         if ($environment | is-not-empty) {
           [--justfile $".environments/($environment)/Justfile"]
@@ -164,13 +192,6 @@ def main-help [all: bool environment?: string --color: string] {
         }
       )
   )
-
-  let environments = if not $all and (
-    ".environments/environments.toml"
-    | path exists
-  ) {
-    open .environments/environments.toml
-  }
 
   let hidden_submodules = if ($environments | is-not-empty) {
     $environments
@@ -228,11 +249,7 @@ def main-help [all: bool environment?: string --color: string] {
     | to text --no-newline
   }
 
-  let text = if ($environments | is-not-empty) and (
-    "hide_help" in ($environments | columns)
-  ) and (
-    $environments.hide_help
-  ) {
+  let text = if $hide_help {
     $text
     | lines
     | where {$in | ansi strip | find --regex ' +help \*args' | is-empty}

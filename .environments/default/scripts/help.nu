@@ -155,6 +155,11 @@ def main-help [all: bool environment?: string --color: string] {
     [
       --color $color
       --list
+      --list-heading $"(
+        ansi default_bold
+      )use `just help` for more options \(see `just help --help`\)(
+        ansi reset
+      )\n\n"
     ]
     | append (
         if ($environment | is-not-empty) {

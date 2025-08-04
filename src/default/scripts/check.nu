@@ -40,6 +40,21 @@ export def run-check [name: string paths: list<string>] {
   }
 }
 
+# List checks
+def "main list" [] {
+  ls .environments/default/scripts/check-*.nu
+  | get name
+  | path basename
+  | path parse
+  | get stem
+  | append [
+      flake-check
+      leaks
+    ]
+  | sort
+  | to text --no-newline
+}
+
 # Run checks
 export def main [] {
   leaks
