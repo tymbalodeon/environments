@@ -13,18 +13,19 @@
           inherit system;
         };
       in {
-        default =
-          pkgs.writers.writeNuBin
+        default = with pkgs;
+          writers.writeNuBin
           "init" {
             makeWrapperArgs = [
               "--prefix"
               "PATH"
               ":"
-              "${pkgs.lib.makeBinPath [
-                (pkgs.writers.writeNuBin
+              "${lib.makeBinPath [
+                (writers.writeNuBin
                   "environment"
                   {}
                   (builtins.readFile ../src/default/scripts/environment.nu))
+                jujutsu
               ]}"
             ];
           } (builtins.readFile ./init.nu);

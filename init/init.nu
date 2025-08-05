@@ -6,11 +6,23 @@ def main [
   --directory: string # Path to the directory to initialize
 ] {
   if ($directory | is-not-empty) {
+    if ($directory | path exists) {
+      if ($directory | path type) != dir {
+        print --stderr $"(
+          ansi red_bold
+        )error(ansi reset): ($directory) is not a directory"
+
+        return
+      }
+    } else {
+      mkdir $directory
+    }
+
     cd $directory
   }
 
-  git init
-
+  jj git init --colocate
+  jj describe --message "chore: initialize environments"
   let temporary_directory = (mktemp --directory --tmpdir)
 
   (
@@ -21,7 +33,13 @@ def main [
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
   cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
-  nu $"($env.ENVIRONMENTS)/default/scripts/environment.nu" add ...$environments
-  git add .
+  jj new
+
+  if ($environments | is-not-empty) {
+    environment add ...$environments
+  } else {
+    environment activate 
+  }
+
   rm --force --recursive $temporary_directory
 }
