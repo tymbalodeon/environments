@@ -359,7 +359,13 @@ def "main edit shell" [] {
     | first
   }
 
+  let existing_file = (open $shell)
   ^$env.EDITOR $shell
+  let new_file = (open $shell)
+
+  if $new_file != $existing_file {
+    main activate
+  }
 }
 
 def get-environments-file-with-features [] {
