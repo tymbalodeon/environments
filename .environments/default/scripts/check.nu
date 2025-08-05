@@ -73,6 +73,7 @@ export def main [...checks: string] {
   }
 
   if $all or ("flake" in $checks) {
+    # TODO: move this to the nix module?
     nix flake check
   }
 
