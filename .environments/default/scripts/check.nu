@@ -2,7 +2,7 @@
 
 use ../../git/scripts/leaks.nu
 
-export def run-check [name: string paths: list<string>] {
+export def run-check [type: string paths: list<string>] {
   let justfiles = (
     open Justfile
     | lines
@@ -26,7 +26,7 @@ export def run-check [name: string paths: list<string>] {
           | split row " "
         )
 
-        if $name in $recipes {
+        if type in $recipes {
           $environment
         }
       }
@@ -35,8 +35,8 @@ export def run-check [name: string paths: list<string>] {
 
   for justfile in $justfiles {
     let environment = ($justfile | path split | get 1)
-    print $"($name | str capitalize)ing ($environment) files..."
-    just --justfile $justfile $name ...$paths
+    print $"($type | str capitalize)ing ($environment) files..."
+    just --justfile $justfile $type ...$paths
   }
 }
 
@@ -55,12 +55,26 @@ def "main list" [] {
   | to text --no-newline
 }
 
-# Run checks
-export def main [] {
-  leaks
-  nix flake check
+def get-default-checks [] {
+  ls .environments/default/scripts/check-*
+  | get name
+  | each {{file: $in name: ($in | path parse | get stem)}}
+}
 
-  let checks = (
+# Run checks
+export def main [...checks: string] {
+  let checks = ($checks | str downcase)
+  let all = ($checks | is-empty)
+
+  if $all or ("leaks" in $checks) {
+    leaks
+  }
+
+  if $all or ("flake-check" in $checks) {
+    nix flake check
+  }
+
+  for check in (
     just --summary
     | split row " "
     | where {
@@ -72,9 +86,25 @@ export def main [] {
           | str starts-with lint
         )
       }
-  )
+  ) {
+    if $all or $check in $checks {
+      just $check
+    }
+  }
 
-  for check in $checks {
-    just $check
+  let default_checks = (get-default-checks)
+
+  let checks = if $all {
+    $default_checks.name
+  } else {
+    $checks
+  }
+
+  for check_name in $checks {
+    if $check_name in $default_checks.name {
+      for check in ($default_checks | where name == $check_name) {
+        nu $check.file
+      }
+    }
   }
 }
