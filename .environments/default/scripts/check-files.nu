@@ -2,6 +2,7 @@
 
 use environment.nu print-error
 
+# Check that files are valid
 def main [] {
   let extensions = [
     csv
