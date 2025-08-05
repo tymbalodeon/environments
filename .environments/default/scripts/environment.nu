@@ -398,7 +398,7 @@ def update-environments-configuration [environments: record] {
   let default_environments = (get-default-environments).name
   let local_environments = (get-available-environments --only-local).name
 
-  open-configuration-file
+  $environments
   | update environments (
       $environments.environments
       | where {
@@ -424,6 +424,8 @@ def update-environments-configuration [environments: record] {
 
 def update-hide [environments: list<string> value: bool] {
   let environments = (parse-environments $environments).name
+  let default = ("default" in $environments)
+  let environments = ($environments | where {$in != default})
 
   let configuration = if (".environments/environments.toml" | path exists) {
     open-configuration-file
@@ -478,7 +480,7 @@ def update-hide [environments: list<string> value: bool] {
     $configuration
   }
 
-  let configuration = if default in $environments {
+  let configuration = if $default {
     if $value {
       $configuration
       | upsert hide_default true
