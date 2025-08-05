@@ -40,25 +40,27 @@ export def run-check [type: string paths: list<string>] {
   }
 }
 
+def get-default-checks [] {
+  ls .environments/default/scripts/check-*
+  | get name
+  | each {
+      {
+        file: $in
+        name: ($in | path parse | get stem | str replace check- "")
+      }
+    }
+}
+
 # List checks
 def "main list" [] {
-  ls .environments/default/scripts/check-*.nu
+  get-default-checks
   | get name
-  | path basename
-  | path parse
-  | get stem
   | append [
-      flake-check
+      flake
       leaks
     ]
   | sort
   | to text --no-newline
-}
-
-def get-default-checks [] {
-  ls .environments/default/scripts/check-*
-  | get name
-  | each {{file: $in name: ($in | path parse | get stem)}}
 }
 
 # Run checks
@@ -70,7 +72,7 @@ export def main [...checks: string] {
     leaks
   }
 
-  if $all or ("flake-check" in $checks) {
+  if $all or ("flake" in $checks) {
     nix flake check
   }
 
