@@ -390,7 +390,7 @@ def "main edit" [] {
 
 def update-environments-configuration [environments: record] {
   let default_environments = (get-default-environments).name
-  let local_environments = (get-available-environments --only-local)
+  let local_environments = (get-available-environments --only-local).name
 
   open-configuration-file
   | update environments (
@@ -398,15 +398,17 @@ def update-environments-configuration [environments: record] {
       | where {
           |environment|
 
-          (
-            $environment in $default_environments or (
-              $environment in $local_environments
-            )
-          ) and (
-            $environment
-            | columns
-            | where {$in != name}
-          ) | is-not-empty
+          if $environment.name in $default_environments or (
+            $environment.name in $local_environments
+          ) {
+            (
+              $environment
+              | columns
+              | where {$in != name}
+            ) | is-not-empty
+          } else {
+            true
+          }
       }
       | sort-by name
     )
@@ -442,9 +444,10 @@ def update-hide [environments: list<string> value: bool] {
                 $environment
                 | upsert hide $value
               } else {
-                # FIXME
-                $environment
-                | reject hide
+                try {
+                  $environment
+                  | reject hide
+                }
               }
             } else {
               $environment
@@ -474,8 +477,10 @@ def update-hide [environments: list<string> value: bool] {
       $configuration
       | upsert hide_default true
     } else {
-      $configuration
-      | reject hide_default
+      try {
+        $configuration
+        | reject hide_default
+      }
     }
   } else {
     $configuration
