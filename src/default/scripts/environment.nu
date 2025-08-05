@@ -191,26 +191,34 @@ export def parse-environments [environments: list<string> quiet = false] {
   validate-environments $unique_environments $quiet
 }
 
-def convert-to-toml [environments: list<record>] {
-  {
-    environments: (
-      $environments
-      | each {
-          |environment|
+def update-configuration-environments [environments: list<record>] {
+  let existing_configuration = (open .environments/environments.toml)
 
-          if features in ($environment | columns) and (
-            $environment.features
-            | is-empty
-          ) {
-            {name: $environment.name}
-          } else {
-            $environment
+  let configuration = if environments in ($environments | columns) {
+    $environments
+  } else {
+    $existing_configuration
+    | update environments (
+        $environments
+        | each {
+            |environment|
+
+            if features in ($environment | columns) and (
+              $environment.features
+              | is-empty
+            ) {
+              {name: $environment.name}
+            } else {
+              $environment
+            }
           }
-        }
-      | sort-by name
-    )
+        | sort-by name
+      )
   }
-  | to toml
+
+  $configuration
+  | sort
+  | save --force .environments/environments.toml
 }
 
 # Add environments (and features) to the project
@@ -263,10 +271,7 @@ export def "main add" [
   }
 
   mkdir .environments
-
-  convert-to-toml $environments
-  | save --force .environments/environments.toml
-
+  update-configuration-environments $environments
   main activate
 }
 
@@ -416,8 +421,7 @@ def update-hide [environments: list<string> value: bool] {
     $configuration
   }
 
-  $configuration
-  | save --force .environments/environments.toml
+  update-environment-configuration $configuration
 }
 
 # Hide environments in help text
@@ -442,16 +446,18 @@ def "main show default" [] {
 
 # Hide help recipes help text
 def "main hide help" [] {
-  open .environments/environments.toml
-  | upsert hide_help true
-  | save --force .environments/environments.toml
+  update-environment-configuration (
+    open .environments/environments.toml
+    | upsert hide_help true
+  )
 }
 
 # Show help recipes in help text
 def "main show help" [] {
-  open .environments/environments.toml
-  | reject hide_help
-  | save --force .environments/environments.toml
+  update-environment-configuration (
+    open .environments/environments.toml
+    | reject hide_help
+  )
 }
 
 # List flake inputs
@@ -1108,8 +1114,7 @@ def "main remove" [
     )
 
     if ($user_environments | is-not-empty) {
-      convert-to-toml $user_environments
-      | save --force .environments/environments.toml
+      update-configuration-environments $user_environments
     } else {
       rm .environments/environments.toml
     }
