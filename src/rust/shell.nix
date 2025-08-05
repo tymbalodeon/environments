@@ -10,22 +10,15 @@
       cargo-watch
       libiconv
       lldb
+      openssl
+      pkg-config
       rust-analyzer
       zellij
     ]
     ++ (
       if stdenv.isDarwin
       then [pkgs.zlib.dev]
-      else
-        (
-          if stdenv.isLinux
-          then
-            with pkgs; [
-              openssl
-              pkg-config
-            ]
-          else []
-        )
+      else []
     );
 
   shellHook = "export RUST_BACKTRACE=1";
