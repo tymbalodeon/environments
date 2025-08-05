@@ -191,9 +191,17 @@ export def parse-environments [environments: list<string> quiet = false] {
   validate-environments $unique_environments $quiet
 }
 
-def convert-to-toml [environments: list<record>] {
-  {
-    environments: (
+def open-configuration-file [] {
+  if (".environments/environments.toml" | path type) == file {
+    open .environments/environments.toml
+  } else {
+    {environments: []}
+  }
+}
+
+def update-configuration-environments [environments: list<record>] {
+  open-configuration-file
+  | update environments (
       $environments
       | each {
           |environment|
@@ -209,8 +217,8 @@ def convert-to-toml [environments: list<record>] {
         }
       | sort-by name
     )
-  }
-  | to toml
+  | sort
+  | save --force .environments/environments.toml
 }
 
 # Add environments (and features) to the project
@@ -228,7 +236,7 @@ export def "main add" [
   mut environments = $environments
 
   if (".environments/environments.toml" | path exists) {
-    for environment in (open .environments/environments.toml).environments {
+    for environment in (open-configuration-file).environments {
       if ($environment.name in $environments.name) {
         let existing_environment = (
           $environments
@@ -263,10 +271,7 @@ export def "main add" [
   }
 
   mkdir .environments
-
-  convert-to-toml $environments
-  | save --force .environments/environments.toml
-
+  update-configuration-environments $environments
   main activate
 }
 
@@ -358,7 +363,7 @@ def "main edit shell" [] {
 }
 
 def get-environments-file-with-features [] {
-  open .environments/environments.toml
+  open-configuration-file
   | get environments
   | each {
     if features in ($in | columns) {
@@ -383,9 +388,49 @@ def "main edit" [] {
   }
 }
 
+def update-environments-configuration [environments: record] {
+  let default_environments = (get-default-environments).name
+  let local_environments = (get-available-environments --only-local).name
+
+  open-configuration-file
+  | update environments (
+      $environments.environments
+      | where {
+          |environment|
+
+          if $environment.name in $default_environments or (
+            $environment.name in $local_environments
+          ) {
+            (
+              $environment
+              | columns
+              | where {$in != name}
+            ) | is-not-empty
+          } else {
+            true
+          }
+      }
+      | sort-by name
+    )
+  | sort
+  | save --force .environments/environments.toml
+}
+
 def update-hide [environments: list<string> value: bool] {
   let environments = (parse-environments $environments).name
-  let configuration = (open .environments/environments.toml)
+
+  let configuration = if (".environments/environments.toml" | path exists) {
+    open-configuration-file
+  } else {
+    {environments: []}
+  }
+
+  let available_environments = (get-available-environments --exclude-local)
+
+  let local_environments = (
+    $environments
+    | where {$in not-in $available_environments}
+  )
 
   let configuration = (
     $configuration
@@ -395,8 +440,15 @@ def update-hide [environments: list<string> value: bool] {
             |environment|
 
             if $environment.name in $environments {
-              $environment
-              | upsert hide $value
+              if $value {
+                $environment
+                | upsert hide $value
+              } else {
+                try {
+                  $environment
+                  | reject hide
+                }
+              }
             } else {
               $environment
             }
@@ -404,20 +456,37 @@ def update-hide [environments: list<string> value: bool] {
       )
   )
 
+  let configuration = if $value {
+    $configuration
+    | update environments (
+      $configuration.environments
+      | append (
+          $local_environments
+          | where {$in not-in $configuration.environments.name}
+          | each {
+              {name: $in hide: true}
+            }
+        )
+      )
+  } else {
+    $configuration
+  }
+
   let configuration = if default in $environments {
     if $value {
       $configuration
       | upsert hide_default true
     } else {
-      $configuration
-      | reject hide_default
+      try {
+        $configuration
+        | reject hide_default
+      }
     }
   } else {
     $configuration
   }
 
-  $configuration
-  | save --force .environments/environments.toml
+  update-environments-configuration $configuration
 }
 
 # Hide environments in help text
@@ -442,16 +511,18 @@ def "main show default" [] {
 
 # Hide help recipes help text
 def "main hide help" [] {
-  open .environments/environments.toml
-  | upsert hide_help true
-  | save --force .environments/environments.toml
+  update-environments-configuration (
+    open-configuration-file
+    | upsert hide_help true
+  )
 }
 
 # Show help recipes in help text
 def "main show help" [] {
-  open .environments/environments.toml
-  | reject hide_help
-  | save --force .environments/environments.toml
+  update-environments-configuration (
+    open-configuration-file
+    | reject hide_help
+  )
 }
 
 # List flake inputs
@@ -485,26 +556,34 @@ export def get-aliases-files [environment: string] {
   | sort
 }
 
-export def get-available-environments [--exclude-local] {
+export def get-available-environments [
+  --exclude-local
+  --only-local
+] {
   let environments = (
     ls --short-names (get-environment-path)
     | where type == dir
     | get name
   )
 
+  let local_environments = (
+    if (".environments" | path exists) {
+      ls --short-names .environments
+      | where type == dir
+      | get name
+    } else {
+      []
+    }
+    | where {$in not-in $environments}
+  )
+
   let environments = if $exclude_local {
     $environments
+  } else if $only_local {
+    $local_environments
   } else {
     $environments
-    | append (
-        if (".environments" | path exists) {
-          ls --short-names .environments
-          | where type == dir
-          | get name
-        } else {
-          []
-        }
-      )
+    | append $local_environments
   }
 
   $environments
@@ -715,7 +794,7 @@ def "main list active" [
     return
   }
 
-  let environments = (open .environments/environments.toml).environments
+  let environments = (open-configuration-file).environments
   let valid_environments = (get-available-environments --exclude-local)
 
   let all = [$default $local $user] | all {not $in}
@@ -931,7 +1010,7 @@ def "main remove" [
   }
 
   let existing_environments = (
-    open .environments/environments.toml
+    open-configuration-file
     | get environments
   )
 
@@ -1108,8 +1187,7 @@ def "main remove" [
     )
 
     if ($user_environments | is-not-empty) {
-      convert-to-toml $user_environments
-      | save --force .environments/environments.toml
+      update-configuration-environments $user_environments
     } else {
       rm .environments/environments.toml
     }
