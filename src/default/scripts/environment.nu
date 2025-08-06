@@ -226,6 +226,7 @@ def update-configuration-environments [environments: list<record>] {
 # Add features with <environment-name>[+<feature>...], e.g. "python+build"
 export def "main add" [
   ...environments: string # Environments to add
+  --skip-activation # Update the configuration file, but skip activating the new environments
 ] {
   let environments = (parse-environments $environments)
 
@@ -272,7 +273,10 @@ export def "main add" [
 
   mkdir .environments
   update-configuration-environments $environments
-  main activate
+
+  if not $skip_activation {
+    main activate
+  }
 }
 
 # Open local helix configuration in $EDITOR [alias: `edit languages`]

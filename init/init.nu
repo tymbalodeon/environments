@@ -23,6 +23,7 @@ def main [
 
   jj git init --colocate
   jj describe --message "chore: initialize environments"
+  jj new
   let temporary_directory = (mktemp --directory --tmpdir)
 
   (
@@ -36,10 +37,11 @@ def main [
   jj new
 
   if ($environments | is-not-empty) {
-    environment add ...$environments
-  } else {
-    environment activate 
-  }
+    environment add --skip-activation ...$environments
+  } 
 
+  jj describe --message "chore: add environments files"
+  jj new
+  environment activate 
   rm --force --recursive $temporary_directory
 }
