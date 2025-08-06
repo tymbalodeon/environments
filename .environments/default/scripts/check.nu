@@ -55,9 +55,7 @@ def get-default-checks [] {
 # TODO: add highlight comment function
 # TODO: add --color option
 
-# List checks
-def "main list" [] {
-  # TODO: add list default
+def list-default-checks [] {
   get-default-checks
   | each {
       $"($in.name) • (ansi blue)# (
@@ -66,6 +64,18 @@ def "main list" [] {
         | first
       )(ansi reset)"
     }
+}
+
+# List default checks
+def "main list default" [] {
+  list-default-checks 
+  | to text
+  | column -t -s •
+}
+
+# List checks
+def "main list" [] {
+  list-default-checks 
   | append [
       default
       leaks
