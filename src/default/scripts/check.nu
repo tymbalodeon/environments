@@ -2,21 +2,22 @@
 
 use ../../git/scripts/leaks.nu
 
+def get-submodules [] {
+  open Justfile
+  | lines
+  | where {str starts-with mod}
+  | each {
+      split row "mod "
+      | last
+      | split row " "
+      | first
+    }
+}
+
 export def run-check [type: string paths: list<string>] {
   let justfiles = (
-    open Justfile
-    | lines
-    | where {str starts-with mod}
-    | each {
-        let environment = (
-          split row "mod "
-          | last
-          | split row " "
-          | first
-        )
-
-        $".environments/($environment)/Justfile"
-      }
+    get-submodules
+    | each {$".environments/($in)/Justfile"}
     | where {path exists}
     | each {
         |environment|
@@ -95,11 +96,15 @@ export def main [...checks: string] {
     $checks
   }
 
+  let submodules = (get-submodules)
+
   for check_name in $checks {
     if $check_name in $default_checks.name {
       for check in ($default_checks | where name == $check_name) {
         nu $check.file
       }
+    } else if $check_name in $submodules {
+      just $check_name check
     }
   }
 }
