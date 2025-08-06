@@ -5,4 +5,3 @@ export def get-paths [paths: list<string>] {
     $paths
   }
 }
-

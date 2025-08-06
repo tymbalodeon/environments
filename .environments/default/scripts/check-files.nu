@@ -26,12 +26,15 @@ def main [] {
     yml
   ]
 
+  let tracked_files = (jj file list | lines)
+
   mut files = []
 
   for file in (
     $extensions 
     | each {fd --extension $in --hidden | lines}
     | flatten
+    | where {$in in $tracked_files}
   ) {
     let file = (
       try {

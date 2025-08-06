@@ -3,6 +3,13 @@
 
 # Fix end of files
 def main [] {
-  # TODO
-  print "Implement me!"
+  for file in (jj file list | lines) {
+    open --raw $file
+    | str trim
+    | append "\n"
+    | str join
+    | to text
+    | collect
+    | save --force $file
+  }
 }
