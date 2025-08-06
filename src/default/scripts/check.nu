@@ -52,13 +52,27 @@ def get-default-checks [] {
     }
 }
 
+# TODO: add highlight comment function
+# TODO: add --color option
+
 # List checks
 def "main list" [] {
+  # TODO: add list default
   get-default-checks
-  | get name
-  | append [default leaks]
+  | each {
+      $"($in.name) • (ansi blue)# (
+        nu $in.file --help
+        | split row "\n\n"
+        | first
+      )(ansi reset)"
+    }
+  | append [
+      default
+      leaks
+    ]
   | sort
-  | to text --no-newline
+  | to text
+  | column -t -s •
 }
 
 # Run checks
