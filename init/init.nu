@@ -21,27 +21,27 @@ def main [
     cd $directory
   }
 
-  jj git init --colocate
-  jj describe --message "chore: initialize environments"
-  jj new
+  try { jj git init --colocate out+err> /dev/null }
   let temporary_directory = (mktemp --directory --tmpdir)
 
   (
     git clone
       https://github.com/tymbalodeon/environments.git
       $temporary_directory
+      out+err> /dev/null
   )
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
   cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
-  jj new
+  jj describe --message "chore: initialize environments" out+err> /dev/null
+  jj new out+err> /dev/null
 
   if ($environments | is-not-empty) {
     environment add --skip-activation ...$environments
+    jj squash
   } 
 
-  jj describe --message "chore: add environments files"
-  jj new
-  environment activate 
+  environment activate
+  jj squash
   rm --force --recursive $temporary_directory
 }
