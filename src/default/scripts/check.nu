@@ -68,14 +68,14 @@ def list-default-checks [] {
 
 # List default checks
 def "main list default" [] {
-  list-default-checks 
+  list-default-checks
   | to text
   | column -t -s •
 }
 
 # List checks
 def "main list" [] {
-  list-default-checks 
+  list-default-checks
   | append [
       default
       leaks

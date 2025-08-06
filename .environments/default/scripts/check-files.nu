@@ -31,7 +31,7 @@ def main [] {
   mut files = []
 
   for file in (
-    $extensions 
+    $extensions
     | each {fd --extension $in --hidden | lines}
     | flatten
     | where {$in in $tracked_files}

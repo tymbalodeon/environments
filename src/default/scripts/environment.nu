@@ -348,7 +348,7 @@ def "main edit shell" [] {
 
     "{pkgs,...}: {
   packages = with pkgs; [
-    
+
   ];
 }"
     | save $shell

@@ -39,7 +39,7 @@ def main [
   if ($environments | is-not-empty) {
     environment add --skip-activation ...$environments
     jj squash
-  } 
+  }
 
   environment activate
   jj squash
