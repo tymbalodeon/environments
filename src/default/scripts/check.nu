@@ -55,10 +55,7 @@ def get-default-checks [] {
 def "main list" [] {
   get-default-checks
   | get name
-  | append [
-      flake
-      leaks
-    ]
+  | append [default leaks]
   | sort
   | to text --no-newline
 }
@@ -70,11 +67,6 @@ export def main [...checks: string] {
 
   if $all or ("leaks" in $checks) {
     leaks
-  }
-
-  if $all or ("flake" in $checks) {
-    # TODO: move this to the nix module?
-    nix flake check
   }
 
   for check in (
@@ -97,7 +89,7 @@ export def main [...checks: string] {
 
   let default_checks = (get-default-checks)
 
-  let checks = if $all {
+  let checks = if $all or ("default" in $checks) {
     $default_checks.name
   } else {
     $checks
