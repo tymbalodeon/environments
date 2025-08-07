@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use ../../git/scripts/leaks.nu
+use environment.nu use-colors
 
 def get-submodules [] {
   open Justfile
@@ -52,30 +53,39 @@ def get-default-checks [] {
     }
 }
 
-# TODO: add highlight comment function
-# TODO: add --color option
-
-def list-default-checks [] {
+def list-default-checks [color: string] {
   get-default-checks
   | each {
-      $"($in.name) • (ansi blue)# (
+      let comment = $"# (
         nu $in.file --help
         | split row "\n\n"
         | first
-      )(ansi reset)"
+      )"
+
+      let comment = if (use-colors $color) {
+        $"(ansi blue)($comment)(ansi reset)"
+      } else {
+        $comment
+      }
+
+      $"($in.name) • ($comment)"
     }
 }
 
 # List default checks
-def "main list default" [] {
-  list-default-checks
+def "main list default" [
+  --color = "auto" # When to use colored output {always|auto|never}
+] {
+  list-default-checks $color
   | to text
   | column -t -s •
 }
 
 # List checks
-def "main list" [] {
-  list-default-checks
+def "main list" [
+  --color = "auto" # When to use colored output {always|auto|never}
+] {
+  list-default-checks $color
   | append [
       default
       leaks
