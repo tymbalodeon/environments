@@ -53,22 +53,26 @@ def get-default-checks [] {
     }
 }
 
+def append-comment [check_name: string comment: string color: string] {
+  let comment = if (use-colors $color) {
+    $"(ansi blue)# ($comment)(ansi reset)"
+  } else {
+    $"# ($comment)"
+  }
+
+  $"($check_name) • ($comment)"
+}
+
 def list-default-checks [color: string] {
   get-default-checks
   | each {
-      let comment = $"# (
+      let comment = (
         nu $in.file --help
         | split row "\n\n"
         | first
-      )"
+      )
 
-      let comment = if (use-colors $color) {
-        $"(ansi blue)($comment)(ansi reset)"
-      } else {
-        $comment
-      }
-
-      $"($in.name) • ($comment)"
+      append-comment $in.name $comment $color
     }
 }
 
@@ -85,11 +89,22 @@ def "main list default" [
 def "main list" [
   --color = "auto" # When to use colored output {always|auto|never}
 ] {
+  # TODO: add cyan note next to default checks?
   list-default-checks $color
-  | append [
-      default
-      leaks
-    ]
+  | append (
+      [
+        {
+          name: default
+          comment: "Run default checks (see `check list default`)"
+        }
+
+        {
+          name: leaks
+          comment: "Scan code for secrets"
+        }
+      ]
+      | each {append-comment $in.name $in.comment $color}
+    )
   | sort
   | to text
   | column -t -s •
