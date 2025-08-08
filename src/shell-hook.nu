@@ -608,7 +608,13 @@ def main [] {
     | path exists
   ) {
     $active_environments
-    | append (open .environments/environments.toml).environments
+    | append {
+        let configuration_file = (open .environments/environments.toml)
+
+        if ("environments" in ($configuration_file | columns)) {
+          $configuration_file.environments
+        }
+      }
   } else {
     $active_environments
   }
