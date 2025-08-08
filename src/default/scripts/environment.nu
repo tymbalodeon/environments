@@ -235,9 +235,12 @@ export def "main add" [
   }
 
   mut environments = $environments
+  let configuration_file = (open-configuration-file)
 
-  if (".environments/environments.toml" | path exists) {
-    for environment in (open-configuration-file).environments {
+  if ($configuration_file | path exists) and (
+    "environments" in ($configuration_file | columns)
+  ) {
+    for environment in $configuration_file.environments {
       if ($environment.name in $environments.name) {
         let existing_environment = (
           $environments
@@ -812,7 +815,14 @@ def "main list active" [
     return
   }
 
-  let environments = (open-configuration-file).environments
+  let configuration_file = (open-configuration-file)
+
+  let environments = if "environments" in ($configuration_file | columns) {
+    $configuration_file.environments
+  } else {
+    []
+  }
+
   let valid_environments = (get-available-environments --exclude-local)
 
   let all = [$default $local $user] | all {not $in}
