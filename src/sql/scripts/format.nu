@@ -7,5 +7,5 @@ def main [
   ...paths: string # Files or directories to format
 ] {
   # TODO: use sqlfluff by default?
-  pg_format ...(get-paths $paths)
+  pg_format ...(get-paths $paths --extension sql)
 }
