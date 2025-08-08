@@ -1,0 +1,11 @@
+set working-directory := "../.."
+
+# View help text
+@help *args:
+    .environments/sql/scripts/help.nu {{ args }}
+
+# Format sql files
+@format *args:
+    .environments/sql/scripts/format.nu {{ args }}
+
+alias fmt := format
