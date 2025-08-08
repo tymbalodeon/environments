@@ -1,0 +1,6 @@
+[[language]]
+name = "sql"
+auto-format = true
+
+[language.formatter]
+command = "pg_format"
