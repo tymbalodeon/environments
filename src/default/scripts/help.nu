@@ -198,7 +198,9 @@ def main-help [all: bool environment?: string --color: string] {
       )
   )
 
-  let hidden_submodules = if ($environments | is-not-empty) {
+  let hidden_submodules = if ($environments | is-not-empty) and (
+    "environemnts" in ($environments | columns)
+  ) {
     $environments
     | get environments
     | where {"hide" in ($in | columns) and $in.hide}
