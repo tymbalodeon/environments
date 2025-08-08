@@ -193,7 +193,14 @@ export def parse-environments [environments: list<string> quiet = false] {
 
 def open-configuration-file [] {
   if (".environments/environments.toml" | path type) == file {
-    open .environments/environments.toml
+    let configuration = (open .environments/environments.toml)
+
+    if "environments" in ($configuration| columns) {
+      $configuration
+    } else {
+      $configuration
+      | insert environments []
+    }
   } else {
     {environments: []}
   }
@@ -235,39 +242,38 @@ export def "main add" [
   }
 
   mut environments = $environments
+  let configuration_file = (open-configuration-file)
 
-  if (".environments/environments.toml" | path exists) {
-    for environment in (open-configuration-file).environments {
-      if ($environment.name in $environments.name) {
-        let existing_environment = (
-          $environments
-          | where name == $environment.name
-          | first
-        )
+  for environment in $configuration_file.environments {
+    if ($environment.name in $environments.name) {
+      let existing_environment = (
+        $environments
+        | where name == $environment.name
+        | first
+      )
 
-        $environments = (
-          $environments
-          | where name != $environment.name
-          | append {
-              name: $environment.name
+      $environments = (
+        $environments
+        | where name != $environment.name
+        | append {
+            name: $environment.name
 
-              features: (
-                $existing_environment.features
-                | append (
-                    if features in ($environment | columns) {
-                      $environment.features
-                    } else {
-                      []
-                    }
-                  )
-                | uniq
-                | sort
-              )
-            }
-        )
-      } else {
-        $environments = ($environments | append $environment)
-      }
+            features: (
+              $existing_environment.features
+              | append (
+                  if features in ($environment | columns) {
+                    $environment.features
+                  } else {
+                    []
+                  }
+                )
+              | uniq
+              | sort
+            )
+          }
+      )
+    } else {
+      $environments = ($environments | append $environment)
     }
   }
 
@@ -375,10 +381,6 @@ def "main edit shell" [] {
 def get-environments-file-with-features [] {
   let configuration_file = (open-configuration-file)
 
-  if not ("environments" in ($configuration_file | columns)) {
-    return [{name: null features: null}]
-  }
-
   $configuration_file
   | get environments
   | each {
@@ -436,13 +438,7 @@ def update-hide [environments: list<string> value: bool] {
   let environments = (parse-environments $environments).name
   let default = ("default" in $environments)
   let environments = ($environments | where {$in != default})
-
-  let configuration = if (".environments/environments.toml" | path exists) {
-    open-configuration-file
-  } else {
-    {environments: []}
-  }
-
+  let configuration = (open-configuration-file)
   let available_environments = (get-available-environments --exclude-local)
 
   let local_environments = (
@@ -451,7 +447,7 @@ def update-hide [environments: list<string> value: bool] {
   )
 
   let configuration = (
-    $configuration
+    open-configuration-file
     | update environments (
         $configuration.environments
         | each {
@@ -814,7 +810,6 @@ def "main list active" [
 
   let environments = (open-configuration-file).environments
   let valid_environments = (get-available-environments --exclude-local)
-
   let all = [$default $local $user] | all {not $in}
 
   let local_environments = if $all or $user or not (
