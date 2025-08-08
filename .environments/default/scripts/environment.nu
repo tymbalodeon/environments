@@ -376,7 +376,7 @@ def get-environments-file-with-features [] {
   let configuration_file = (open-configuration-file)
 
   if not ("environments" in ($configuration_file | columns)) {
-    return
+    return [{name: null features: null}]
   }
 
   $configuration_file
