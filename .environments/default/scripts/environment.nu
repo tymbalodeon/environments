@@ -373,7 +373,13 @@ def "main edit shell" [] {
 }
 
 def get-environments-file-with-features [] {
-  open-configuration-file
+  let configuration_file = (open-configuration-file)
+
+  if not ("environments" in ($configuration_file | columns)) {
+    return
+  }
+
+  $configuration_file
   | get environments
   | each {
     if features in ($in | columns) {
@@ -1021,10 +1027,14 @@ def "main remove" [
     return
   }
 
-  let existing_environments = (
+  let configuration_file = (open-configuration-file)
+
+  let existing_environments = if ("environments" in $configuration_file) {
     open-configuration-file
     | get environments
-  )
+  } else {
+    []
+  }
 
   let environments_to_remove = (
     $existing_environments
