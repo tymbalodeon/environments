@@ -4,10 +4,10 @@ export def get-paths [
 ] {
   if ($paths | is-empty) {
     if ($extension | is-not-empty) {
-      ["."]
-    } else {
       ls ($"**/*.($extension)" | into glob)
       | get name
+    } else {
+      ["."]
     }
   } else {
     $paths
