@@ -1,17 +1,18 @@
 {pkgs, ...}: {
   packages = with pkgs; [
+    # TODO: make its own environment?
     bash
     bat
     eza
     fd
     fzf
-    markdown-oxide
-    marksman
+    # TODO: what is pretier used for here? Should it be removed/moved elsewhere?
     nodePackages.prettier
     nushell
     ripgrep
+    # TODO: this is for css; move elsewhere
     stylelint
-    tera-cli
+    # TODO: what are these used for?
     vscode-langservers-extracted
   ];
 }

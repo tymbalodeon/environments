@@ -3,6 +3,7 @@
     gyre-fonts
     lilypond-unstable-with-fonts
     nushell
+    tera-cli
     watchexec
     zathura
     zellij

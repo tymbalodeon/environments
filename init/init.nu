@@ -8,6 +8,7 @@ def main [
   if ($directory | is-not-empty) {
     if ($directory | path exists) {
       if ($directory | path type) != dir {
+        # TODO: use a shared library for this error printing function
         print --stderr $"(
           ansi red_bold
         )error(ansi reset): ($directory) is not a directory"
