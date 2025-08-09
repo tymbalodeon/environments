@@ -7,6 +7,16 @@ export def get-files [paths: list<string>] {
   if ($paths | is-empty) {
     jj file list
     | lines
+    | where {
+        (
+          $in
+          | path parse
+          | get extension
+        ) not-in [
+          jpeg
+          png
+        ]
+      }
   } else {
     let directories = (
       $paths
