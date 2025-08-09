@@ -20,7 +20,7 @@ export def get-paths [
             $local_environments
             | each {($file | path split | drop nth 0 | first) == $in}
             | where {$in}
-            | is-not-empty 
+            | is-not-empty
           ) or (
             not ($file | str starts-with .environments)
           )

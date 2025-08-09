@@ -1,10 +1,13 @@
 #!/usr/bin/env nu
 
+use check.nu get-files
+
 # Remove trailing whitespace from lines
-def main [] {
+def main [
+  ...paths: string # Files or directories to fix
+] {
   for file in (
-    jj file list
-    | lines
+    get-files $paths
     | where {
         open --raw $in
         | lines

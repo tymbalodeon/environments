@@ -3,6 +3,26 @@
 use ../../git/scripts/leaks.nu
 use environment.nu use-colors
 
+export def get-files [paths: list<string>] {
+  if ($paths | is-empty) {
+    jj file list
+    | lines
+  } else {
+    let directories = (
+      $paths
+      | where {($in | path type) == dir}
+    )
+
+    $paths
+    | where {($in | path type) == file}
+    | append (
+        $directories
+        | each {ls ($"($in)/**/*" | into glob) | get name}
+      )
+    | flatten
+  }
+}
+
 def get-submodules [] {
   open Justfile
   | lines
