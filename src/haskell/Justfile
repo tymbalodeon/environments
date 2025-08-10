@@ -1,5 +1,5 @@
 set working-directory := "../.."
 
 # View help text
-@help:
-    just --list --justfile .environments/haskell/Justfile
+@help *args:
+    .environments/haskell/scripts/help.nu {{ args }}
