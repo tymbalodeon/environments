@@ -8,6 +8,7 @@
       cargo-release
       cargo-udeps
       cargo-watch
+      dioxus-cli
       libiconv
       lldb
       openssl
