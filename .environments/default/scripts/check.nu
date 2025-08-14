@@ -58,7 +58,7 @@ export def run-check [type: string paths: list<string>] {
           | split row " "
         )
 
-        if type in $recipes {
+        if $type in $recipes {
           $environment
         }
       }
