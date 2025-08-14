@@ -10,19 +10,20 @@ Every environment comes with its own `help` recipe. These can all be hidden from
 
 To view hidden help text without updating the `.environments/environments.toml` file, run `just help --all`.
 
-### global
+## Global options
 
 ```toml
 hide_default = true # Hide commands for default environments in `just` output
 hide_help = true # Hide help recipes in `just`output
 ```
 
+## Environment options
+
 ### default
 
 ```toml
 [[environments]]
 name = "default"
-hide = true # Hide commands for environment in `just` output
 todo.exclude_paths = [] # Paths or globs to ignore in `just todo`
 ```
 
