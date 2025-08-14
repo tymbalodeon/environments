@@ -8,7 +8,7 @@ export def get-paths [
 
   if ($paths | is-empty) {
     if ($extension | is-empty) {
-      "."
+      ["."]
     } else {
       if ($extension | is-not-empty) {
         ls ($"**/*.($extension)" | into glob)
