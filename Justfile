@@ -9,6 +9,12 @@
 @check *args:
     .environments/default/scripts/check.nu {{ args }}
 
+# Create and switch to bookmarks/branches
+@develop *args:
+    .environments/default/scripts/develop.nu {{ args }}
+
+alias dev := develop
+
 # Manage environments
 @environment *args:
     .environments/default/scripts/environment.nu {{ args }}
@@ -95,8 +101,6 @@ mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
 mod yaml ".environments/yaml/Justfile"
 
-alias dev := documentation::develop
-alias develop := documentation::develop
 alias generate-text := environments::generate-text
 alias leaks := git::leaks
 alias reload := environments::reload
