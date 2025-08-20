@@ -28,9 +28,9 @@ def main [
     return
   }
 
-  return $bookmark
-
   if ($bookmark in (get-bookmarks)) {
+    # TODO: add warning if --revision is passed to a non-existent bookmark (no
+    # revisions off it yet)
     let revision = if ($revision | is-not-empty) {
       $revision
     } else {
@@ -76,6 +76,7 @@ def main [
       jj edit --revisions $revision
     }
   } else {
+    # TODO: add warning if from-current passed to an existing bookkmark
     let revision = if $from_current {
       "@"
     } else if ($revision | is-not-empty) {

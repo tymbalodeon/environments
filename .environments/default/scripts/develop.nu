@@ -16,6 +16,20 @@ def main [
   --from-current # Create a new bookmark off of the current revision instead of trunk
   --revision: string # Switch to this particular revision
 ] {
+  let bookmark = if ($bookmark | is-not-empty) {
+    $bookmark
+  } else {
+    get-bookmarks
+    | to text
+    | fzf
+  }
+
+  if ($bookmark | is-empty) {
+    return
+  }
+
+  return $bookmark
+
   if ($bookmark in (get-bookmarks)) {
     let revision = if ($revision | is-not-empty) {
       $revision
