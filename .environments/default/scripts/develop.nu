@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use environment.nu print-error
+
 def get-revision-names [type: string] {
   jj $type list --template "name ++ '\n'"
   | lines
@@ -11,9 +13,51 @@ def get-bookmarks [] {
   | append (get-revision-names tag)
 }
 
+def "main new" [
+  bookmark: string # The name of the bookmark to create
+  --from-current # Create a new bookmark off of the current revision instead of trunk
+  --revision: string # Create a new bookmark off of a particular revision
+] {
+  let revision = if $from_current {
+    "@"
+  } else if ($revision | is-not-empty) {
+    $revision
+  } else {
+    let bookmarks = (get-bookmarks)
+
+    if trunk in $bookmarks {
+      "trunk"
+    } else if main in $bookmarks {
+      "main"
+    } else if master in $bookmarks {
+      "master"
+    } else {
+      print-error "could not determine the default bookmark"
+      print-error "please specify the bookmark name to start from"
+    }
+  }
+
+  let prompt = (
+    [
+      "Are you sure you want to create a new bookmark "
+      $bookmark
+      " starting from "
+      $revision
+      "? [y/N] "
+    ]
+    | str join
+  )
+
+  let confirmed = (input --numchar 1 $prompt)
+
+  if ($confirmed | str downcase) in [yes y] {
+    jj new $revision
+    jj bookmark create $bookmark --revision @
+  }
+}
+
 def main [
   bookmark?: string # The name of the bookmark to create or edit
-  --from-current # Create a new bookmark off of the current revision instead of trunk
   --revision: string # Switch to this particular revision
 ] {
   let bookmark = if ($bookmark | is-not-empty) {
@@ -27,8 +71,6 @@ def main [
   if ($bookmark | is-empty) {
     return
   }
-
-  return $bookmark
 
   if ($bookmark in (get-bookmarks)) {
     let revision = if ($revision | is-not-empty) {
@@ -74,32 +116,6 @@ def main [
       jj new --revisions $revision
     } else {
       jj edit --revisions $revision
-    }
-  } else {
-    let revision = if $from_current {
-      "@"
-    } else if ($revision | is-not-empty) {
-      $revision
-    } else {
-      "trunk"
-    }
-
-    let prompt = (
-      [
-        "Are you sure you want to create a new bookmark "
-        $bookmark
-        " starting from "
-        $revision
-        "? [y/N] "
-      ]
-      | str join
-    )
-
-    let confirmed = (input --numchar 1 $prompt)
-
-    if ($confirmed | str downcase) in [yes y] {
-      jj new $revision
-      jj bookmark create $bookmark --revision @
     }
   }
 }
