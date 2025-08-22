@@ -58,6 +58,7 @@ def "main new" [
 
 def main [
   bookmark?: string # The name of the bookmark to create or edit
+  --latest # Switch to the most recent revision
   --revision: string # Switch to this particular revision
 ] {
   let bookmark = if ($bookmark | is-not-empty) {
@@ -99,6 +100,10 @@ def main [
         $revisions
         | first
         | get change_id
+      } else if $latest {
+        $revisions
+        | first
+        | get change_id
       } else {
         $revisions
         | each {|revision| $"($revision.change_id) ($revision.description)"}
@@ -109,6 +114,10 @@ def main [
       }
     }
 
+    if ($revision | is-empty) {
+      return
+    }
+
     if (
       jj log --no-graph --revisions $revision --template "immutable"
       | into bool
@@ -117,5 +126,7 @@ def main [
     } else {
       jj edit $revision
     }
+  } else {
+    print-error $"unrecognized bookmark `($bookmark)`"
   }
 }
