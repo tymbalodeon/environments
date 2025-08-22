@@ -115,7 +115,7 @@ def main [
     ) {
       jj new --revisions $revision
     } else {
-      jj edit --revisions $revision
+      jj edit $revision
     }
   }
 }
