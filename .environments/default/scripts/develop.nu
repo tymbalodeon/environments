@@ -113,7 +113,7 @@ def main [
       jj log --no-graph --revisions $revision --template "immutable"
       | into bool
     ) {
-      jj new --revisions $revision
+      jj new $revision
     } else {
       jj edit $revision
     }
