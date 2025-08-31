@@ -52,7 +52,7 @@ def "main new" [
 
   if ($confirmed | str downcase) in [yes y] {
     jj new $revision
-    jj bookmark create $bookmark --revisions @
+    jj bookmark create $bookmark --revision @
   }
 }
 
