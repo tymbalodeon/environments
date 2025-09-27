@@ -5,7 +5,7 @@ use files.nu get-files
 use files.nu get-lilypond-output-path
 use files.nu get-title
 use info.nu
-use open.nu
+use open-pdf.nu
 
 # Open <score> in $EDITOR and pdf viewer, recompiling on file changes
 def main [
