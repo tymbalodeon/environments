@@ -46,7 +46,7 @@ def main [
     let layout_file = (mktemp --tmpdir $"($title)-XXX.kdl")
 
     (
-      cat $"($env.ENVIRONMENT)/lilypond/layout.kdl"
+      cat $"($env.ENVIRONMENTS)/lilypond/layout.kdl"
       | str replace --all "[score]" $input_file
       | str replace --all "[score_directory]" ($input_file | path dirname)
       | str replace --all "[score_name]" $title
