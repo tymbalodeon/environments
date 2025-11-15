@@ -101,6 +101,7 @@ mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
 mod yaml ".environments/yaml/Justfile"
 
+alias clean := nix::clean
 alias generate-text := environments::generate-text
 alias leaks := git::leaks
 alias reload := environments::reload
