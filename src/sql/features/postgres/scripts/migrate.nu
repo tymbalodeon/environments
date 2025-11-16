@@ -3,6 +3,7 @@
 use database.nu get-dev-url
 use database.nu get-url
 
+# Migrate the database
 def main [] {
   (
     atlas migrate diff

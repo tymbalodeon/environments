@@ -1,5 +1,10 @@
 #!/usr/bin/env nu
 
-def main [] {
+use database.nu create-database
+use database.nu get-url
 
+# Inspect the database
+def main [] {
+  create-database
+  atlas schema inspect --url (get-url)
 }

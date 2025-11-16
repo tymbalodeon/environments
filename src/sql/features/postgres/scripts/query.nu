@@ -1,5 +1,8 @@
 #!/usr/bin/env nu
 
-def main [] {
-
+use postgres.nu start-postgres
+# Query the database
+def main [query: string csv=""] {
+  start-postgres
+  psql mishpocha --command $"($query)" ...[$"($csv)"]
 }

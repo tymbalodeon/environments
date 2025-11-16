@@ -1,5 +1,13 @@
 #!/usr/bin/env nu
 
-def main [] {
+use postgres.nu start-postgres
 
+# List table names
+def main [] {
+  start-postgres
+
+  psql mishpocha --command '\dt' --csv
+  | from csv
+  | get Name
+  | to text
 }

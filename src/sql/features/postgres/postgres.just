@@ -1,50 +1,33 @@
-set shell := ["nu", "-c"]
-
-# Create database
+# Drop database
 [confirm("WARNING: are you sure you want to completely remove the database?")]
 drop *args:
     #!/usr/bin/env nu
     ./environments/sql/scripts/drop.nu {{ args }}
 
 # Migrate the database
-@migrate *args: 
+migrate *args:
     ./environments/sql/scripts/migrate.nu {{ args }}
 
 # Inspect the database
-[no-cd]
-@inspect: create
-    atlas schema inspect --url {{ url }}
+inspect *args:
+    ./environments/sql/scripts/inspect.nu {{ args }}
 
 # Seed the database
-@seed: flush
-    psql mishpocha --file database/queries/seed.sql
-
-# Flush the database
-[confirm("WARNING: are you sure you want to flush all data from the database?")]
-[private]
-@flush: migrate
-    print (pwd)
-    psql mishpocha --file database/queries/flush.sql
+seed *args:
+    ./environments/sql/scripts/seed.nu {{ args }}
 
 # List table names
-tables: start-postgresql
-    #!/usr/bin/env nu
-
-    psql mishpocha --command '\dt' --csv
-    | from csv
-    | get Name
-    | to text
+tables *args:
+    ./environments/sql/scripts/seed.nu {{ args }}
 
 # Select items from the database
-select table limit="10": start-postgresql
-    #!/usr/bin/env nu
-    # TODO add option for --csv
-
-    psql mishpocha --command $"SELECT * FROM {{ table }} LIMIT {{ limit }};"
+select *args:
+    ./environments/sql/scripts/select.nu {{ args }}
 
 # Query the database
-@query query csv="": start-postgresql
-    psql mishpocha --command "{{ query }}" ...["{{ csv }}"]
+query *args:
+    ./environments/sql/scripts/query.nu {{ args }}
 
 # Stop docker daemon and postgresql server
-@stop: stop-docker stop-postgresql
+stop *args:
+    ./environments/sql/scripts/stop.nu {{ args }}

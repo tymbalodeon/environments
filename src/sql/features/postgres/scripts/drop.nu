@@ -4,6 +4,7 @@ use database.nu get-database-name
 use database.nu get-database-names
 use postgres.nu start-postgres
 
+# Drop database
 def main [] {
   start-postgres
 
