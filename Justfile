@@ -104,6 +104,7 @@ mod yaml ".environments/yaml/Justfile"
 alias clean := nix::clean
 alias generate-text := environments::generate-text
 alias leaks := git::leaks
+alias open := documentation::open
 alias reload := environments::reload
 alias serve := documentation::serve
 alias set-executable := environments::set-executable

@@ -1,7 +1,10 @@
 #!/usr/bin/env nu
 
 use color.nu use-colors
+use environments.nu get-default-environments
 use environments.nu get-environment-path
+use environments.nu get-features
+use environments.nu parse-environments
 use print.nu print-error
 use print.nu print-warning
 
@@ -14,20 +17,6 @@ def "main activate" [] {
     | save --force .envrc
 
     direnv allow
-  }
-}
-
-def get-features [
-  environments: list<record>
-  environment: record<name: string, features: list<string>>
-] {
-  if features in ($environments | columns) {
-    $environments
-    | where name == $environment.name
-    | get features
-    | flatten
-  } else {
-    []
   }
 }
 

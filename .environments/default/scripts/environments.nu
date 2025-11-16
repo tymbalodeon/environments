@@ -1,3 +1,5 @@
+use print.nu print-warning
+
 export def get-environment-path [
   environment?: any
   path?: string
@@ -15,6 +17,16 @@ export def get-environment-path [
   }
 }
 
+export def get-features [
+  environments: list<record>
+  environment: record<name: string, features: list<string>>
+] {
+  $environments
+  | where name == $environment.name
+  | get features
+  | flatten
+}
+
 def validate-environments [
   environments: list<record<name: string, features: list<string>>>
   quiet: bool
@@ -23,7 +35,7 @@ def validate-environments [
   mut invalid_environments = []
 
   for environment in $environments {
-    mut invalid_environment = {valid-name: true}
+    mut invalid_environment = {name: $environment.name valid-name: true}
 
     if $environment.name not-in $valid_environments.name and (
       $environment.name not-in ($valid_environments.aliases | flatten)
@@ -130,7 +142,10 @@ export def parse-environments [environments: list<string> quiet = false] {
   for environment in $environments {
     if $environment.name in ($unique_environments.name) {
       let features = (
-        get-features $unique_environments $environment
+        $unique_environments
+        | where name == $environment.name
+        | first
+        | get features
         | append $environment.features
         | uniq
         | sort

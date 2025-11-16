@@ -2,7 +2,7 @@
 
 def main [] {
   # FIXME
-  cp src/default/flake.nix .
+  # cp src/default/flake.nix .
   rm --force flake.lock
   just environment activate
 }

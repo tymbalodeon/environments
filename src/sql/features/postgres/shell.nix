@@ -4,6 +4,7 @@
     colima
     docker
     pgformatter
+    postgres-language-server
     postgres-lsp
     postgresql
   ];
