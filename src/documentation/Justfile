@@ -15,5 +15,6 @@ alias dev := develop
     .environments/documentation/scripts/serve.nu {{ args }}
 
 [private]
-@open:
-    open http://localhost:3000/
+open:
+    #!/usr/bin/env nu
+    start http://localhost:3000/
