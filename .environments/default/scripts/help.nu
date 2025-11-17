@@ -1,10 +1,10 @@
 #!/usr/bin/env nu
 
-use environment.nu get-aliases-files
-use environment.nu get-default-environments
-use environment.nu parse-environments
-use environment.nu print-warning
-use environment.nu use-colors
+use environments.nu get-aliases-files
+use environments.nu get-default-environments
+use environments.nu parse-environments
+use print.nu print-warning
+use color.nu use-colors
 use find-script.nu
 
 def append-main-aliases [

@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use environment.nu print-error
+use print.nu print-error
 
 def get-revision-names [type: string] {
   jj $type list --template "name ++ '\n'"

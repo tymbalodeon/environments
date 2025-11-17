@@ -1,12 +1,9 @@
 #!/usr/bin/env nu
 
-export def use-colors [color: string] {
-  $color == "always" or (
-    $color != "never"
-  ) and (
-    is-terminal --stdout
-  )
-}
+use color.nu use-colors
+use environments.nu get-environment-path
+use print.nu print-error
+use print.nu print-warning
 
 # Activate installed environments
 def "main activate" [] {
@@ -18,14 +15,6 @@ def "main activate" [] {
 
     direnv allow
   }
-}
-
-export def print-error [message: string] {
-  print --stderr $"(ansi red_bold)error(ansi reset): ($message)"
-}
-
-export def print-warning [message: string] {
-  print --stderr $"(ansi yellow_bold)warning(ansi reset): ($message)"
 }
 
 def get-features [
@@ -40,155 +29,6 @@ def get-features [
   } else {
     []
   }
-}
-
-export def get-environment-path [path?: string] {
-  let environments_base = $env.ENVIRONMENTS
-
-  if ($path | is-empty) {
-    $environments_base
-  } else {
-    $"($environments_base)/($path)"
-  }
-}
-
-def validate-environments [
-  environments: list<record<name: string, features: list<string>>>
-  quiet: bool
-] {
-  let valid_environments = (get-available-environments)
-  mut invalid_environments = []
-
-  for environment in $environments {
-    mut invalid_environment = {valid-name: true}
-
-    if $environment.name not-in $valid_environments.name and (
-      $environment.name not-in ($valid_environments.aliases | flatten)
-    ) {
-      $invalid_environment = (
-        $invalid_environment
-        | insert name $environment.name
-        | update valid-name false
-      )
-
-      if not $quiet {
-        print-warning $"unrecognized environment: ($environment.name)"
-      }
-    }
-
-    mut invalid_features = []
-
-    for feature in $environment.features {
-      let features_directory = (
-        get-environment-path $"($environment.name)/features"
-      )
-
-      if not ($features_directory | path exists) or $feature not-in (
-        ls --short-names $features_directory
-        | where type == dir
-        | get name
-      ) {
-        $invalid_features = ($invalid_features | append $feature)
-
-        print-warning (
-          $"unrecognized feature for ($environment.name): ($feature)"
-        )
-      }
-    }
-
-    if ($invalid_features | is-not-empty) and (
-      "name" not-in ($invalid_environment | columns)
-    ) {
-      $invalid_environment = (
-        $invalid_environment
-        | insert name $environment.name
-      )
-    }
-
-    $invalid_environment = (
-      $invalid_environment
-      | insert features $invalid_features
-    )
-
-    $invalid_environments = (
-      $invalid_environments
-      | append $invalid_environment
-    )
-  }
-
-  let invalid_environments = $invalid_environments
-
-  $environments
-  | where name not-in (
-      $invalid_environments
-      | where valid-name == false
-      | get name
-    )
-  | each {
-      |environment|
-
-      let name = if ($environment.name not-in $valid_environments.name) {
-        $valid_environments
-        | where {$environment.name in $in.aliases}
-        | get name
-        | first
-      } else {
-        $environment.name
-      }
-
-      $environment
-      | update name $name
-      | update features (
-          $environment.features
-          | where {
-              $in not-in (get-features $invalid_environments $environment)
-            }
-        )
-    }
-}
-
-export def parse-environments [environments: list<string> quiet = false] {
-  let environments = (
-    $environments
-    | str downcase
-    | each {
-        |environment|
-
-        let parts = ($environment | split row "+")
-
-        {
-          name: ($parts | first)
-          features: ($parts | drop nth 0)
-        }
-      }
-    | sort-by name
-  )
-
-  mut $unique_environments = []
-
-  for environment in $environments {
-    if $environment.name in ($unique_environments.name) {
-      let features = (
-        get-features $unique_environments $environment
-        | append $environment.features
-        | uniq
-        | sort
-      )
-
-      $unique_environments = (
-        $unique_environments
-        | where name != $environment.name
-        | append {
-            name: $environment.name
-            features: $features
-          }
-      )
-    } else {
-      $unique_environments = ($unique_environments | append $environment)
-    }
-  }
-
-  validate-environments $unique_environments $quiet
 }
 
 def open-configuration-file [] {
@@ -548,70 +388,6 @@ def "main inputs" [] {
   | to text --no-newline
 }
 
-export def get-aliases-files [environment: string] {
-  let aliases_file = $"($environment)/aliases"
-
-  [
-    (get-environment-path $aliases_file)
-    $".environments/($aliases_file)"
-  ]
-  | each {
-      |file|
-
-      if ($file | path exists) {
-        open $file
-        | lines
-      } else {
-        []
-      }
-    }
-  | flatten
-  | uniq
-  | sort
-}
-
-export def get-available-environments [
-  --exclude-local
-  --only-local
-] {
-  let environments = (
-    ls --short-names (get-environment-path)
-    | where type == dir
-    | get name
-  )
-
-  let local_environments = (
-    if (".environments" | path exists) {
-      ls --short-names .environments
-      | where type == dir
-      | get name
-    } else {
-      []
-    }
-    | where {$in not-in $environments}
-  )
-
-  let environments = if $exclude_local {
-    $environments
-  } else if $only_local {
-    $local_environments
-  } else {
-    $environments
-    | append $local_environments
-  }
-
-  $environments
-  | uniq
-  | each {
-      |environment|
-
-      {
-        aliases: (get-aliases-files $environment)
-        name: $environment
-      }
-  }
-}
-
 def append-aliases [environment: record<name: string aliases: list<string>>] {
   if ($environment.aliases | is-empty) {
     $environment.name
@@ -674,9 +450,7 @@ export def "main list" [
         | each {
           |environment|
 
-          let features_path = (
-            get-environment-path $"($environment.name)/features"
-          )
+          let features_path = (get-environment-path $environment.name features)
 
           let features = if ($features_path | path exists) {
             ls --short-names $features_path
@@ -737,7 +511,7 @@ export def "main list" [
 
     let files = if ($feature | is-not-empty) {
       fd --hidden --type file "" (
-        get-environment-path $"($environment)/features/($feature)"
+        get-environment-path $environment $"features/($feature)"
       )
     } else {
       fd --hidden --type file "" (get-environment-path $environment)
@@ -763,36 +537,18 @@ export def "main list" [
       | to text --no-newline
     }
   } else {
-    let base_path = if ($feature | is-empty) {
-      $"($environment)"
+    let path = if ($feature | is-empty) {
+     ""
     } else {
-      $"($environment)/features/($feature)"
+      $"features/($feature)"
     }
 
-    ls --short-names (get-environment-path $"($base_path)/($path)")
+    ls --short-names (get-environment-path $environment $path)
     | get name
   }
 
   $environments
   | str join "\n"
-}
-
-export def get-default-environments [] {
-  [
-    default
-    git
-    just
-    markdown
-    nix
-    toml
-    yaml
-  ]
-  | each {
-    {
-      name: $in
-      features: []
-    }
-  }
 }
 
 # List active environments
@@ -970,7 +726,6 @@ def "main list active" [
   }
 }
 
-
 # List default environments
 def "main list default" [] {
   (get-default-environments).name
@@ -986,13 +741,13 @@ def get-environment-files [
     | each {
         (
           get-environment-path
-            $"($environment.name)/features/($in)/($filename)"
+            $environment.name $"features/($in)/($filename)"
         )
       }
   )
 
   if ($environment.features | is-empty) {
-    get-environment-path $"($environment.name)/($filename)"
+    get-environment-path $environment.name $filename
     | append $feature_files
   } else {
     $feature_files
@@ -1145,20 +900,18 @@ def "main remove" [
       taplo format .helix/languages.toml out+err> /dev/null
     }
 
-    let features_directory = (
-      get-environment-path $"($environment.name)/features"
-    )
+    let features_directory = (get-environment-path $environment.name features)
 
     let feature_hooks = if ($features_directory | path exists) {
       ls $features_directory
       | get name
-      | each {get-environment-path $"($features_directory)/($in)/hook.nu"}
+      | each {get-environment-path $environment.name $"features/($in)/hook.nu"}
     } else {
       []
     }
 
     for hook_file in (
-      get-environment-path $"($environment.name)/hook.nu"
+      get-environment-path $environment.name hook.nu
       | append $feature_hooks
       | flatten
       | where {path exists}

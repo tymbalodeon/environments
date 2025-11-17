@@ -92,6 +92,7 @@
                   ''
                     export NUTEST=${nutest}
                     export ENVIRONMENTS=${environments}
+
                     ${nushell}/bin/nu ${environments}/shell-hook.nu
                   ''
                 ]

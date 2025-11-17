@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 use ../../git/scripts/leaks.nu
-use environment.nu use-colors
+use color.nu use-colors
 
 export def get-files [paths: list<string>] {
   if ($paths | is-empty) {

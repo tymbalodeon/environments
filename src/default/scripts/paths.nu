@@ -1,4 +1,4 @@
-use environment.nu get-available-environments
+use environments.nu get-available-environments
 
 export def get-paths [
   paths: list<string>

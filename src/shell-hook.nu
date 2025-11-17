@@ -1,3 +1,5 @@
+use ./default/scripts/environments.nu get-environment-path
+
 def get-environment-name [environment: any] {
   if (
     $environment
@@ -12,13 +14,6 @@ def get-environment-name [environment: any] {
 
 def get-local-environment-directory [environment: any] {
   $".environments/(get-environment-name $environment)"
-}
-
-def get-environment-path [
-  environment: any
-  path: string
-] {
-  $"($env.ENVIRONMENTS)/(get-environment-name $environment)/($path)"
 }
 
 def copy-directory-files [directory: string] {
@@ -289,7 +284,7 @@ def generate-justfile-and-scripts [
   inactive_environments: list<string>
 ] {
   for environment in $active_environments {
-    let scripts = (get-environment-path $environment scripts)
+    let scripts = (get-environment-path $environment.name scripts)
 
     if ($scripts | path exists) {
       let local_scripts = (
@@ -304,7 +299,7 @@ def generate-justfile-and-scripts [
     }
 
     if ($environment.features | is-not-empty) {
-      let features = (get-environment-path $environment features)
+      let features = (get-environment-path $environment.name features)
 
       if ($features | path exists) {
         let local_scripts = (
@@ -332,13 +327,13 @@ def generate-justfile-and-scripts [
     $active_environments
     | where {$in.name != default}
   ) {
-    let justfile = (get-environment-path $environment Justfile)
+    let justfile = (get-environment-path $environment.name Justfile)
 
     let text = (
       $environment.features
       | each {
           let features_directory = (
-            get-environment-path $environment $"features/($in)"
+            get-environment-path $environment.name $"features/($in)"
           )
 
           if ($features_directory | path exists) {
@@ -383,7 +378,7 @@ def generate-justfile-and-scripts [
           $environment.features
           | each {
               let features_directory = (
-                get-environment-path $environment $"features/($in)"
+                get-environment-path $environment.name $"features/($in)"
               )
 
               if ($features_directory | path exists) {
@@ -575,7 +570,7 @@ def run-hooks [
           ls --short-names $features_directory
           | get name
           | where {$in in $environment.features}
-          | each {get-environment-path $environment $"features/($in)/hook.nu"}
+          | each {get-environment-path $environment.name $"features/($in)/hook.nu"}
           | flatten
         )
     } else {
@@ -653,7 +648,7 @@ def main [] {
   for environment in $active_environments {
     if not (
       [Justfile scripts]
-      | each {get-environment-path $environment $in}
+      | each {get-environment-path $environment.name $in}
       | any {path exists}
     ) {
       continue

@@ -23,13 +23,7 @@
               "--prefix"
               "PATH"
               ":"
-              "${lib.makeBinPath [
-                (writers.writeNuBin
-                  "environment"
-                  {}
-                  (builtins.readFile ../src/default/scripts/environment.nu))
-                jujutsu
-              ]}"
+              "${lib.makeBinPath [jujutsu]}"
             ];
           } (builtins.readFile ./init.nu);
       }

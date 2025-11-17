@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-use environment.nu get-available-environments
-use environment.nu use-colors
+use environments.nu get-available-environments
+use color.nu use-colors
 
 def get-todos [
   settings: record<

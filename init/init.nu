@@ -37,12 +37,14 @@ def main [
   jj describe --message "chore: initialize environments" out+err> /dev/null
   jj new out+err> /dev/null
 
+  let environment_script = $"($env.ENVIRONMENTS)/default/scripts/environment.nu"
+
   if ($environments | is-not-empty) {
-    environment add --skip-activation ...$environments
+    nu $environment_script add --skip-activation ...$environments
     jj squash
   }
 
-  environment activate
+  nu $environment_script activate
   jj squash
   rm --force --recursive $temporary_directory
 }
