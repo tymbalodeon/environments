@@ -25,6 +25,8 @@
           ))
           (
             environment: let
+              mergePackages = a: b: (a // {packages = a.packages ++ b.packages;});
+
               pkgs = import nixpkgs {
                 config.allowUnfree = true;
 
@@ -38,12 +40,39 @@
             in
               pkgs.mkShellNoCC (
                 let
-                  shell = let
+                  # TODO: can only the features that are active be included?
+                  featureShells = let
+                    featuresPath = ./${environment}/features;
+                  in
+                    if builtins.pathExists featuresPath
+                    then
+                      builtins.foldl'
+                      mergePackages
+                      {packages = [];}
+                      (nixpkgs.lib.lists.flatten (
+                        builtins.map
+                        (
+                          feature: (
+                            builtins.map
+                            (file: import ./${environment}/features/${feature}/${file} {inherit pkgs;})
+                            (builtins.filter
+                              (file: nixpkgs.lib.hasSuffix "nix" file)
+                              (builtins.attrNames
+                                (builtins.readDir ./${environment}/features/${feature})))
+                          )
+                        )
+                        (builtins.attrNames (builtins.readDir ./${environment}/features))
+                      ))
+                    else {packages = [];};
+
+                  mainShell = let
                     path = ./${environment}/shell.nix;
                   in
                     if builtins.pathExists path
                     then import path {inherit pkgs;}
-                    else {};
+                    else {packages = [];};
+
+                  shell = mergePackages mainShell featureShells;
 
                   toolchain =
                     pkgs.rust-bin.fromRustupToolchainFile
@@ -51,15 +80,13 @@
                 in
                   if environment == "rust"
                   then
-                    shell
+                    mergePackages shell {
+                      packages = with pkgs; [
+                        rust-analyzer-unwrapped
+                        toolchain
+                      ];
+                    }
                     // {
-                      packages =
-                        shell.packages
-                        ++ (with pkgs; [
-                          rust-analyzer-unwrapped
-                          toolchain
-                        ]);
-
                       shellHook = let
                         rust_src_path = "lib/rustlib/src/rust/library";
                       in

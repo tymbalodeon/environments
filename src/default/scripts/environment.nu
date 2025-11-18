@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use color.nu use-colors
+use environments.nu get-available-environments
 use environments.nu get-default-environments
 use environments.nu get-environment-path
 use environments.nu get-features

@@ -9,7 +9,7 @@ def create-path-with-owner [path: string] {
   sudo chown (whoami) $path
 }
 
-def main [] {
+export def main [] {
   if not (get-pgdata-directory  | path exists) {
     create-path-with-owner (get-pgdata-directory )
     initdb --pgdata (get-pgdata-directory )
