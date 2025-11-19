@@ -10,6 +10,7 @@ export def main [
   schema_file="database/schema/schema.sql"
 ] {
   create-database
+  start-docker
 
   (
     atlas migrate diff
