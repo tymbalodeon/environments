@@ -26,6 +26,7 @@ Available environments:
 - python
 - ruby
 - rust
+- sql
 - toml
 - tree-sitter
 - typescript
