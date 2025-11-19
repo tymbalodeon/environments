@@ -18,7 +18,7 @@
 
 # List table names
 @tables *args:
-    .environments/sql/scripts/seed.nu {{ args }}
+    .environments/sql/scripts/tables.nu {{ args }}
 
 # Select items from the database
 @select *args:
