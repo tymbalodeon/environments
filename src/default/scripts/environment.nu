@@ -115,6 +115,18 @@ export def "main add" [
   }
 }
 
+# Open local justfile configuration in $EDITOR
+def "main edit justfile" [environment?: string] {
+  let justfile = if ($environment | is-empty) {
+    fd "(Justfile)|.just" .environments
+    | fzf
+  } else {
+    $".environments/($environment)/Justfile"
+  }
+
+  ^$env.EDITOR $justfile
+}
+
 # Open local helix configuration in $EDITOR [alias: `edit languages`]
 def "main edit helix languages" [] {
   ^$env.EDITOR .helix/languages.toml
