@@ -116,12 +116,28 @@ export def "main add" [
 }
 
 # Open local justfile configuration in $EDITOR
-def "main edit justfile" [environment?: string] {
-  let justfile = if ($environment | is-empty) {
+def "main edit justfile" [] {
+  let default_environments = (
+    get-available-environments --exclude-local
+    | get name
+  )
+
+  let justfiles = (
     fd "(Justfile)|.just" .environments
+    | lines
+    | where {($in | path split | get 1) not-in $default_environments}
+  )
+
+  if ($justfiles | is-empty) {
+    return
+  }
+
+  let justfile = if ($justfiles | length) > 1 {
+    $justfiles
     | fzf
   } else {
-    $".environments/($environment)/Justfile"
+    $justfiles
+    | first
   }
 
   ^$env.EDITOR $justfile
@@ -149,13 +165,7 @@ def "main edit recipe" [recipe?: string] {
   let recipes = (
     fd --extension nu "" .environments
     | lines
-    | where {
-        (
-          $in
-          | path split
-          | get 1
-        ) not-in $default_environments
-      }
+    | where {($in | path split | get 1) not-in $default_environments}
   )
 
   let recipe = if ($recipe | is-empty) {
