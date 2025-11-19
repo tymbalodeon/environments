@@ -3,6 +3,7 @@
 use database.nu create-database
 use database.nu get-dev-url
 use database.nu get-url
+use docker.nu start-docker
 
 # Migrate the database
 export def main [
