@@ -1,13 +1,16 @@
 #!/usr/bin/env nu
 
+use database.nu create-database
 use database.nu get-dev-url
 use database.nu get-url
 
 # Migrate the database
-def main [
+export def main [
   migrations_directory="database/migrations"
   schema_file="database/schema/schema.sql"
 ] {
+  create-database
+
   (
     atlas migrate diff
       --dev-url (get-dev-url)
