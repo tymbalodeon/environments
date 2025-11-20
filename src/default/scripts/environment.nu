@@ -1068,7 +1068,7 @@ def "main set revision" [revision: string] {
         --json commit
         --owner tymbalodeon
         --repo environments
-        out+err> /dev/null
+        err> /dev/null
       | from json
       | get commit.tree.sha
     )
