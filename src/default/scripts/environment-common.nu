@@ -247,3 +247,39 @@ export def get-default-environments [] {
   }
 }
 
+export def open-configuration-file [] {
+  if (".environments/environments.toml" | path type) == file {
+    let configuration = (open .environments/environments.toml)
+
+    if "environments" in ($configuration| columns) {
+      $configuration
+    } else {
+      $configuration
+      | insert environments []
+    }
+  } else {
+    {environments: []}
+  }
+}
+
+export def update-configuration-environments [environments: list<record>] {
+  open-configuration-file
+  | update environments (
+      $environments
+      | each {
+          |environment|
+
+          if features in ($environment | columns) and (
+            $environment.features
+            | is-empty
+          ) {
+            {name: $environment.name}
+          } else {
+            $environment
+          }
+        }
+      | sort-by name
+    )
+  | sort
+  | save --force .environments/environments.toml
+}

@@ -1,4 +1,4 @@
-use ./default/scripts/environments.nu get-environment-path
+use ./default/scripts/environment-common.nu get-environment-path
 
 def get-environment-name [environment: any] {
   if (

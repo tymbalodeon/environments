@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-use environments.nu get-aliases-files
-use environments.nu get-default-environments
-use environments.nu parse-environments
+use environment-common.nu get-aliases-files
+use environment-common.nu get-default-environments
+use environment-common.nu parse-environments
 use print.nu print-warning
 use color.nu use-colors
 use find-script.nu

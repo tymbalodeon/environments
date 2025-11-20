@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use environments.nu get-available-environments
+use environment-common.nu get-available-environments
 use color.nu use-colors
 
 def get-todos [
