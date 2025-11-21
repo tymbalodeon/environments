@@ -94,6 +94,12 @@ def "main list" [
   --feature: string # List files for $feature only (requires $environment)
   --features # Show features
 ] {
+  let feature = if ($feature | is-empty) {
+    ""
+  } else {
+    $feature
+  }
+
   environment-list {
     aliases: $aliases
     color: $color

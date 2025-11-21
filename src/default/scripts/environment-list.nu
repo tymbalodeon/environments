@@ -1,3 +1,5 @@
+use environment-common.nu open-configuration-file
+
 def append-aliases [environment: record<name: string aliases: list<string>>] {
   if ($environment.aliases | is-empty) {
     $environment.name
@@ -44,7 +46,7 @@ def highlight-feature []: string -> string {
 
 export def main [
   options: record<
-    aliases: string,
+    aliases: bool,
     color: string,
     feature: string,
     features: bool
@@ -54,7 +56,6 @@ export def main [
 ] {
   let aliases = $options.aliases
   let color = $options.color
-  let default = $options.default
   let feature = $options.feature
   let features = $options.features
 
@@ -170,12 +171,12 @@ export def main [
 
 export def active [
   options: record<
-    aliases: string,
+    aliases: bool,
     color: string,
-    default: string,
-    features: string,
-    local: string,
-    user: string
+    default: bool,
+    features: bool,
+    local: bool,
+    user: bool
   >
 ] {
   let aliases = $options.aliases
