@@ -128,4 +128,3 @@ export def "show help" [] {
     | reject hide_help
   )
 }
-

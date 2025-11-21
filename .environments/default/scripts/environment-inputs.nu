@@ -5,4 +5,3 @@ export def main [] {
   | columns
   | to text --no-newline
 }
-

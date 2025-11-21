@@ -146,7 +146,7 @@ alias "main rm" = main remove
 
 # Show the current revision being used by `environments`
 def "main revision" [] {
-  environment-revision revision get 
+  environment-revision revision get
 }
 
 # Set the revision of `environments` to use

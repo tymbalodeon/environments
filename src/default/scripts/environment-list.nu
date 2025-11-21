@@ -356,4 +356,3 @@ export def default [] {
   (get-default-environments).name
   | to text --no-newline
 }
-

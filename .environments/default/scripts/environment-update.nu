@@ -1,4 +1,4 @@
-use environment-activate.nu 
+use environment-activate.nu
 
 export def main [
   inputs: list<string>

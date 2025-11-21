@@ -26,7 +26,7 @@ export def "revision get" [] {
 
 export def "revision set" [revision: string] {
   # gh api repos/tymbalodeon/environments/tags
-  
+
   try {
     (
       gh search commits
@@ -54,4 +54,3 @@ export def "revision set" [revision: string] {
     )
   | save --force flake.nix
 }
-

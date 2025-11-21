@@ -42,7 +42,7 @@ export def recipe [recipe?: string] {
 
   if ($recipes | is-empty) {
     return
-  } 
+  }
 
   let recipe = if ($recipe | is-empty) {
     $recipes

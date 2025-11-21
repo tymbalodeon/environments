@@ -9,7 +9,7 @@ def main [
   --csv
 ] {
   start-postgres
-  
+
   if $csv {
     psql (get-database-name) --command $"($query)" --csv
   } else {
