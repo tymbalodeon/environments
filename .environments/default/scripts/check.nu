@@ -149,6 +149,8 @@ export def main [...checks: string] {
     leaks
   }
 
+  mut failed = false
+
   for check in (
     just --summary
     | split row " "
@@ -163,7 +165,13 @@ export def main [...checks: string] {
       }
   ) {
     if $all or $check in $checks {
-      just $check
+      let results = (just --color always $check out+err>| complete)
+
+      print $results.stdout
+
+      if ($results.exit_code) != 0 {
+        $failed = true
+      }
     }
   }
 
@@ -180,10 +188,26 @@ export def main [...checks: string] {
   for check_name in $checks {
     if $check_name in $default_checks.name {
       for check in ($default_checks | where name == $check_name) {
-        nu $check.file
+        let results = (nu $check.file out+err>| complete)
+
+        print $results.stdout
+
+        if ($results.exit_code) != 0 {
+          $failed = true
+        }
       }
     } else if $check_name in $submodules {
-      just $check_name check
+      let results = (just --color always $check_name check out+err>| complete)
+
+      print $results.stdout
+
+      if ($results.exit_code) != 0 {
+          $failed = true
+      }
     }
+  }
+
+  if $failed {
+    exit 1
   }
 }
