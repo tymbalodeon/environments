@@ -8,12 +8,6 @@ set working-directory := "../.."
 @generate-text *args:
     .environments/environments/scripts/generate-text.nu {{ args }}
 
-# Update init flake
-@update *args:
-    .environments/environments/scripts/update.nu {{ args }}
-
-alias up := update
-
 # Reload environment
 @reload *args:
     .environments/environments/scripts/reload.nu {{ args }}
@@ -25,3 +19,9 @@ alias up := update
 # Sort environment .gitignore files
 @sort-gitignores *args:
     .environments/environments/scripts/sort-gitignores.nu {{ args }}
+
+# Update init flake
+@update *args:
+    .environments/environments/scripts/update.nu {{ args }}
+
+alias up := update

@@ -1,4 +1,5 @@
 use environment-activate.nu
+use environment-common.nu get-available-environments
 use environment-common.nu open-configuration-file
 
 def filter-to-local-files [files: string] {
@@ -50,26 +51,54 @@ export def recipe [recipe?: string] {
     | to text
     | fzf
   } else {
-    let recipe = (
+    let matching_recipes = (
       $recipes
       | find --no-highlight $recipe
     )
 
-    if ($recipe | is-empty) {
-      return
-    }
+    if ($matching_recipes | is-empty) {
+      let prompt = $"No recipe \"($recipe)\" found. Would you like to create it? [y/N]: "
 
-    if ($recipe | length) > 1 {
+      if (input $prompt | str downcase) in [y yes] {
+        let local_environments = (get-available-environments --only-local).name
+
+        let environment = if ($local_environments | length) > 1 {
+          $local_environments
+          | to text
+          | fzf
+        } else {
+          $local_environments
+          | first
+        }
+
+        let scripts_directory = $".environments/($environment)/scripts"
+
+        mkdir $scripts_directory
+
+        let recipe = $"($scripts_directory)/($recipe | str replace --regex '\.nu$' "").nu"
+
+        "#!/usr/bin/env nu\n\ndef main [] {\n\n}"
+        | save $recipe
+
+        chmod +x $recipe
+
+        $recipe
+      } else {
+        return
+      }
+    } else if ($matching_recipes | length) > 1 {
       $recipe
       | to text
       | fzf
     } else {
-      $recipe
+      $matching_recipes
       | first
     }
   }
 
   ^$env.EDITOR $recipe
+
+  # TODO: when creating a recipe file, handle adding it to the justfile
 }
 
 export def shell [] {
