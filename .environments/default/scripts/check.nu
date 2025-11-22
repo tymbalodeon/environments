@@ -135,6 +135,14 @@ def "main list" [
       ]
       | each {append-comment $in.name $in.comment $color}
     )
+  | append (
+      fd "(check|format|lint).nu" .environments
+      | lines
+      | each {split row "/" | get 1}
+      | where $it != default
+      | uniq
+      | each {append-comment $in $"Check, format, and lint ($in) files" $color}
+    )
   | sort
   | to text
   | column -t -s •
