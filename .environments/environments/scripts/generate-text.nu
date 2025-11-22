@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ../../default/scripts/environment.nu "main list"
+use ../../default/scripts/environment-list.nu
 
 def generate-text [
   section: record<files: list<string> target: string text: string>
@@ -43,7 +43,7 @@ def main [] {
       target: environments
 
       text: (
-        main list
+        environment-list {aliases: false color: never feature: "" features: false}
         | lines
         | where {$in != generic}
         | each {$'- ($in)'}
