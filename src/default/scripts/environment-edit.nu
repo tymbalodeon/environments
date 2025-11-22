@@ -1,4 +1,5 @@
 use environment-activate.nu
+use environment-common.nu open-configuration-file
 
 def filter-to-local-files [files: string] {
   let default_environments = (
