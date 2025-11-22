@@ -2,6 +2,7 @@
 
 use environment-common.nu get-aliases-files
 use environment-common.nu get-default-environments
+use environment-common.nu open-configuration-file
 use environment-common.nu parse-environments
 use print.nu print-warning
 use color.nu use-colors
@@ -689,6 +690,17 @@ def "main default" [
   )
 }
 
+def get-settings-bool [column: string] {
+  let settings = (open-configuration-file)
+
+  try {
+    $settings
+    | get $column
+  } catch {
+    false
+  }
+}
+
 # View help text
 def main [
   environment_or_recipe?: string # View help text for recipe
@@ -698,6 +710,14 @@ def main [
   --color = "always" # When to use colored output {always|auto|never}
   --paging = "auto" # When to use pager {always|auto|never}
 ] {
+  if not $all and (
+    (get-settings-bool hide_default) or (get-settings-bool hide_help)
+  ) {
+    print $"(
+      ansi default_bold
+    )use `just help --all` for more recipes(ansi reset)\n"
+  }
+
   (
     display-just-help
       $environment_or_recipe
