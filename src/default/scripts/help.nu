@@ -157,6 +157,7 @@ def append-main-aliases [
 }
 
 def main-help [all: bool environment?: string --color: string] {
+
   let environments = if not $all and (
     ".environments/environments.toml"
     | path exists
@@ -264,6 +265,14 @@ def main-help [all: bool environment?: string --color: string] {
     | str join "\n"
   } else {
     $text
+  }
+
+  if not $all and (
+    (get-settings-bool hide_default) or (get-settings-bool hide_help)
+  ) {
+    print $"(
+      ansi default_bold
+    )use `just help --all` for more recipes(ansi reset)\n"
   }
 
   append-main-aliases $text --color $color
@@ -413,10 +422,12 @@ def get-help-text [
     | is-empty
   ) {
     return (
-      just
-        --color always
-        --justfile $".environments/($environment)/Justfile"
-        --list
+      append-main-aliases (
+        just
+          --color $color
+          --justfile $".environments/($environment)/Justfile"
+          --list
+      ) --color $color
     )
   }
 
@@ -710,14 +721,6 @@ def main [
   --color = "always" # When to use colored output {always|auto|never}
   --paging = "auto" # When to use pager {always|auto|never}
 ] {
-  if not $all and (
-    (get-settings-bool hide_default) or (get-settings-bool hide_help)
-  ) {
-    print $"(
-      ansi default_bold
-    )use `just help --all` for more recipes(ansi reset)\n"
-  }
-
   (
     display-just-help
       $environment_or_recipe
