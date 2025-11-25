@@ -25,19 +25,22 @@ export def "revision get" [] {
 }
 
 export def "revision set" [revision: string] {
-  # gh api repos/tymbalodeon/environments/tags
-
   try {
-    (
-      gh search commits
-        --hash $revision
-        --json commit
-        --owner tymbalodeon
-        --repo environments
-        err> /dev/null
+      (
+        gh search commits
+          --hash $revision
+          --json commit
+          --owner tymbalodeon
+          --repo environments
+          err> /dev/null
+      )
       | from json
       | get commit.tree.sha
-    )
+      | append (
+          gh api repos/tymbalodeon/environments/tags
+          | get name
+          | from json
+        )
   } catch {
     print-error $"invalid revision: \"($revision)\""
 
