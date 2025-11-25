@@ -5,21 +5,26 @@ export def main [
   inputs: list<string>
 ] {
   let current_revision = (environment-revision revision get)
+
+  let current_revision = if ($current_revision | is-empty) {
+    "trunk"
+  } else {
+    $current_revision
+  }
+
   let update_environments = [environments env] | any {$in in $inputs}
 
   if ($inputs | is-empty) or $update_environments {
+    let base_url = "https://raw.githubusercontent.com"
+
     let remote_url = (
-      "https://raw.githubusercontent.com/tymbalodeon/environments/trunk"
+      $"($base_url)/tymbalodeon/environments/($current_revision)"
     )
 
     let project_root = (git rev-parse --show-toplevel)
 
     http get $"($remote_url)/src/default/flake.nix"
     | save --force $"($project_root)/flake.nix"
-
-    if ($current_revision | is-not-empty) and $current_revision != trunk {
-      environment-revision revision set $current_revision
-    }
   }
 
   if ($inputs | is-empty) {
