@@ -26,6 +26,18 @@ export def "revision get" [] {
   }
 }
 
+export def "revision list" [] {
+  gh api repos/tymbalodeon/environments/branches
+  | from json
+  | append (
+      gh api repos/tymbalodeon/environments/tags
+      | from json
+    )
+  | get name
+  | sort
+  | to text --no-newline
+}
+
 export def "revision set" [revision: string] {
   try {
       (
@@ -40,8 +52,8 @@ export def "revision set" [revision: string] {
       | get commit.tree.sha
       | append (
           gh api repos/tymbalodeon/environments/tags
-          | get name
           | from json
+          | get name
         )
   } catch {
     print-error $"invalid revision: \"($revision)\""
