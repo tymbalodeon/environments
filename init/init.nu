@@ -36,8 +36,6 @@ def main [
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
   let environment_script = $"($env.ENVIRONMENTS)/default/scripts/environment.nu"
 
-  print (nu $environment_script revision set --help)
-
   (
     nu $environment_script revision set
       $revision

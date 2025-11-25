@@ -40,7 +40,7 @@ export def "revision list" [] {
 
 export def "revision set" [
   revision: string
-  --source-flake="flake.nix"
+  source_flake="flake.nix"
 ] {
   try {
       (
