@@ -1,3 +1,5 @@
+use print.nu print-error
+
 def get-current-revision [] {
   try {
     open flake.nix
