@@ -40,8 +40,8 @@ export def "revision set" [revision: string] {
       | get commit.tree.sha
       | append (
           gh api repos/tymbalodeon/environments/tags
-          | get name
           | from json
+          | get name
         )
   } catch {
     print-error $"invalid revision: \"($revision)\""
