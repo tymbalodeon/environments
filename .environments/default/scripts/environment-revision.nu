@@ -1,8 +1,8 @@
 use print.nu print-error
 
-def get-current-revision [] {
+def get-current-revision [flake="flake.nix"] {
   try {
-    open flake.nix
+    open $flake
     | find github:tymbalodeon/environments/
     | first
     | ansi strip
@@ -38,7 +38,10 @@ export def "revision list" [] {
   | to text --no-newline
 }
 
-export def "revision set" [revision: string] {
+export def "revision set" [
+  revision: string
+  --source-flake="flake.nix"
+] {
   try {
       (
         gh search commits
@@ -63,10 +66,10 @@ export def "revision set" [revision: string] {
 
   let repo_url_base = "github:tymbalodeon/environments"
 
-  open flake.nix
+  open $source_flake
   | (
       str replace
-        $"($repo_url_base)/(get-current-revision)"
+        $"($repo_url_base)/(get-current-revision $source_flake)"
         $"($repo_url_base)/($revision)"
     )
   | save --force flake.nix

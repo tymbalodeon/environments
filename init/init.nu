@@ -4,6 +4,7 @@
 def main [
   ...environments: string # Environments to activate
   --directory: string # Path to the directory to initialize
+  --revision="trunk" # Use another revision besides "trunk"
 ] {
   if ($directory | is-not-empty) {
     if ($directory | path exists) {
@@ -33,11 +34,18 @@ def main [
   )
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
-  cp $"($env.ENVIRONMENTS)/default/flake.nix" flake.nix
+  let environment_script = $"($env.ENVIRONMENTS)/default/scripts/environment.nu"
+
+  print (nu $environment_script revision set --help)
+
+  (
+    nu $environment_script revision set
+      $revision
+      --source-flake $"($env.ENVIRONMENTS)/default/flake.nix"
+  )
+
   jj describe --message "chore: initialize environments" out+err> /dev/null
   jj new out+err> /dev/null
-
-  let environment_script = $"($env.ENVIRONMENTS)/default/scripts/environment.nu"
 
   if ($environments | is-not-empty) {
     nu $environment_script add --skip-activation ...$environments
