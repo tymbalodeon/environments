@@ -59,6 +59,7 @@ export def "revision set" [
           | get name
         )
   } catch {
+    |e| print $e
     print-error $"invalid revision: \"($revision)\""
 
     return
