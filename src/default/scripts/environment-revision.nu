@@ -52,14 +52,13 @@ export def "revision set" [
           err> /dev/null
       )
       | from json
-      | get commit.tree.sha
+      | get --optional commit.tree.sha
       | append (
           gh api repos/tymbalodeon/environments/tags
           | from json
-          | get name
+          | get --optional name
         )
   } catch {
-    |e| print $e
     print-error $"invalid revision: \"($revision)\""
 
     return
