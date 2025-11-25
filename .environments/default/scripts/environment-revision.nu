@@ -19,9 +19,7 @@ def get-current-revision [flake="flake.nix"] {
 export def "revision get" [] {
   let current_revision = (get-current-revision)
 
-  if ($current_revision | is-empty) {
-    return
-  } else {
+  if ($current_revision | is-not-empty) {
     $current_revision
   }
 }
@@ -52,14 +50,13 @@ export def "revision set" [
           err> /dev/null
       )
       | from json
-      | get commit.tree.sha
+      | get --optional commit.tree.sha
       | append (
           gh api repos/tymbalodeon/environments/tags
           | from json
-          | get name
+          | get --optional name
         )
   } catch {
-    |e| print $e
     print-error $"invalid revision: \"($revision)\""
 
     return

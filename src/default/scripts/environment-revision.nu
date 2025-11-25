@@ -19,9 +19,7 @@ def get-current-revision [flake="flake.nix"] {
 export def "revision get" [] {
   let current_revision = (get-current-revision)
 
-  if ($current_revision | is-empty) {
-    return
-  } else {
+  if ($current_revision | is-not-empty) {
     $current_revision
   }
 }
