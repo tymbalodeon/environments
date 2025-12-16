@@ -3,8 +3,7 @@
 use ../default/scripts/domain.nu
 
 def "main remove" [] {
-  rm --force book.toml
-  rm --force --recursive book documentation
+  rm --force --recursive book book.toml documentation
 }
 
 def main [] {
@@ -33,12 +32,5 @@ def main [] {
   }
 
   mkdir documentation
-  mdbook init --ignore none --title $title
-
-  open book.toml
-  | update book.src documentation
-  | save --force book.toml
-
-  mv src/SUMMARY.md documentation
-  mv src/chapter_1.md documentation
+  mdbook init documentation --ignore none --title $title
 }

@@ -23,7 +23,7 @@ layout {
 
         pane {
             command "mdbook"
-            args "serve"
+            args "serve" "documentation"
         }
 
         pane size=2 borderless=true {
