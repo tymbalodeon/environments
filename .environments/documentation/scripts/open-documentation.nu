@@ -2,5 +2,5 @@
 
 # Open the documentation page
 export def main [] {
-  job spawn { start http://localhost:3000/ }
+  start http://localhost:3000/
 }

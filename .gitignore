@@ -2,6 +2,7 @@
 .env
 .envrc
 .helix/config.toml
+book
 documentation/book
 init/flake.lock
 result
