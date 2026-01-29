@@ -13,50 +13,6 @@ def get-bookmarks [] {
   | append (get-revision-names tag)
 }
 
-def "main new" [
-  bookmark: string # The name of the bookmark to create
-  --from-current # Create a new bookmark off of the current revision instead of trunk
-  --revision: string # Create a new bookmark off of a particular revision
-] {
-  let revision = if $from_current {
-    "@"
-  } else if ($revision | is-not-empty) {
-    $revision
-  } else {
-    let bookmarks = (get-bookmarks)
-
-    if trunk in $bookmarks {
-      "trunk"
-    } else if main in $bookmarks {
-      "main"
-    } else if master in $bookmarks {
-      "master"
-    } else {
-      print-error "could not determine the default bookmark"
-      print-error "please specify the bookmark name to start from"
-    }
-  }
-
-  let prompt = (
-    [
-      "Are you sure you want to create a new bookmark "
-      $bookmark
-      " starting from "
-      $revision
-      "? [y/N] "
-    ]
-    | str join
-  )
-
-  let confirmed = (input --numchar 1 $prompt)
-
-  if ($confirmed | str downcase) in [y yes] {
-    jj new $revision
-    jj bookmark create $bookmark --revision @
-    jj describe --message $"chore: init ($bookmark)"
-  }
-}
-
 def main [
   bookmark?: string # The name of the bookmark to create or edit
   --latest # Switch to the most recent revision
@@ -131,3 +87,48 @@ def main [
     print-error $"unrecognized bookmark `($bookmark)`"
   }
 }
+
+def "main new" [
+  issue: string # The name of the bookmark to create
+  --from-current # Create a new bookmark off of the current revision instead of main
+  --revision: string # Create a new bookmark off of a particular revision
+] {
+  let revision = if $from_current {
+    "@"
+  } else if ($revision | is-not-empty) {
+    $revision
+  } else {
+    let bookmarks = (get-bookmarks)
+
+    if main in $bookmarks {
+      "main"
+    } else if master in $bookmarks {
+      "master"
+    } else if trunk in $bookmarks {
+      "trunk"
+    } else {
+      print-error "could not determine the default bookmark"
+      print-error "please specify the bookmark name to start from"
+    }
+  }
+
+  let prompt = (
+    [
+      "Are you sure you want to create a new bookmark "
+      $issue
+      " starting from "
+      $revision
+      "? [y/N] "
+    ]
+    | str join
+  )
+
+  let confirmed = (input --numchar 1 $prompt)
+
+  if ($confirmed | str downcase) in [y yes] {
+    jj new $revision
+    jj bookmark create $issue --revision @
+    jj describe --message $"chore: init ($issue)"
+  }
+}
+
