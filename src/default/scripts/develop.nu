@@ -89,7 +89,8 @@ def main [
 }
 
 def "main new" [
-  issue: string # The name of the bookmark to create
+  title?: string # The name of the issue/branch to create
+  --edit # Edit the new issue before developing
   --from-current # Create a new bookmark off of the current revision instead of main
   --revision: string # Create a new bookmark off of a particular revision
 ] {
@@ -112,23 +113,33 @@ def "main new" [
     }
   }
 
-  let prompt = (
-    [
-      "Are you sure you want to create a new bookmark "
-      $issue
-      " starting from "
-      $revision
-      "? [y/N] "
-    ]
-    | str join
-  )
+  let title = if ($title | is-empty) {
+    gh issue create --editor 
 
-  let confirmed = (input --numchar 1 $prompt)
+    gh issue list --json title
+    | from json
+    | first
+    | get title
+  } else {
+    if $edit {
+      gh issue create --editor --title $title
+    } else {
+      gh issue create --body "" --title $title
+    }
 
-  if ($confirmed | str downcase) in [y yes] {
-    jj new $revision
-    jj bookmark create $issue --revision @
-    jj describe --message $"chore: init ($issue)"
+    $title
   }
+
+  if not $from_current {
+    jj new $revision
+  }
+
+  jj bookmark create $title --revision $revision
+  jj bookmark track $title --remote origin
+  jj describe --message $"chore: init ($title)"
 }
+
+# get number from gh pr view $branch --json number,status
+# check for status == OPEN, then
+# gh pr merge $number --auto --squash
 
