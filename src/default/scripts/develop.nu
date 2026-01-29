@@ -89,7 +89,8 @@ def main [
 }
 
 def "main new" [
-  issue: string # The name of the bookmark to create
+  name: string # The name of the issue/branch to create
+  --edit # Edit the new issue before developing
   --from-current # Create a new bookmark off of the current revision instead of main
   --revision: string # Create a new bookmark off of a particular revision
 ] {
@@ -112,23 +113,18 @@ def "main new" [
     }
   }
 
-  let prompt = (
-    [
-      "Are you sure you want to create a new bookmark "
-      $issue
-      " starting from "
-      $revision
-      "? [y/N] "
-    ]
-    | str join
-  )
-
-  let confirmed = (input --numchar 1 $prompt)
-
-  if ($confirmed | str downcase) in [y yes] {
-    jj new $revision
-    jj bookmark create $issue --revision @
-    jj describe --message $"chore: init ($issue)"
+  if $edit {
+    gh issue create --editor --title $name
+  } else {
+    gh issue create --body "" --title $name
   }
+
+  if not $from_current {
+    jj new $revision
+  }
+
+  jj bookmark create $name --revision $revision
+  jj bookmark track $name --remote origin
+  jj describe --message $"chore: init ($name)"
 }
 
