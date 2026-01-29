@@ -2,7 +2,7 @@
   inputs = {
     environments = {
       inputs.nixpkgs.follows = "nixpkgs";
-      url = "git+file:.?dir=src";
+      url = "github:tymbalodeon/environments/trunk?dir=src";
     };
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -35,7 +35,7 @@
           map
           (module: (import module {inherit pkgs;}))
           (builtins.filter
-            (path: builtins.pathExists path)
+            (module: builtins.pathExists module)
             (map
               (item: ./.environments/${item.name}/shell.nix)
               (builtins.filter
@@ -55,18 +55,18 @@
       in {
         default = pkgs.mkShellNoCC ({
             inputsFrom =
-              builtins.map
+              map
               (environment: environments.devShells.${system}.${environment})
               ((
                   if builtins.pathExists ./.environments/environments.toml
                   then let
                     environments =
-                      builtins.fromTOML
+                      fromTOML
                       (builtins.readFile ./.environments/environments.toml);
                   in
                     if builtins.hasAttr "environments" environments
                     then
-                      builtins.map (environment: environment.name)
+                      map (environment: environment.name)
                       environments.environments
                     else []
                   else []
@@ -92,7 +92,6 @@
                   ''
                     export NUTEST=${nutest}
                     export ENVIRONMENTS=${environments}
-
                     ${nushell}/bin/nu ${environments}/shell-hook.nu
                   ''
                 ]
@@ -106,7 +105,7 @@
           (a: b: a // b)
           {}
           (map
-            (module: builtins.removeAttrs module ["packages" "shellHook"])
+            (module: removeAttrs module ["packages" "shellHook"])
             modules));
       }
     );
