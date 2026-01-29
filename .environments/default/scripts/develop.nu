@@ -134,13 +134,12 @@ def "main new" [
     jj new $revision
   }
 
-  if $title not-in (get-bookmarks) {
-    jj bookmark create $title
-    jj bookmark track $title --remote origin
-  } else {
-    jj rebase --destination $title
-    jj bookmark set $title --to @
-  }
-
+  jj bookmark create $title --revision $revision
+  jj bookmark track $title --remote origin
   jj describe --message $"chore: init ($title)"
 }
+
+# get number from gh pr view $branch --json number,status
+# check for status == OPEN, then
+# gh pr merge $number --auto --squash
+
