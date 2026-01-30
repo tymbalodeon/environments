@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
 use print.nu print-error
+use print.nu print-warning
 
 def get-revision-names [type: string] {
   jj $type list --template "name ++ '\n'"
@@ -89,58 +90,36 @@ def main [
 }
 
 def "main new" [
-  title?: string # The name of the issue/branch to create
-  --edit # Edit the new issue before developing
-  --from-current # Create a new bookmark off of the current revision instead of main
-  --revision: string # Create a new bookmark off of a particular revision
+  name?: string # The name of the bookmark to create
+  --from: string # The revision to start from (defaults to the current revision)
+  --issue: int # The issue ID of the issue whose name to use
 ] {
-  let revision = if $from_current {
-    "@"
-  } else if ($revision | is-not-empty) {
-    $revision
-  } else {
-    let bookmarks = (get-bookmarks)
-
-    if main in $bookmarks {
-      "main"
-    } else if master in $bookmarks {
-      "master"
-    } else if trunk in $bookmarks {
-      "trunk"
+  let name = if ($name | is-empty) {
+    let json = if ($issue | is-empty) {
+      gh issue list --json title
+      | from json
+      | get title
+      | to text
+      | fzf
     } else {
-      print-error "could not determine the default bookmark"
-      print-error "please specify the bookmark name to start from"
+      gh issue view --json title $issue 
+      | from json
+      | get title
     }
-  }
-
-  let title = if ($title | is-empty) {
-    gh issue create --editor 
-
-    gh issue list --json title
-    | from json
-    | first
-    | get title
   } else {
-    if $edit {
-      gh issue create --editor --title $title
-    } else {
-      gh issue create --body "" --title $title
-    }
-
-    $title
+    $name
   }
 
-  if not $from_current {
-    jj new $revision
+  if ($from | is-not-empty) {
+    jj new $from
   }
 
-  if $title not-in (get-bookmarks) {
-    jj bookmark create $title
-    jj bookmark track $title --remote origin
+  if $name not-in (get-bookmarks) {
+    jj bookmark create $name
+    jj bookmark track $name
+    jj describe --message $"chore: init ($name)"
+    jj git push
   } else {
-    jj rebase --destination $title
-    jj bookmark set $title --to @
+    print-warning $"bookmark ($name) already exists"
   }
-
-  jj describe --message $"chore: init ($title)"
 }
