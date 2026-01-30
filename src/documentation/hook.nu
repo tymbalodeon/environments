@@ -15,32 +15,28 @@ def "main remove" [] {
 }
 
 def main [] {
-  if ("documentation" | path exists) {
-    if ("documentation" | path type) == dir {
-      return
-    } else {
-      rm documentation
+  if ("documentation" | path exists) and ("documentation" | path type) != dir {
+    rm documentation
+
+    let title = do --ignore-errors {
+      open .environments/environments.toml
+      | get environments
+      | where name == documentation
+      | get title
+      | first
     }
-  }
 
-  let title = do --ignore-errors {
-    open .environments/environments.toml
-    | get environments
-    | where name == documentation
-    | get title
-    | first
-  }
-
-  let title = if ($title | is-empty) {
-    match (domain) {
-      "github" => (gh repo view --json name | from json | get name)
-      "gitlab" => (glab repo view --output json | from json | get path)
-      _ => (pwd | path basename)
+    let title = if ($title | is-empty) {
+      match (domain) {
+        "github" => (gh repo view --json name | from json | get name)
+        "gitlab" => (glab repo view --output json | from json | get path)
+        _ => (pwd | path basename)
+      }
     }
-  }
 
-  mkdir documentation
-  mdbook init documentation --ignore none --title $title
+    mkdir documentation
+    mdbook init documentation --ignore none --title $title
+  }
 
   let mdbook_workflow_file = ".github/workflows/mdbook.yml"
 
@@ -58,4 +54,6 @@ def main [] {
 
   $updated_mdbook_workflow
   | save --force $mdbook_workflow_file
+
+  yamlfmt $mdbook_workflow_file
 }
