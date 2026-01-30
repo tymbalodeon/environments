@@ -3,7 +3,15 @@
 use ../default/scripts/domain.nu
 
 def "main remove" [] {
-  rm --force --recursive book book.toml documentation
+  (
+    rm
+      --force
+      --recursive
+      book
+      book.toml
+      documentation
+      .github/workflows/mdbook.yml
+  )
 }
 
 def main [] {
@@ -33,4 +41,14 @@ def main [] {
 
   mkdir documentation
   mdbook init documentation --ignore none --title $title
+
+  open .github/workflows/mdbook.yml
+  | update jobs.build.env.MDBOOK_VERSION (
+      mdbook --version
+      | split row " "
+      | last
+      | parse 'v{version}'
+      | first
+      | get version
+    )
 }

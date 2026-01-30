@@ -2,8 +2,7 @@ name: Deploy mdBook site to Pages
 
 on:
   push:
-    branches:
-      - trunk
+    branches: ["trunk"]
 
   workflow_dispatch:
 
