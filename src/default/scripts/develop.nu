@@ -14,7 +14,7 @@ def get-bookmarks [] {
 }
 
 def main [
-  bookmark?: string # The name of the bookmark to create or edit
+  bookmark?: string # The name of the bookmark to switch to
   --latest # Switch to the most recent revision
   --revision: string # Switch to this particular revision
 ] {
