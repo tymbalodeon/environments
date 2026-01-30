@@ -42,13 +42,20 @@ def main [] {
   mkdir documentation
   mdbook init documentation --ignore none --title $title
 
-  open .github/workflows/mdbook.yml
-  | update jobs.build.env.MDBOOK_VERSION (
-      mdbook --version
-      | split row " "
-      | last
-      | parse 'v{version}'
-      | first
-      | get version
-    )
+  let mdbook_workflow_file = ".github/workflows/mdbook.yml"
+
+  let updated_mdbook_workflow = (
+    open $mdbook_workflow_file
+    | update jobs.build.env.MDBOOK_VERSION (
+        mdbook --version
+        | split row " "
+        | last
+        | parse 'v{version}'
+        | first
+        | get version
+      )
+  )
+
+  $updated_mdbook_workflow
+  | save --force $mdbook_workflow_file
 }
