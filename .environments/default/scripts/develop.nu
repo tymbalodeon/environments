@@ -14,6 +14,7 @@ def get-bookmarks [] {
   | append (get-revision-names tag)
 }
 
+# Switch to a development revision
 def main [
   name?: string # The name of the bookmark to switch to
   --choose # Choose the revision to switch to interactively
@@ -95,6 +96,17 @@ def main [
   }
 }
 
+# List development bookmarks
+def "main list" [] {
+  jj bookmark list
+}
+
+# List development bookmarks
+def "main list names" [] {
+  jj bookmark list --template "name ++ '\n'"
+}
+
+# Create a new development bookmark
 def "main new" [
   name?: string # The name of the bookmark to create
   --from: string # The revision to start from (defaults to the current revision)
