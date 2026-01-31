@@ -291,6 +291,16 @@ def "main sync" [
 
 # Set the current branch to the current revision
 def "main tug" [] {
+  # TODO: check if @ is empty, if so, use @-
+  let revision = if (
+    jj log --no-graph --revisions @ --template "empty"
+    | into bool
+  ) {
+    "@-"
+  } else {
+    "@"
+  }
+
   jj bookmark move --from "heads(::@- & bookmarks())" --to @
   jj git push
 }
