@@ -302,5 +302,10 @@ def "main tug" [] {
 
   # TODO: handle empty descriptions?
   jj bookmark move --from "heads(::@- & bookmarks())" --to @
+
+  if $revision == "@" {
+    jj new
+  }
+
   jj git push
 }

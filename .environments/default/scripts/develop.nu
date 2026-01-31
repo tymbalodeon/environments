@@ -291,7 +291,6 @@ def "main sync" [
 
 # Set the current branch to the current revision
 def "main tug" [] {
-  # TODO: check if @ is empty, if so, use @-
   let revision = if (
     jj log --no-graph --revisions @ --template "empty"
     | into bool
@@ -301,6 +300,12 @@ def "main tug" [] {
     "@"
   }
 
+  # TODO: handle empty descriptions?
   jj bookmark move --from "heads(::@- & bookmarks())" --to @
+
+  if $revision == "@" {
+    jj new
+  }
+
   jj git push
 }
