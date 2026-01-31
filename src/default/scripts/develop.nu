@@ -291,6 +291,14 @@ def "main sync" [
 
 # Set the current branch to the current revision
 def "main tug" [] {
+  # TODO
+  # 1. find the most recent revision that is NOT empty
+  # 2. find the most recent bookmark
+  # 3. set that bookmark to the most recent NON-empty revision
+  # 4. Find all revisions between the old set bookmark and the new one to move
+  #    to, and find all commit ids that have an empty description
+  # 5. take those revisions and either add descriptions, or (better?) squash them down into a single commit?
+  
   let revision = if (
     jj log --no-graph --revisions @ --template "empty"
     | into bool
