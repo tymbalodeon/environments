@@ -15,50 +15,54 @@ def get-bookmarks [] {
 }
 
 def main [
-  bookmark?: string # The name of the bookmark to switch to
-  --latest # Switch to the most recent revision
+  name?: string # The name of the bookmark to switch to
+  --choose # Choose the revision to switch to interactively
   --revision: string # Switch to this particular revision
 ] {
-  let bookmark = if ($bookmark | is-not-empty) {
-    $bookmark
+  let bookmarks = (get-bookmarks)
+
+  let name = if ($name | is-not-empty) {
+    $name
   } else {
-    get-bookmarks
+    $bookmarks
     | to text
     | fzf
   }
 
-  if ($bookmark | is-empty) {
+  if ($name | is-empty) {
     return
   }
 
-  if ($bookmark in (get-bookmarks)) {
-    let revision = if ($revision | is-not-empty) {
-      $revision
-    } else {
-      let revisions = (
-        jj log
-          --no-graph
-          --revisions $"descendants\(($bookmark)\)"
-          --template "change_id ++ '•' ++ description ++ '\n'"
-        | lines
-        | where {is-not-empty}
-        | each {
-            |line|
+  if ($name not-in $bookmarks) {
+    print-error $"unrecognized bookmark `($name)`"
 
-            let parts = ($line | split row •)
+    return
+  }
 
-            {
-              change_id: $parts.0
-              description: $parts.1
-            }
+  let revision = if ($revision | is-not-empty) {
+    $revision
+  } else {
+    let revisions = (
+      jj log
+        --no-graph
+        --revisions $"descendants\(($name)\)"
+        --template "change_id ++ '•' ++ description ++ '\n'"
+      | lines
+      | where {is-not-empty}
+      | each {
+          |line|
+
+          let parts = ($line | split row •)
+
+          {
+            change_id: $parts.0
+            description: $parts.1
           }
-      )
+        }
+    )
 
+    if $choose {
       if ($revisions | length) == 1 {
-        $revisions
-        | first
-        | get change_id
-      } else if $latest {
         $revisions
         | first
         | get change_id
@@ -70,22 +74,24 @@ def main [
         | split row " "
         | first
       }
-    }
-
-    if ($revision | is-empty) {
-      return
-    }
-
-    if (
-      jj log --no-graph --revisions $revision --template "immutable"
-      | into bool
-    ) {
-      jj new $revision
     } else {
-      jj edit $revision
+      $revisions
+      | first
+      | get change_id
     }
+  }
+
+  if ($revision | is-empty) {
+    return
+  }
+
+  if (
+    jj log --no-graph --revisions $revision --template "immutable"
+    | into bool
+  ) {
+    jj new $revision
   } else {
-    print-error $"unrecognized bookmark `($bookmark)`"
+    jj edit $revision
   }
 }
 
