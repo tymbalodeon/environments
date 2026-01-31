@@ -141,3 +141,8 @@ def "main new" [
     print-warning $"bookmark ($name) already exists"
   }
 }
+
+# Sync development bookmarks with trunk
+def "main sync" [] {
+  print "Implement me!"
+}
