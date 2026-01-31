@@ -24,7 +24,7 @@ def get-remote-revision-names [type: string] {
   | uniq
 }
 
-def get-bookmarks [] {
+def get-local-bookmarks [] {
   get-revision-names bookmark
   | append (get-revision-names tag)
 }
@@ -35,7 +35,7 @@ def get-remote-bookmarks [] {
 }
 
 def get-all-bookmarks [] {
-  get-bookmarks
+  get-local-bookmarks
   | append (get-remote-bookmarks)
   | uniq
   | sort
@@ -45,13 +45,17 @@ def get-all-bookmarks [] {
 def main [
   name?: string # The name of the bookmark to switch to
   --choose # Choose the revision to switch to interactively
-  # TODO
-  # --local # (with `--choose`) Choose from local bookmarks only
-  # TODO
-  # --remote # (with `--choose`) Choose from remote bookmarks only
+  --local # (with `--choose`) Choose from local bookmarks only
+  --remote # (with `--choose`) Choose from remote bookmarks only
   --revision: string # Switch to this particular revision
 ] {
-  let bookmarks = (get-all-bookmarks)
+  let bookmarks = if $local {
+    get-local-bookmarks
+  } else if $remote {
+    get-remote-bookmarks
+  } else {
+    get-all-bookmarks
+  }
 
   let name = if ($name | is-not-empty) {
     $name
@@ -129,7 +133,7 @@ def main [
 
 # List local development bookmarks
 def "main list" [] {
-  get-bookmarks
+  get-local-bookmarks
   | to text --no-newline
 }
 
@@ -222,7 +226,7 @@ def "main new" [
     jj new $from
   }
 
-  if $name not-in (get-bookmarks) {
+  if $name not-in (get-local-bookmarks) {
     jj bookmark create $name
     jj bookmark track $name
     jj describe --message $"chore: init ($name)"
@@ -287,11 +291,6 @@ def "main sync" [
 
 # Set the current branch to the current revision
 def "main tug" [] {
-  if (
-    jj bookmark move --from "heads(::@- & bookmarks())" --to @
-    | complete
-    | get stderr
-  ) == "No bookmarks to update." {
-    jj git push
-  }
+  jj bookmark move --from "heads(::@- & bookmarks())" --to @
+  jj git push
 }
