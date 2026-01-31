@@ -106,6 +106,36 @@ def "main list names" [] {
   jj bookmark list --template "name ++ '\n'"
 }
 
+def get-current-bookmark [] {
+  jj log --no-graph --template "bookmarks ++ '\n'"
+  | lines
+  | first
+  | str replace * ""
+}
+
+def "main merge" [
+  name?: string # The name of the bookmark to sync with trunk
+] {
+  let bookmark = if ($name | is-empty) {
+    get-current-bookmark 
+  } else {
+    $name
+  }
+
+  if $bookmark == trunk {
+    return
+  }
+
+  main sync $bookmark
+  jj bookmark set trunk --to $bookmark
+
+  if (jj log --no-graph --revisions $bookmark --template "description" | is-empty) {
+    jj describe --message $"chore: merge ($bookmark)"
+  }
+
+  jj git push
+}
+
 # Create a new development bookmark
 def "main new" [
   name?: string # The name of the bookmark to create
@@ -120,7 +150,7 @@ def "main new" [
       | to text
       | fzf
     } else {
-      gh issue view --json title $issue 
+      gh issue view --json title $issue
       | from json
       | get title
     }
@@ -143,6 +173,18 @@ def "main new" [
 }
 
 # Sync development bookmarks with trunk
-def "main sync" [] {
-  print "Implement me!"
+def "main sync" [
+  name?: string # The name of the bookmark to sync with trunk
+] {
+  let bookmark = if ($name | is-empty) {
+    get-current-bookmark 
+  } else {
+    $name
+  }
+
+  if $bookmark == trunk {
+    return
+  }
+
+  jj rebase --branch $bookmark --onto trunk
 }
