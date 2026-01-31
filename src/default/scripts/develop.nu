@@ -284,3 +284,14 @@ def "main sync" [
 
   jj rebase --branch $bookmark --onto trunk
 }
+
+# Set the current branch to the current revision
+def "main tug" [] {
+  if (
+    jj bookmark move --from "heads(::@- & bookmarks())" --to @
+    | complete
+    | get stderr
+  ) == "No bookmarks to update." {
+    jj git push
+  }
+}

@@ -45,6 +45,10 @@ def get-all-bookmarks [] {
 def main [
   name?: string # The name of the bookmark to switch to
   --choose # Choose the revision to switch to interactively
+  # TODO
+  # --local # (with `--choose`) Choose from local bookmarks only
+  # TODO
+  # --remote # (with `--choose`) Choose from remote bookmarks only
   --revision: string # Switch to this particular revision
 ] {
   let bookmarks = (get-all-bookmarks)
@@ -279,4 +283,15 @@ def "main sync" [
   }
 
   jj rebase --branch $bookmark --onto trunk
+}
+
+# Set the current branch to the current revision
+def "main tug" [] {
+  if (
+    jj bookmark move --from "heads(::@- & bookmarks())" --to @
+    | complete
+    | get stderr
+  ) == "No bookmarks to update." {
+    jj git push
+  }
 }
