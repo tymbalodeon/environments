@@ -107,12 +107,31 @@ def "main list names" [] {
 }
 
 def get-current-bookmark [] {
-  jj log --no-graph --template "bookmarks ++ '\n'"
-  | lines
+  let bookmarks = (
+    jj log --no-graph --template "bookmarks ++ '\n'"
+    | lines
+    | where {is-not-empty}
+    | first
+  )
+
+  if trunk in $bookmarks {
+    return
+  }
+
+  let bookmarks = ($bookmarks | split row " ")
+
+  if ($bookmarks | length) > 1 {
+    print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
+
+    return
+  }
+
+  $bookmarks
   | first
   | str replace * ""
 }
 
+# Merge development branches into trunk
 def "main merge" [
   name?: string # The name of the bookmark to sync with trunk
 ] {
@@ -122,7 +141,7 @@ def "main merge" [
     $name
   }
 
-  if $bookmark == trunk {
+  if ($bookmark | is-empty) or $bookmark == trunk {
     return
   }
 
@@ -133,10 +152,12 @@ def "main merge" [
     jj describe --message $"chore: merge ($bookmark)"
   }
 
-  jj git push
+  jj bookmark delete $bookmark
+  jj git push --bookmark trunk
+  jj git push --deleted
 }
 
-# Create a new development bookmark
+# Create a new development branch
 def "main new" [
   name?: string # The name of the bookmark to create
   --from: string # The revision to start from (defaults to the current revision)
@@ -172,7 +193,7 @@ def "main new" [
   }
 }
 
-# Sync development bookmarks with trunk
+# Sync development branch with trunk
 def "main sync" [
   name?: string # The name of the bookmark to sync with trunk
 ] {
@@ -182,7 +203,7 @@ def "main sync" [
     $name
   }
 
-  if $bookmark == trunk {
+  if ($bookmark | is-empty) or $bookmark == trunk {
     return
   }
 
