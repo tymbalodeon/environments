@@ -291,15 +291,66 @@ def "main sync" [
 
 # Set the current branch to the current revision
 def "main tug" [] {
-  # TODO
-  # 1. find the most recent revision that is NOT empty
-  # 2. find the most recent bookmark
-  # 3. set that bookmark to the most recent NON-empty revision
-  # 4. Find all revisions between the old set bookmark and the new one to move
-  #    to, and find all commit ids that have an empty description
-  # 5. take those revisions and either add descriptions, or (better?) squash
-  #    them down into a single commit?
-  
+  let current_bookmark = (get-current-bookmark)
+
+  let empty_revisions = (
+    jj log
+      --no-graph
+      --revisions $"($current_bookmark)::@ & empty\(\)"
+      --template "change_id ++ '\n'"
+    | lines
+  )
+
+  if ($empty_revisions | is-not-empty) {
+    jj abandon ...$empty_revisions
+  }
+
+  let descriptions = (
+    jj log
+      --no-graph
+      --revisions $"($current_bookmark)::@"
+      --template "change_id ++ '|' ++ description ++ '\n'"
+    | lines
+    | where {is-not-empty}
+    | each {
+        |line|
+
+        let parts = ($line | split row "|")
+        let change_id = $parts.0
+        let description = ($parts | last)
+
+        let description = if $description == $change_id {
+          ""
+        } else {
+          $description
+        }
+
+        {
+          change_id: $change_id
+          description: $description
+        }
+      }
+  )
+
+  for revision in $descriptions {
+    if ($revision.description | is-empty) {
+      let described_ancestors = (
+        $descriptions
+        | where {$in != $revision and ($in.description | is-not-empty)}
+      )
+
+      if ($described_ancestors | is-not-empty) {
+        let closest_described_revision_id = (
+          $described_ancestors
+          | first
+          | get change_id
+        )
+
+        jj squash --from $revision.change_id --into $closest_described_revision_id
+      }
+    }
+  }
+
   let revision = if (
     jj log --no-graph --revisions @ --template "empty"
     | into bool
@@ -309,8 +360,7 @@ def "main tug" [] {
     "@"
   }
 
-  # TODO: handle empty descriptions?
-  jj bookmark move --from "heads(::@- & bookmarks())" --to @
+  jj bookmark move --from "heads(::@ & bookmarks())" --to @
 
   if $revision == "@" {
     jj new
