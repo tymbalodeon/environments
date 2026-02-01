@@ -374,7 +374,11 @@ def "main tug" [] {
     "@"
   }
 
-  print (jj log --no-graph --revisions $revision --template "change_id")
+  if (jj log --no-graph --revisions $current_bookmark --template "change_id") == (
+    jj log --no-graph --revisions $revision --template "change_id"
+  ) {
+    return
+  }
 
   jj bookmark move --from "heads(::@ & bookmarks())" --to @
 
