@@ -297,6 +297,21 @@ def "main sync" [
 def "main tug" [] {
   let current_bookmark = (get-current-bookmark)
 
+  let revision = if (
+    jj log --no-graph --revisions @ --template "empty"
+    | into bool
+  ) {
+    "@-"
+  } else {
+    "@"
+  }
+
+  if (jj log --no-graph --revisions $current_bookmark --template "change_id") == (
+    jj log --no-graph --revisions $revision --template "change_id"
+  ) {
+    return
+  }
+
   let empty_revisions = (
     jj log
       --no-graph
@@ -363,21 +378,6 @@ def "main tug" [] {
         }
       }
     }
-  }
-
-  let revision = if (
-    jj log --no-graph --revisions @ --template "empty"
-    | into bool
-  ) {
-    "@-"
-  } else {
-    "@"
-  }
-
-  if (jj log --no-graph --revisions $current_bookmark --template "change_id") == (
-    jj log --no-graph --revisions $revision --template "change_id"
-  ) {
-    return
   }
 
   jj bookmark move --from "heads(::@ & bookmarks())" --to @
