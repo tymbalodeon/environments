@@ -297,7 +297,6 @@ def "main sync" [
 def "main tug" [] {
   let current_bookmark = (get-current-bookmark)
 
-  # TODO: don't include current_bookmark in the range
   let empty_revisions = (
     jj log
       --no-graph
@@ -307,7 +306,7 @@ def "main tug" [] {
   )
 
   if ($empty_revisions | is-not-empty) {
-    jj abandon ...$empty_revisions
+    jj abandon ...$empty_revisions err> /dev/null
   }
 
   let descriptions = (
