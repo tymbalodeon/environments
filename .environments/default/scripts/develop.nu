@@ -297,16 +297,17 @@ def "main sync" [
 def "main tug" [] {
   let current_bookmark = (get-current-bookmark)
 
+  # TODO: don't include current_bookmark in the range
   let empty_revisions = (
     jj log
       --no-graph
-      --revisions $"($current_bookmark)::@ & empty\(\)"
+      --revisions $"($current_bookmark)+::@ & empty\(\)"
       --template "change_id ++ '\n'"
     | lines
   )
 
   if ($empty_revisions | is-not-empty) {
-    jj abandon ...$empty_revisions err> /dev/null
+    jj abandon ...$empty_revisions
   }
 
   let descriptions = (
@@ -357,8 +358,12 @@ def "main tug" [] {
             --template "immutable"
           | into bool
         ) {
+          print DESCRIBING $revision
+          print ""
           jj describe --message $"chore: tug ($current_bookmark)" $revision.change_id
         } else {
+          print SQUASHING $revision
+          print ""
           jj squash --from $revision.change_id --into $closest_described_revision_id
         }
       }
@@ -373,6 +378,8 @@ def "main tug" [] {
   } else {
     "@"
   }
+
+  print $revision
 
   jj bookmark move --from "heads(::@ & bookmarks())" --to @
 
