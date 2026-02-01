@@ -357,12 +357,8 @@ def "main tug" [] {
             --template "immutable"
           | into bool
         ) {
-          print DESCRIBING $revision
-          print ""
           jj describe --message $"chore: tug ($current_bookmark)" $revision.change_id
         } else {
-          print SQUASHING $revision
-          print ""
           jj squash --from $revision.change_id --into $closest_described_revision_id
         }
       }
@@ -377,8 +373,6 @@ def "main tug" [] {
   } else {
     "@"
   }
-
-  print $revision
 
   jj bookmark move --from "heads(::@ & bookmarks())" --to @
 
