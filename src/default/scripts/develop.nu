@@ -157,16 +157,20 @@ def get-current-bookmark [] {
     | first
   )
 
-  if trunk in $bookmarks {
-    return
-  }
-
   let bookmarks = ($bookmarks | split row " ")
 
-  if ($bookmarks | length) > 1 {
-    print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
+  let bookmarks = if ($bookmarks | length) > 1 {
+    let bookmarks = ($bookmarks | where {$in != trunk})
 
-    return
+    if ($bookmarks | length) > 1 {
+      print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
+
+      return
+    } else {
+      $bookmarks
+    }
+  } else {
+    $bookmarks
   }
 
   $bookmarks
