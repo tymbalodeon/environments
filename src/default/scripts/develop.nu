@@ -306,7 +306,7 @@ def "main tug" [] {
   )
 
   if ($empty_revisions | is-not-empty) {
-    jj abandon ...$empty_revisions
+    jj abandon ...$empty_revisions err> /dev/null
   }
 
   let descriptions = (
@@ -350,7 +350,17 @@ def "main tug" [] {
           | get change_id
         )
 
-        jj squash --from $revision.change_id --into $closest_described_revision_id
+        if (
+          jj log
+            --no-graph
+            --revisions $closest_described_revision_id
+            --template "immutable"
+          | into bool
+        ) {
+          jj describe --message $"chore: tug ($current_bookmark)" $revision.change_id
+        } else {
+          jj squash --from $revision.change_id --into $closest_described_revision_id
+        }
       }
     }
   }
