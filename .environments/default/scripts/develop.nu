@@ -301,6 +301,20 @@ def get-change-id [revision: string] {
 def "main tug" [] {
   let current_bookmark = (get-current-bookmark)
 
+  if not (
+    jj bookmark list
+      --revisions $current_bookmark
+      --template "name ++ '|' ++ synced ++ '\n'"
+    | lines
+    | uniq
+    | first
+    | split row "|"
+    | last
+    | into bool
+  ) {
+    jj git push
+  }
+
   let revision = if (
     jj log --no-graph --revisions @ --template "empty"
     | into bool
