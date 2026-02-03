@@ -45,10 +45,13 @@ def is-empty-revision [revision?: string] {
 
 # Combine current revision with fetched revisions from the remote
 def "main fetch" [] {
-  jj git fetch
-
   let current_bookmark = (get-current-bookmark)
 
+  jj git fetch
+
+  # FIXME: need to check whether or not the current_bookmark has new changes
+  # before doing anything
+  
   if (is-empty-revision) {
     jj new $current_bookmark
   } else {
