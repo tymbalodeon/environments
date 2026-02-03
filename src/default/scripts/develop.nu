@@ -32,10 +32,28 @@ def get-current-bookmark [] {
   | str replace * ""
 }
 
+def is-empty-revision [revision?: string] {
+  let revision = if ($revision | is-empty) {
+    "@"
+  } else {
+    $revision
+  }
+
+  jj log --no-graph --revisions $revision --template "empty"
+  | into bool
+}
+
 # Combine current revision with fetched revisions from the remote
 def "main fetch" [] {
   jj git fetch
-  jj new @ (get-current-bookmark)
+
+  let current_bookmark = (get-current-bookmark)
+
+  if (is-empty-revision) {
+    jj new $current_bookmark
+  } else {
+    jj new @ $current_bookmark
+  }
 }
 
 def get-revision-names [type: string] {
@@ -321,10 +339,7 @@ def "main tug" [] {
     jj git push
   }
 
-  let revision = if (
-    jj log --no-graph --revisions @ --template "empty"
-    | into bool
-  ) {
+  let revision = if (is-empty-revision) {
     "@-"
   } else {
     "@"
