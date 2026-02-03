@@ -48,13 +48,13 @@ def "main fetch" [] {
   let current_bookmark = (get-current-bookmark)
 
   jj git fetch
-
-  # FIXME: need to check whether or not the current_bookmark has new changes
-  # before doing anything
   
   if (is-empty-revision) {
     jj new $current_bookmark
-  } else {
+  } else if (
+    jj log --no-graph --revision $"::@ & bookmarks\(($current_bookmark)\)"
+    | is-empty
+  ) {
     jj new @ $current_bookmark
   }
 }
@@ -267,65 +267,8 @@ def "main new" [
   }
 }
 
-# Remove development branches
-def "main remove" [
-  ...names: string # The names of the branches to remove
-  --force # Skip confirmation before removing from remote
-  --local # Only remove local branches
-] {
-  let bookmarks = (get-all-bookmarks)
-  let names = ($names | where {$in != trunk and $in in $bookmarks})
-
-  if ($names | is-empty) {
-    return
-  }
-
-  if $local {
-    jj bookmark forget ...$names
-  } else {
-    print "The following branches will be removed from the remote:"
-
-    print (
-      $names
-      | each {$in | prepend '- ' | str join}
-      | to text --no-newline
-    )
-
-    print "\n\(Use `--local` to remove them from the local repository only.\)\n"
-
-    if (input "Proceed [y/N]? " | str downcase) == y {
-      print ""
-
-      jj bookmark track ...$names out+err> /dev/null
-      jj bookmark delete ...$names
-      jj git push --deleted
-    }
-  }
-}
-
-# Sync development branch with trunk
-def "main sync" [
-  name?: string # The name of the bookmark to sync with trunk
-] {
-  let bookmark = if ($name | is-empty) {
-    get-current-bookmark
-  } else {
-    $name
-  }
-
-  if ($bookmark | is-empty) or $bookmark == trunk {
-    return
-  }
-
-  jj rebase --branch $bookmark --onto trunk
-}
-
-def get-change-id [revision: string] {
-  jj log --no-graph --revisions $revision --template "change_id"
-}
-
 # Set the current branch to the current revision
-def "main tug" [] {
+def "main push" [] {
   let current_bookmark = (get-current-bookmark)
 
   if not (
@@ -412,7 +355,7 @@ def "main tug" [] {
             --template "immutable"
           | into bool
         ) {
-          jj describe --message $"chore: tug ($current_bookmark)" $revision.change_id
+          jj describe --message $"chore: push ($current_bookmark)" $revision.change_id
         } else {
           jj squash --from $revision.change_id --into $closest_described_revision_id
         }
@@ -427,4 +370,61 @@ def "main tug" [] {
   }
 
   jj git push
+}
+
+# Remove development branches
+def "main remove" [
+  ...names: string # The names of the branches to remove
+  --force # Skip confirmation before removing from remote
+  --local # Only remove local branches
+] {
+  let bookmarks = (get-all-bookmarks)
+  let names = ($names | where {$in != trunk and $in in $bookmarks})
+
+  if ($names | is-empty) {
+    return
+  }
+
+  if $local {
+    jj bookmark forget ...$names
+  } else {
+    print "The following branches will be removed from the remote:"
+
+    print (
+      $names
+      | each {$in | prepend '- ' | str join}
+      | to text --no-newline
+    )
+
+    print "\n\(Use `--local` to remove them from the local repository only.\)\n"
+
+    if (input "Proceed [y/N]? " | str downcase) == y {
+      print ""
+
+      jj bookmark track ...$names out+err> /dev/null
+      jj bookmark delete ...$names
+      jj git push --deleted
+    }
+  }
+}
+
+# Sync development branch with trunk
+def "main sync" [
+  name?: string # The name of the bookmark to sync with trunk
+] {
+  let bookmark = if ($name | is-empty) {
+    get-current-bookmark
+  } else {
+    $name
+  }
+
+  if ($bookmark | is-empty) or $bookmark == trunk {
+    return
+  }
+
+  jj rebase --branch $bookmark --onto trunk
+}
+
+def get-change-id [revision: string] {
+  jj log --no-graph --revisions $revision --template "change_id"
 }
