@@ -52,7 +52,7 @@ def "main fetch" [] {
   if (is-empty-revision) {
     jj new $current_bookmark
   } else if (
-    jj log --no-graph --revision $"::@ & bookmarks\(($current_bookmark)\)"
+    jj log --no-graph --revisions $"::@ & bookmarks\(($current_bookmark)\)"
     | is-empty
   ) {
     jj new @ $current_bookmark
