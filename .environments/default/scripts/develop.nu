@@ -3,6 +3,41 @@
 use print.nu print-error
 use print.nu print-warning
 
+def get-current-bookmark [] {
+  let bookmarks = (
+    jj log --no-graph --template "bookmarks ++ '\n'"
+    | lines
+    | where {is-not-empty}
+    | first
+  )
+
+  let bookmarks = ($bookmarks | split row " ")
+
+  let bookmarks = if ($bookmarks | length) > 1 {
+    let bookmarks = ($bookmarks | where {$in != trunk})
+
+    if ($bookmarks | length) > 1 {
+      print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
+
+      return
+    } else {
+      $bookmarks
+    }
+  } else {
+    $bookmarks
+  }
+
+  $bookmarks
+  | first
+  | str replace * ""
+}
+
+# Combine current revision with fetched revisions from the remote
+def "main fetch" [] {
+  jj git fetch
+  jj new @ (get-current-bookmark)
+}
+
 def get-revision-names [type: string] {
   jj $type list --template "name ++ '\n'"
   | lines
@@ -147,35 +182,6 @@ def "main list remote" [] {
 def "main list all" [] {
   get-all-bookmarks
   | to text --no-newline
-}
-
-def get-current-bookmark [] {
-  let bookmarks = (
-    jj log --no-graph --template "bookmarks ++ '\n'"
-    | lines
-    | where {is-not-empty}
-    | first
-  )
-
-  let bookmarks = ($bookmarks | split row " ")
-
-  let bookmarks = if ($bookmarks | length) > 1 {
-    let bookmarks = ($bookmarks | where {$in != trunk})
-
-    if ($bookmarks | length) > 1 {
-      print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
-
-      return
-    } else {
-      $bookmarks
-    }
-  } else {
-    $bookmarks
-  }
-
-  $bookmarks
-  | first
-  | str replace * ""
 }
 
 # Merge development branches into trunk
