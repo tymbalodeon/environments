@@ -14,7 +14,7 @@ def get-current-bookmark [] {
   let bookmarks = ($bookmarks | split row " ")
 
   let bookmarks = if ($bookmarks | length) > 1 {
-    let bookmarks = ($bookmarks | where {$in != trunk})
+    let bookmarks = ($bookmarks | where {$in !~ trunk})
 
     if ($bookmarks | length) > 1 {
       print-error "multiple bookmarks are set to this revision. Please pass a value for $name."
@@ -30,6 +30,7 @@ def get-current-bookmark [] {
   $bookmarks
   | first
   | str replace * ""
+  | str replace ?? ""
 }
 
 def is-empty-revision [revision?: string] {
