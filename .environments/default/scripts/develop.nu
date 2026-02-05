@@ -274,10 +274,18 @@ def --wrapped "main push" [
 ] {
   let current_bookmark = (get-current-bookmark)
 
+  let sync_status = try {
+    (
+      jj bookmark list
+        --revisions $current_bookmark
+        --template "name ++ '|' ++ synced ++ '\n'"
+    )
+  } catch {
+    return
+  }
+
   if not (
-    jj bookmark list
-      --revisions $current_bookmark
-      --template "name ++ '|' ++ synced ++ '\n'"
+    $sync_status
     | lines
     | uniq
     | first
