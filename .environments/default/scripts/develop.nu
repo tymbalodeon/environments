@@ -268,8 +268,8 @@ def "main new" [
 }
 
 # Set the current branch to the current revision
-def "main push" [
-  description?: string # Description to use for the commit
+def --wrapped "main push" [
+  ...description: string # Description to use for the commit
 ] {
   let current_bookmark = (get-current-bookmark)
 
@@ -361,6 +361,7 @@ def "main push" [
             $"chore: push ($current_bookmark)"
           } else {
             $description
+            | str join " "
           }
 
           jj describe --message $message $revision.change_id
