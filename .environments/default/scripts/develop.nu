@@ -268,7 +268,9 @@ def "main new" [
 }
 
 # Set the current branch to the current revision
-def "main push" [] {
+def "main push" [
+  description?: string # Description to use for the commit
+] {
   let current_bookmark = (get-current-bookmark)
 
   if not (
@@ -355,7 +357,13 @@ def "main push" [] {
             --template "immutable"
           | into bool
         ) {
-          jj describe --message $"chore: push ($current_bookmark)" $revision.change_id
+          let message = if ($description | is-empty) {
+            $"chore: push ($current_bookmark)"
+          } else {
+            $description
+          }
+
+          jj describe --message $message $revision.change_id
         } else {
           jj squash --from $revision.change_id --into $closest_described_revision_id
         }
