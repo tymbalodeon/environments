@@ -6,6 +6,7 @@
     eza
     fd
     fzf
+    lychee
     # TODO: what is pretier used for here? Should it be removed/moved elsewhere?
     nodePackages.prettier
     nushell
