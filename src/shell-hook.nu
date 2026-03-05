@@ -472,7 +472,7 @@ def generate-justfile-and-scripts [
     | each {
         |justfile|
 
-        let system_specific_recipes = (
+        let system_specific_recipes = try {
           rg --multiline '\[macos\][^#]*' $justfile
           | rg --invert-match "^ {4}"
           | split row --regex '\[.*\]'
@@ -480,7 +480,9 @@ def generate-justfile-and-scripts [
           | where {is-not-empty}
           | str replace "@" ""
           | each {split row " " | first}
-        )
+        } catch {
+          []
+        }
 
         {
           environment: ($justfile | path dirname | path parse | get stem)
