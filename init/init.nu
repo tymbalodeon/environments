@@ -34,12 +34,21 @@ def main [
   )
 
   $env.ENVIRONMENTS = $"($temporary_directory)/src"
-  let environment_script = $"($env.ENVIRONMENTS)/default/scripts/environment.nu"
+
+  let environment_script = $"(
+    $env.ENVIRONMENTS
+  )/default/scripts/environment.nu"
+
+  let default_flake =  $"($env.ENVIRONMENTS)/default/flake.nix"
+
+  if not (flake.nix | path exists) {
+    cp $default_flake .
+  }
 
   (
     nu $environment_script revision set
       $revision
-      --source-flake $"($env.ENVIRONMENTS)/default/flake.nix"
+      --source-flake $default_flake
   )
 
   jj describe --message "chore: initialize environments" out+err> /dev/null
