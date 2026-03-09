@@ -41,7 +41,7 @@ def main [
 
   let default_flake =  $"($env.ENVIRONMENTS)/default/flake.nix"
 
-  if not (flake.nix | path exists) {
+  if not ("flake.nix" | path exists) {
     cp $default_flake .
   }
 
