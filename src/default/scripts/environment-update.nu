@@ -3,7 +3,7 @@ use environment-revision.nu
 
 export def main [
   inputs: list<string>
-  --no-flake # Don't update the flake.nix file
+  --no-flake
 ] {
   let current_revision = (environment-revision revision get)
 
