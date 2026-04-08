@@ -1,6 +1,5 @@
 {pkgs, ...}: {
   packages = with pkgs; [
-    nodePackages.pnpm
     python313
     python313Packages.jedi-language-server
     python313Packages.pipx
