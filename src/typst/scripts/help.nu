@@ -28,10 +28,9 @@ def main [
 ] {
   (
     display-just-help
+      typst
       $recipe
       $subcommands
       --color $color
-      --environment typst
-      --justfile .environments/typst/Justfile
   )
 }
