@@ -1,0 +1,7 @@
+/home/benrosen/src/github.com/tymbalodeon/environments/.devenv/flake.json
+/home/benrosen/src/github.com/tymbalodeon/environments/.devenv.flake.nix
+/home/benrosen/src/github.com/tymbalodeon/environments/.env
+/home/benrosen/src/github.com/tymbalodeon/environments/devenv.local.nix
+/home/benrosen/src/github.com/tymbalodeon/environments/devenv.lock
+/home/benrosen/src/github.com/tymbalodeon/environments/devenv.nix
+/home/benrosen/src/github.com/tymbalodeon/environments/devenv.yaml
