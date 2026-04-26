@@ -1,15 +1,38 @@
-# Devenv
+# .ruff_cache
+# Automatically created by ruff.
+*
+# lilypond
+*.error
+*.log
+*.midi
+*.pdf
+# python
+*.pyc
+*~
+# build
+./build/
+.coverage
 .devenv*
 .direnv
 .env
 .envrc
 .helix/config.toml
-# pre-commit
-.pre-commit-config.yaml
+.venv
+__pycache__/
 book
+# c
+build
 devenv.local.nix
 devenv.local.yaml
+dist/
 documentation/book
 init/flake.lock
+# javascript
+node_modules
+# zola
+public/
 result
+settings.toml
 src/**/uv.lock
+# rust
+target

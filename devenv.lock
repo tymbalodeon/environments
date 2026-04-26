@@ -3,11 +3,11 @@
     "devenv": {
       "locked": {
         "dir": "src/modules",
-        "lastModified": 1777109791,
-        "narHash": "sha256-7XXCN0Tdpv2t6yxkqUr8M5AnLExqb8jw1Qv9Fe8TiKo=",
+        "lastModified": 1777480642,
+        "narHash": "sha256-cM0odahs8Zy1XKKlnd+jODBsmqFHuuvpUBWL8YQ56yM=",
         "owner": "cachix",
         "repo": "devenv",
-        "rev": "025b6ba9903b96a55ac21a9a63fa290a6da5afe6",
+        "rev": "fb6b814b7ad40afc6b72e9579427ff907d73f8d7",
         "type": "github"
       },
       "original": {
@@ -16,6 +16,30 @@
         "repo": "devenv",
         "type": "github"
       }
+    },
+    "files": {
+      "flake": false,
+      "locked": {
+        "path": "src",
+        "type": "path"
+      },
+      "original": {
+        "path": "src",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "javascript": {
+      "flake": false,
+      "locked": {
+        "path": "src/javascript",
+        "type": "path"
+      },
+      "original": {
+        "path": "src/javascript",
+        "type": "path"
+      },
+      "parent": []
     },
     "nixpkgs": {
       "inputs": {
@@ -53,6 +77,47 @@
         "type": "github"
       }
     },
+    "pyproject-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776715674,
+        "narHash": "sha256-Gs1VnEkCkkRZxJQAC/Dhz0Jbfi22mFXChbtNg9w/Ybg=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "69f57f27e52a87c54e28138a75ec741cd46663c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "pyproject-nix_2": {
+      "inputs": {
+        "nixpkgs": [
+          "uv2nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776715674,
+        "narHash": "sha256-Gs1VnEkCkkRZxJQAC/Dhz0Jbfi22mFXChbtNg9w/Ybg=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "69f57f27e52a87c54e28138a75ec741cd46663c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
     "python": {
       "flake": false,
       "locked": {
@@ -68,8 +133,33 @@
     "root": {
       "inputs": {
         "devenv": "devenv",
+        "files": "files",
+        "javascript": "javascript",
         "nixpkgs": "nixpkgs",
-        "python": "python"
+        "pyproject-nix": "pyproject-nix",
+        "python": "python",
+        "uv2nix": "uv2nix"
+      }
+    },
+    "uv2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-nix": "pyproject-nix_2"
+      },
+      "locked": {
+        "lastModified": 1777463177,
+        "narHash": "sha256-1PcD0+IZPQXyvmXJ1OYH+23sRc9IyOKrUUBYZonVBm8=",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "6c53dcf4d3f63240f57e0b0c826cb15eda61f249",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "type": "github"
       }
     }
   },

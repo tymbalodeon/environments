@@ -1,0 +1,11 @@
+[project]
+name = "environments"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = ["bpython>=0.26", "pytest>=9.0.3"]
+
+[tool.uv.workspace]
+members = ["src/python"]
