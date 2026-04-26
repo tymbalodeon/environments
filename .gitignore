@@ -1,8 +1,14 @@
+# Devenv
+.devenv*
 .direnv
 .env
 .envrc
 .helix/config.toml
+# pre-commit
+.pre-commit-config.yaml
 book
+devenv.local.nix
+devenv.local.yaml
 documentation/book
 init/flake.lock
 result

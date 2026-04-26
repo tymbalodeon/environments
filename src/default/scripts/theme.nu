@@ -38,7 +38,7 @@ def get-themes [] {
 
 # List available themes
 def "main list" [
-  --paging = "auto" # When to use pager {always|auto|never}
+  --paging = "never" # When to use pager {always|auto|never}
 ] {
   let themes = (
     get-themes
