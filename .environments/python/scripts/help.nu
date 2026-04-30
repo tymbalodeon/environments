@@ -1,0 +1,1 @@
+/nix/store/2h30xxj68379d1llmzq1wqvxciwnmpjp-environments-python-scripts-help.nu

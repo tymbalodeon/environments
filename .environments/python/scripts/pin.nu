@@ -1,0 +1,1 @@
+/nix/store/qlvzy9nrc7vygi09ln2vmvysqks7q1yg-environments-python-scripts-pin.nu

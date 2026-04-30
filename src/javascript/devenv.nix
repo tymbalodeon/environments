@@ -4,7 +4,7 @@
   pkgs,
   ...
 }:
-if (builtins.getEnv "ENVIRONMENT_JAVASCRIPT") != ""
+if (builtins.getEnv "ENVIRONMENTS_JAVASCRIPT") != ""
 then {
   files = import "${inputs.files}/files.nix" {
     inherit lib;

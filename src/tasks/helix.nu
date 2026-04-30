@@ -17,14 +17,18 @@ let language_configurations = (
   | each {open $in.file}
 )
 
-let languages = if (".helix/languages.toml" | path exists) {
-  let languages = (
-    open .helix/languages.toml
-    | get language
-    | append $language_configurations.language
-    | uniq
-  )
+let languages = try {
+  open .helix/languages.toml
+  | get language
+  | append $language_configurations.language
+  | uniq
+} catch {
+  []
+}
 
+let languages = ($languages | append $language_configurations.language)
+
+let languages = if (".helix/languages.toml" | path exists) {
   mut merged_languages = []
 
   for language in $languages {

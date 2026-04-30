@@ -1,0 +1,1 @@
+/nix/store/dl2f6hawzw3anrn2lzg62sy1nfcfkcmq-environments-python-scripts-run.nu

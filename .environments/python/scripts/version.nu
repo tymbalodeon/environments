@@ -1,0 +1,1 @@
+/nix/store/s4qnq5zkk7fhaby0swb6mmay95d2g5r6-environments-python-scripts-version.nu

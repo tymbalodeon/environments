@@ -1,0 +1,1 @@
+/nix/store/6kkmwdscwf5b6igm3crhmmkxc1yvfa2n-environments-javascript-scripts-check.nu

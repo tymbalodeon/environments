@@ -5,7 +5,7 @@
   pkgs,
   ...
 }:
-if (builtins.getEnv "ENVIRONMENT_PYTHON") != ""
+if (builtins.getEnv "ENVIRONMENTS_PYTHON") != ""
 then {
   files = import "${inputs.files}/files.nix" {
     inherit lib;

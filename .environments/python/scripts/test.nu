@@ -1,0 +1,1 @@
+/nix/store/sr445020iyk6ava7v2kfn4dqc52mhdkc-environments-python-scripts-test.nu

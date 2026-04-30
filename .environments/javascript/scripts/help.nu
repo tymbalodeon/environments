@@ -1,0 +1,1 @@
+/nix/store/a79w1w7cgz6p5indy33csqvgxrzrfpnz-environments-javascript-scripts-help.nu

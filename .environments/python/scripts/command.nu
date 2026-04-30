@@ -1,0 +1,1 @@
+/nix/store/7x27vmrpfg32wks72w2c787cldqjfs7c-environments-python-scripts-command.nu

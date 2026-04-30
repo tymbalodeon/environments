@@ -1,0 +1,1 @@
+/nix/store/zc9dbpci7qafc73b4d41sj0da58rakiy-environments-python-scripts-check.nu

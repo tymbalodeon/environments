@@ -7,14 +7,27 @@
   packages = [pkgs.taplo];
 
   tasks = let
-    # TODO: filter to only include files in active environments
+    activeEnvironments =
+      map
+      (key: lib.toLower (builtins.replaceStrings ["ENVIRONMENTS_"] [""] key))
+      (builtins.filter (key: (builtins.getEnv key) != "") [
+        # TODO: generate this list automatically based on the directory structure of ./src
+        "ENVIRONMENTS_JAVASCRIPT"
+        "ENVIRONMENTS_PYTHON"
+      ]);
+
     files = baseName:
       builtins.toJSON (map (file: {
           inherit file;
           environment = baseNameOf (dirOf file);
         })
         (builtins.filter
-          (file: (baseNameOf file) == baseName)
+          (file: let
+            environment = baseNameOf (dirOf file);
+          in
+            baseNameOf file
+            == baseName
+            && builtins.elem environment activeEnvironments)
           (lib.filesystem.listFilesRecursive ./src)));
   in {
     # TODO: should this remove the comments, keep only unique entries and sort?

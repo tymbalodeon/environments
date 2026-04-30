@@ -1,0 +1,1 @@
+/nix/store/6rrr4kraw2va776cc17y7m7i9qjb9diy-environments-python-scripts-profile.nu

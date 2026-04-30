@@ -1,0 +1,1 @@
+/nix/store/504n6av2j2yvqqx4igqi0bq47rlrr5pb-environments-python-scripts-add.nu

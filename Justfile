@@ -69,47 +69,20 @@ alias todos := todo
 @theme *args:
     .environments/default/scripts/theme.nu {{ args }}
 
-# Create a new release
-@release *args:
-    .environments/git/scripts/release.nu  {{ args }}
-
-[private]
-@doc *args:
-    just documentation {{ args }}
-
-[private]
-@docs *args:
-    just documentation {{ args }}
-
-[private]
-@envs *args:
-    just environments {{ args }}
-
-[private]
-@md *args:
-    just markdown {{ args }}
-
-[private]
-@yml *args:
-    just yaml {{ args }}
-
 mod documentation ".environments/documentation/Justfile"
 mod environments ".environments/environments/Justfile"
 mod git ".environments/git/Justfile"
+mod javascript ".environments/javascript/Justfile"
 mod just ".environments/just/Justfile"
 mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
+mod python ".environments/python/Justfile"
 mod yaml ".environments/yaml/Justfile"
+[private]
+@js *args:
+  just javascript {{ args }}
 
-alias clean := nix::clean
-alias generate-text := environments::generate-text
-alias leaks := git::leaks
-alias open := documentation::open
-alias reload := environments::reload
-alias serve := documentation::serve
-alias set-executable := environments::set-executable
-alias sh := nix::shell
-alias shell := nix::shell
-alias sort-gitignores := environments::sort-gitignores
-alias up := environments::update
-alias update := environments::update
+[private]
+@py *args:
+  just python {{ args }}
+

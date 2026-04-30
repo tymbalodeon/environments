@@ -1,0 +1,1 @@
+/nix/store/p0qld6wj7l2nr7bcvfkfm43npfxvqrvd-environments-python-scripts-remove.nu
