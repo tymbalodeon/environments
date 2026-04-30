@@ -1,0 +1,1 @@
+/nix/store/88v05jx717wmj0hvxkha6hn3l0ilfxca-environments-default-scripts-environment-source.nu

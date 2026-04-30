@@ -1,0 +1,1 @@
+/nix/store/jbbv3nm4qbyjs99hmf6x1aqjrga3i0r6-environments-default-scripts-replace.nu

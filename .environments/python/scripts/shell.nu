@@ -1,1 +1,0 @@
-/nix/store/7z2r4xg19qj0xgsflqks87dxmcay0zcv-environments-python-scripts-shell.nu

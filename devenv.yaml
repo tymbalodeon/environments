@@ -1,25 +1,16 @@
 inputs:
-  files:
+  environments:
     flake: false
     url: path:src
-  javascript:
+  project:
     flake: false
-    url: path:src/javascript
-  nixpkgs:
-    url: github:cachix/devenv-nixpkgs/rolling
-  pyproject-nix:
-    url: github:pyproject-nix/pyproject.nix
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
-  python:
-    flake: false
-    url: path:src/python
-  uv2nix:
-    url: github:pyproject-nix/uv2nix
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
+    url: path:.
 imports:
-  - javascript
-  - python
+  - environments
+  - environments/documentation
+  - environments/git
+  - environments/just
+  - environments/markdown
+  - environments/nix
+  - environments/toml
+  - environments/yaml

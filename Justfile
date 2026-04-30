@@ -70,19 +70,24 @@ alias todos := todo
     .environments/default/scripts/theme.nu {{ args }}
 
 mod documentation ".environments/documentation/Justfile"
-mod environments ".environments/environments/Justfile"
 mod git ".environments/git/Justfile"
-mod javascript ".environments/javascript/Justfile"
 mod just ".environments/just/Justfile"
 mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
-mod python ".environments/python/Justfile"
 mod yaml ".environments/yaml/Justfile"
-[private]
-@js *args:
-  just javascript {{ args }}
 
 [private]
-@py *args:
-  just python {{ args }}
+@doc *args:
+    just documentation {{ args }}
 
+[private]
+@docs *args:
+    just documentation {{ args }}
+
+[private]
+@md *args:
+    just markdown {{ args }}
+
+[private]
+@yml *args:
+    just yaml {{ args }}

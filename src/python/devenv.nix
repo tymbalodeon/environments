@@ -4,22 +4,12 @@
   lib,
   pkgs,
   ...
-}:
-if (builtins.getEnv "ENVIRONMENTS_PYTHON") != ""
-then {
-  files = import "${inputs.files}/files.nix" {
+}: {
+  files = import "${inputs.environments}/files.nix" {
     inherit lib;
+
     environment = "python";
     files = ./files;
-  };
-
-  # TODO: can these along with files be automated? Where you pass in the current
-  # directory and it automatically generates the right outputs, like if it
-  # detects a files dir, then adds files, or if it detects a gitignore, adds
-  # that, and you can pass in the aliases?
-  outputs.python = {
-    aliases = ["py"];
-    helixConfiguration = builtins.readFile ./languages.toml;
   };
 
   languages.python = {
@@ -50,10 +40,10 @@ then {
     uv
   ];
 
+  # TODO: can this be automatically generated based on discovering a task.nu file?
   tasks."environments:python" = {
     before = ["devenv:enterShell"];
     exec = builtins.readFile ./task.nu;
     package = pkgs.nushell;
   };
 }
-else {}

@@ -1,0 +1,1 @@
+/nix/store/60pvi0vxsppnzv58mrkzwlrkpvl8wxgi-environments-default-scripts-check-files.nu

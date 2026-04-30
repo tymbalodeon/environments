@@ -1,0 +1,1 @@
+/nix/store/9w5nbm0pk77rgszin4v0ywa5gh2476lm-environments-default-scripts-cd-to-root.nu

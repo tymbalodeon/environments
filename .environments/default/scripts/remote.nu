@@ -1,0 +1,1 @@
+/nix/store/knc83k98a1rs3k7zywwn2vqi8jkg79c0-environments-default-scripts-remote.nu

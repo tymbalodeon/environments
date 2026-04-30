@@ -1,0 +1,1 @@
+/nix/store/79b0bfbyy7qabxlk4cwgk6mv73141is5-environments-default-scripts-environment-activate.nu

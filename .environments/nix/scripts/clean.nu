@@ -1,0 +1,1 @@
+/nix/store/8daghfhlrcniaibglbn8wjyjhnag7m3b-environments-nix-scripts-clean.nu

@@ -1,0 +1,1 @@
+/nix/store/sbsfsi2zrw0y0sxzj5q164aqpfxs8gsn-environments-nix-scripts-check.nu

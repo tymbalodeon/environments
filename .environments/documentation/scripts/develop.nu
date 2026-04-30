@@ -1,0 +1,1 @@
+/nix/store/cinnj1xahxqqdh863iw39na6nws7i5xl-environments-documentation-scripts-develop.nu

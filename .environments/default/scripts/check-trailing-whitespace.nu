@@ -1,0 +1,1 @@
+/nix/store/9cg5g63mfscbql4g721290686zgs3sal-environments-default-scripts-check-trailing-whitespace.nu

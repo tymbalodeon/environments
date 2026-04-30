@@ -1,0 +1,1 @@
+/nix/store/yg24qly9lpzlq9vizd3zvyl7jnm3ffa3-environments-default-scripts-domain.nu

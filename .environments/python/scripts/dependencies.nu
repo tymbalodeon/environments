@@ -1,1 +1,0 @@
-/nix/store/4d9ifwmps6si87cspk266654nzflh0vg-environments-python-scripts-dependencies.nu

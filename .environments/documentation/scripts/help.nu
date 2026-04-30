@@ -1,0 +1,1 @@
+/nix/store/qs7k66rjs0w4615i0955xj3qn23a8hpy-environments-documentation-scripts-help.nu

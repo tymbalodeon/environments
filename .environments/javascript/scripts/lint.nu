@@ -1,1 +1,0 @@
-/nix/store/q5wzrwhga13dyd9w2p67jkzw7a6wgk73-environments-javascript-scripts-lint.nu

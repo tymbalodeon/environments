@@ -1,0 +1,1 @@
+/nix/store/63036616apphzwz2h0vizv860h2y391w-environments-default-scripts-recipe.nu

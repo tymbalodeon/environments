@@ -1,0 +1,1 @@
+/nix/store/x022nmvla9qr7jnfw9xshj3v03alzwwa-environments-nix-scripts-prune.nu

@@ -1,0 +1,1 @@
+/nix/store/whfz09cmy42qshf978ymv2jy9nx1zdjs-environments-documentation-scripts-open-documentation.nu

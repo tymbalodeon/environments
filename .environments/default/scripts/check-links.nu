@@ -1,0 +1,1 @@
+/nix/store/1z2w3lygpz8iv0vcmvsqp7rzfdda06bk-environments-default-scripts-check-links.nu

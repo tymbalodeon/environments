@@ -1,1 +1,0 @@
-/nix/store/s8v8b97v89x4qmd5ck105v23gmldbdqh-environments-python-scripts-format.nu

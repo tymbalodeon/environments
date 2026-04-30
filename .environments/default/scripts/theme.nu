@@ -1,0 +1,1 @@
+/nix/store/ar2cr5szrmw9j661fmhha57sgg2qwgpz-environments-default-scripts-theme.nu

@@ -1,0 +1,1 @@
+/nix/store/yxn3ha50qkz718ad1x5vs83fhmpcp3pz-environments-default-scripts-readme.nu

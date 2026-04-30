@@ -1,0 +1,1 @@
+/nix/store/4lhai2f0a0dyc9z2s3bpdcq6yyksyk3h-environments-default-scripts-check-merge-conflict.nu

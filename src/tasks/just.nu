@@ -1,19 +1,19 @@
-# TODO: add space between modules and aliases
+let module_declarations = (
+  modules 
+  | each {$"mod ($in) \".environments/($in)/Justfile\""}
+  | to text
+)
 
-if not ("Justfile" | path exists) {
-  # TODO: add the default Justfile if not exists instead of returning
-  return
-}
-
-# TODO: only include aliases for environments that have module content
-let aliases = (
+let alias_recipes = (
   aliases
+  | where {$in.environment in (modules)}
   | each {
       |alias|
 
       let environment = $alias.environment
 
-      $alias.aliases
+      open $alias.file
+      | lines
       | each {
         |alias|
 
@@ -26,14 +26,9 @@ let aliases = (
   | flatten
 )
 
-let modules = (
-  modules 
-  | each {
-      $"mod ($in) \".environments/($in)/Justfile\""
-  }
-)
-
-default-justfile
-| append $modules
-| append $aliases
+open (default-justfile)
+| append $module_declarations
+| append $alias_recipes
 | save --force Justfile
+
+just --fmt --unstable

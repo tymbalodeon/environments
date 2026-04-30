@@ -1,0 +1,1 @@
+/nix/store/b9i452viykaisx7l016q8s4qbnrrighb-environments-nix-scripts-lint.nu

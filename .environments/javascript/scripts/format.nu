@@ -1,1 +1,0 @@
-/nix/store/mmjr1ydq6ydlsrr1xfcyravjlwfq4p2s-environments-javascript-scripts-format.nu

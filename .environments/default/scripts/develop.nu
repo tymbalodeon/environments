@@ -1,0 +1,1 @@
+/nix/store/lrddrgk8vh52hw7x2ac8xqwyy8lhbn1k-environments-default-scripts-develop.nu

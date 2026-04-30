@@ -1,22 +1,16 @@
 .devenv*
+devenv.local.nix
+devenv.local.yaml
 .direnv
+init/flake.lock
+
+# default
 .env
 .envrc
 .helix/config.toml
-book
-devenv.local.nix
-devenv.local.yaml
+
+# documentation
 documentation/book
-init/flake.lock
+
+# nix
 result
-src/**/uv.lock
-
-# javascript
-node_modules
-
-# python
-*.pyc
-.coverage
-.venv
-__pycache__/
-dist/

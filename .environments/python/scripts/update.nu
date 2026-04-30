@@ -1,1 +1,0 @@
-/nix/store/h6rkhm8nr5ar0jb4yf3hldzhp4b2vbia-environments-python-scripts-update.nu

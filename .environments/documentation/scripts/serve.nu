@@ -1,0 +1,1 @@
+/nix/store/ff6rr2vrqbcp4gq0yxajw17nh7asnx0g-environments-documentation-scripts-serve.nu

@@ -1,0 +1,1 @@
+/nix/store/wgngvbzrsqs3clysvzav4a3jiq0l4907-environments-default-scripts-environment-list.nu

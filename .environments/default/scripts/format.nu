@@ -1,0 +1,1 @@
+/nix/store/l4j6l40n5mha07286i5gcjg8w5v6fbw3-environments-default-scripts-format.nu

@@ -1,0 +1,1 @@
+/nix/store/27q60zpyi2afk0sc5q8b0k9v4916bzh2-environments-default-scripts-stats.nu

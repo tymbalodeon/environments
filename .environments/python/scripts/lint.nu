@@ -1,1 +1,0 @@
-/nix/store/3jy0fjn06jak5hpms3l533cjz4yrn4dd-environments-python-scripts-lint.nu

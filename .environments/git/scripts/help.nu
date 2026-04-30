@@ -1,0 +1,1 @@
+/nix/store/8y3424zcgrab3rpv0xvhw8aw9cnzv81y-environments-git-scripts-help.nu

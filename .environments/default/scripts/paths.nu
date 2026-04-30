@@ -1,0 +1,1 @@
+/nix/store/g0908hcs74g12lmypbls2gjz00k9bw9f-environments-default-scripts-paths.nu

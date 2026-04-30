@@ -1,0 +1,1 @@
+/nix/store/vhyd6s0iysdsljbv8cp6zpzz6x51i33g-environments-default-scripts-environment-add.nu

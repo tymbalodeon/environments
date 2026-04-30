@@ -1,0 +1,1 @@
+/nix/store/mv6pr3al795kdaa28fagzylhh4bf7b85-environments-default-scripts-issue.nu

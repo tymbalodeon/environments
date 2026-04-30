@@ -1,0 +1,1 @@
+/nix/store/idh4fwp755mdsjz4jcfangb6cmskf93f-environments-default-scripts-environment-common.nu
