@@ -39,15 +39,25 @@ in
     ];
 
     tasks = let
-      # TODO: can this be taken directory from devenv.yaml?
-      # TODO: check if environments.toml exists and return empty list if not
-      activeEnvironments =
+      activeEnvironments = let
+        devenvYaml = builtins.readFile "${inputs.project}/devenv.yaml";
+      in
+        map
+        (environment: lib.lists.last (lib.splitString "/" environment))
         (
-          map
-          (environment: environment.name)
-          ((fromTOML (
-            builtins.readFile "${inputs.project}/.environments/environments.toml"
-          )).environments)
+          builtins.filter
+          (environment: lib.strings.hasPrefix "environments/" environment)
+          (builtins.fromJSON (
+            builtins.readFile (
+              pkgs.runCommand "yaml.json" {} ''
+                ${pkgs.nushell}/bin/nu -c '
+                  "${devenvYaml}"
+                  | from yaml
+                  | to json
+                '  > "$out"
+              ''
+            )
+          )).imports
         )
         ++ defaultEnvironments;
 
@@ -99,8 +109,6 @@ in
       "environments:helix" = {
         before = ["devenv:enterShell"];
 
-        # TODO: this one doesn't require the environment name along with the
-        # files--should there be a way to grab just the files?
         exec =
           # nushell
           ''
