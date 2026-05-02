@@ -8,9 +8,9 @@ inputs:
 imports:
   - environments
   - environments/documentation
-  - environments/git
-  - environments/just
-  - environments/markdown
-  - environments/nix
-  - environments/toml
-  - environments/yaml
+  # - environments/git
+  # - environments/just
+  # - environments/markdown
+  # - environments/nix
+  # - environments/toml
+  # - environments/yaml

@@ -4,14 +4,11 @@
   pkgs,
   ...
 }: {
-  # TODO: can this pull in everything from the other module folders without
-  # having to add them to the devenv.yaml file? this may require restructring so
-  # this is in a higher level folder than the others?
   files = import "${inputs.environments}/files.nix" {
     inherit lib;
 
     environment = "default";
-    files = ./files;
+    files = ./default/files;
   };
 
   packages = with pkgs; [
@@ -26,6 +23,7 @@
     ripgrep
     # TODO: this is for css; move elsewhere
     stylelint
+    taplo
     # TODO: what are these used for?
     vscode-langservers-extracted
   ];
