@@ -4,6 +4,8 @@ mut merged_gitignore = try {
   ""
 }
 
+# TODO: remove non-active environment gitignore items
+
 for gitignore in (gitignores) {
   let label = $"# ($gitignore.environment)"
 
