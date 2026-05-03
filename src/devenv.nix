@@ -74,7 +74,7 @@ in
               baseNameOf file
               == baseName
               && builtins.elem environment activeEnvironments)
-            (lib.filesystem.listFilesRecursive ./.)));
+            environmentFiles));
 
       activeJustModuleNames = builtins.toJSON (
         builtins.filter
@@ -83,9 +83,11 @@ in
           map (file: baseNameOf (dirOf (dirOf file)))
           (builtins.filter
             (file: baseNameOf file == "Justfile")
-            (lib.filesystem.listFilesRecursive ./.))
+            environmentFiles)
         )
       );
+
+      environmentFiles = lib.filesystem.listFilesRecursive ./.;
     in {
       # TODO: should this remove the comments, keep only unique entries and sort?
       "environments:gitignore" = {
