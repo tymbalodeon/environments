@@ -31,8 +31,19 @@
     "toml"
     "yaml"
   ];
+
+  defaultEnvironmentConfigurations = (
+    builtins.foldl'
+    (a: b: mergeAttrsConcatLists a b)
+    {}
+    (map
+      (environment:
+        import
+        ./${environment}/devenv.nix {inherit inputs lib pkgs;})
+      defaultEnvironments)
+  );
 in
-  {
+  mergeAttrsConcatLists {
     packages = with pkgs; [
       fd
       taplo
@@ -160,12 +171,4 @@ in
       };
     };
   }
-  // (
-    builtins.foldl'
-    (a: b: mergeAttrsConcatLists a b)
-    {}
-    (map
-      (environment:
-        import ./${environment}/devenv.nix {inherit inputs lib pkgs;})
-      defaultEnvironments)
-  )
+  defaultEnvironmentConfigurations

@@ -8,7 +8,7 @@
     inherit lib;
 
     environment = "default";
-    files = ./default/files;
+    files = ./files;
   };
 
   packages = with pkgs; [
