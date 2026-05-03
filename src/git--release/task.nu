@@ -1,7 +1,5 @@
 #!/usr/bin/env nu
 
-use ../../../default/scripts/domain.nu parse-git-origin
-
 def "main remove" [] {
   rm --force cog.toml
 }
