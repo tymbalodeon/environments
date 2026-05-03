@@ -7,7 +7,12 @@
   files = import "${inputs.environments}/files.nix" {
     inherit lib;
 
-    environment = "git";
+    environment = "sql";
     files = ./files;
   };
+
+  packages = with pkgs; [
+    openssl
+    postgrest
+  ];
 }

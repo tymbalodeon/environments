@@ -8,3 +8,4 @@ inputs:
 imports:
   - environments
   - environments/documentation
+  - environments/git/release
