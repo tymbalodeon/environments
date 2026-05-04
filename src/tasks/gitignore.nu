@@ -7,7 +7,7 @@ mut merged_gitignore = try {
 # TODO: remove non-active environment gitignore items
 
 for gitignore in (gitignores) {
-  let label = $"# ($gitignore.environment)"
+  let label = $"# ($gitignore.name)"
 
   if $label not-in $merged_gitignore {
     $merged_gitignore = (

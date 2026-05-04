@@ -1,0 +1,1 @@
+/nix/store/4jwpgpiy7pjgx7bj91w7jpq18abh6jxz-environments-python-scripts-build.nu

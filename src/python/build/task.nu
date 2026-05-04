@@ -9,12 +9,14 @@ def "main remove" [] {
 }
 
 def main [] {
-  open pyproject.toml
-  | update build-system {
-      requires: ["hatchling"]
-      build-backend: "hatchling.build"
-    }
-  | save --force pyproject.toml
+  try {
+    open pyproject.toml
+    | update build-system {
+        requires: ["hatchling"]
+        build-backend: "hatchling.build"
+      }
+    | save --force pyproject.toml
 
-  taplo format pyproject.toml out+err> /dev/null
+    taplo format pyproject.toml out+err> /dev/null
+  }
 }
