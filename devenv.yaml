@@ -9,4 +9,3 @@ imports:
   - environments
   - environments/documentation
   - environments/git/release
-  - environments/python/build

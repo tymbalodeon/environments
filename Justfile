@@ -74,7 +74,6 @@ mod git ".environments/git/Justfile"
 mod just ".environments/just/Justfile"
 mod markdown ".environments/markdown/Justfile"
 mod nix ".environments/nix/Justfile"
-mod python ".environments/python/Justfile"
 mod yaml ".environments/yaml/Justfile"
 
 [private]
@@ -88,10 +87,6 @@ mod yaml ".environments/yaml/Justfile"
 [private]
 @md *args:
     just markdown {{ args }}
-
-[private]
-@py *args:
-    just python {{ args }}
 
 [private]
 @yml *args:
