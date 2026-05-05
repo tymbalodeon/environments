@@ -4,14 +4,25 @@ mut merged_gitignore = try {
   ""
 }
 
-# for environment in (
-#   available-environments
-#   | where {not-in (gitignores).name}
-# ) {
-#   # TODO: remove non-active environment gitignore items
-# }
+let gitignores = (gitignores)
 
-for gitignore in (gitignores) {
+$merged_gitignore = (
+  $merged_gitignore
+  | split row "\n\n"
+  | where {
+      |gitignore|
+
+      let label = ($gitignore | lines | first)
+
+      not ($label | str starts-with "# ") or (
+        $label
+        | str replace "# " ""
+      ) in $gitignores.name
+    }
+  | str join "\n\n"
+)
+
+for gitignore in $gitignores {
   let label = $"# ($gitignore.name)"
 
   if $label not-in $merged_gitignore {

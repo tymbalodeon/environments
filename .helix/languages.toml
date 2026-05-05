@@ -1,32 +1,4 @@
 [[language]]
-name = "c"
-auto-format = true
-file-types = ["c", "h"]
-
-[language.formatter]
-command = "clang-format"
-
-[[language]]
-name = "haskell"
-auto-format = true
-
-[[language]]
-name = "javascript"
-auto-format = true
-
-[language.formatter]
-command = "biome"
-args = ["format", "--stdin-file-path", "buffer.js"]
-
-[[language]]
-name = "jsx"
-auto-format = true
-
-[language.formatter]
-command = "biome"
-args = ["format", "--stdin-file-path", "buffer.jsx"]
-
-[[language]]
 name = "just"
 auto-format = true
 
@@ -58,47 +30,9 @@ command = "ruff"
 args = ["format", "-"]
 
 [[language]]
-name = "ruby"
-auto-format = true
-
-[language.formatter]
-command = "rubocop"
-args = [
-  "--autocorrect",
-  "--fail-level",
-  "fatal",
-  "--stderr",
-  "--stdin",
-  "foo.rb",
-]
-
-[[language]]
-name = "sql"
-auto-format = true
-
-[language.formatter]
-command = "pg_format"
-
-[[language]]
 name = "toml"
 auto-format = true
 
 [language.formatter]
 command = "taplo"
 args = ["format", "-"]
-
-[[language]]
-name = "tsx"
-auto-format = true
-
-[language.formatter]
-command = "biome"
-args = ["format", "--stdin-file-path", "buffer.tsx"]
-
-[[language]]
-name = "typescript"
-auto-format = true
-
-[language.formatter]
-command = "biome"
-args = ["format", "--stdin-file-path", "buffer.ts"]

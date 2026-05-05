@@ -13,8 +13,38 @@
       )
       availableEnvironments
     )
+    ++ (
+      map
+      (feature: "${dirOf feature} ${baseNameOf feature}")
+      (
+        builtins.filter
+        (
+          feature:
+            lib.strings.hasInfix "- environments/${feature}" devenvYaml
+        )
+        availableFeatures
+      )
+    )
     ++ defaultEnvironments
   );
+
+  availableFeatures =
+    map (
+      file: let
+        environment = parentDirName file;
+        feature = dirName file;
+      in "${environment}/${feature}"
+    )
+    (
+      builtins.filter
+      (
+        file:
+          (baseNameOf file)
+          == "devenv.nix"
+          && builtins.length (lib.strings.splitString "/" file) == 7
+      )
+      environmentFiles
+    );
 
   availableEnvironments = builtins.attrNames (builtins.readDir ./.);
 
@@ -27,6 +57,9 @@
     "toml"
     "yaml"
   ];
+
+  devenvYaml = builtins.readFile "${inputs.project}/devenv.yaml";
+  dirName = file: baseNameOf (dirOf file);
 
   environmentConfigurations = let
     activeEnvironmentsWithNoBase =
@@ -51,7 +84,7 @@
         ./${environment}/devenv.nix {inherit inputs lib pkgs;})
       (activeEnvironmentsWithNoBase ++ defaultEnvironments));
 
-  devenvYaml = builtins.readFile "${inputs.project}/devenv.yaml";
+  environmentFiles = lib.filesystem.listFilesRecursive ./.;
 
   mergeAttrsConcatLists = a: b:
     a
@@ -70,6 +103,8 @@
       )
       b
     );
+
+  parentDirName = file: baseNameOf (dirOf (dirOf file));
 in
   mergeAttrsConcatLists {
     packages = with pkgs; [
@@ -78,43 +113,53 @@ in
     ];
 
     tasks = let
-      activeFiles = let
-        environmentName = first: last:
-          if builtins.elem last availableEnvironments
-          then last
-          else first;
-      in
-        baseName:
-          builtins.toJSON (map (file: let
-              environment = environmentName first last;
-              first = parentDir file;
-              last = baseNameOf (dirOf file);
-            in {
-              inherit environment file;
+      activeFiles = baseName:
+        builtins.toJSON (
+          map (file: let
+            environment =
+              if builtins.elem feature activeEnvironments
+              then feature
+              else last;
 
-              name =
-                if builtins.elem last availableEnvironments
-                then last
-                else "${first} ${last}";
-            })
-            (builtins.filter
-              (file: let
-                environment = environmentName first last;
-                first = parentDir file;
-                last = baseNameOf (dirOf file);
-              in
-                baseNameOf
-                file
-                == baseName
-                && builtins.elem environment activeEnvironments)
-              environmentFiles));
+            feature = "${first} ${last}";
+            first = parentDirName file;
+            last = dirName file;
+          in {
+            inherit environment file;
+
+            name =
+              if builtins.elem last availableEnvironments
+              then last
+              else "${first} ${last}";
+          })
+          (
+            builtins.filter
+            (file: let
+              environment =
+                if builtins.elem feature activeEnvironments
+                then feature
+                else if builtins.elem dir activeEnvironments
+                then dir
+                else "";
+
+              feature = "${parent} ${dir}";
+              parent = parentDirName file;
+              dir = dirName file;
+            in
+              baseNameOf
+              file
+              == baseName
+              && environment != "")
+            environmentFiles
+          )
+        );
 
       activeJustModuleNames = builtins.toJSON (
         lib.lists.unique (
           builtins.filter
           (environment: builtins.elem environment activeEnvironments)
           (
-            map (file: parentDir file)
+            map (file: parentDirName file)
             (builtins.filter
               (file: baseNameOf file == "Justfile")
               environmentFiles)
@@ -126,9 +171,6 @@ in
         before = ["devenv:enterShell"];
         package = pkgs.nushell;
       };
-
-      environmentFiles = lib.filesystem.listFilesRecursive ./.;
-      parentDir = file: baseNameOf (dirOf (dirOf file));
     in {
       "environments:gitignore" =
         {

@@ -5,6 +5,7 @@ devenv.local.yaml
 init/flake.lock
 
 # default
+.direnv
 .env
 .envrc
 .helix/config.toml
