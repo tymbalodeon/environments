@@ -6,20 +6,19 @@ mut merged_gitignore = try {
 
 let gitignores = (gitignores)
 
+let available_environments = (available-environments)
+
 $merged_gitignore = (
   $merged_gitignore
-  | split row "\n\n"
+  | split row "# "
   | where {
       |gitignore|
 
       let label = ($gitignore | lines | first)
 
-      not ($label | str starts-with "# ") or (
-        $label
-        | str replace "# " ""
-      ) in $gitignores.name
+      not ($label in $available_environments) or $label in $gitignores.name
     }
-  | str join "\n\n"
+  | str join "# "
 )
 
 for gitignore in $gitignores {

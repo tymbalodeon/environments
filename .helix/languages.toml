@@ -1,38 +1,30 @@
 [[language]]
+auto-format = true
 name = "just"
-auto-format = true
 
 [language.formatter]
-command = "just"
 args = ["--justfile", "/dev/stdin", "--dump"]
+command = "just"
 
 [[language]]
-name = "markdown"
 auto-format = true
+name = "markdown"
 
 [language.formatter]
-command = "prettierd"
 args = [".md"]
+command = "prettierd"
 
 [[language]]
-name = "nix"
 auto-format = true
+name = "nix"
 
 [language.formatter]
 command = "alejandra"
 
 [[language]]
-name = "python"
 auto-format = true
-
-[language.formatter]
-command = "ruff"
-args = ["format", "-"]
-
-[[language]]
 name = "toml"
-auto-format = true
 
 [language.formatter]
-command = "taplo"
 args = ["format", "-"]
+command = "taplo"

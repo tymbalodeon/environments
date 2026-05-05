@@ -98,7 +98,7 @@
           if builtins.isAttrs aValue && builtins.isAttrs bValue
           then mergeAttrsConcatLists aValue bValue
           else if builtins.isList aValue && builtins.isList bValue
-          then aValue ++ bValue
+          then lib.lists.unique (aValue ++ bValue)
           else bValue
       )
       b
@@ -113,46 +113,46 @@ in
     ];
 
     tasks = let
-      activeFiles = baseName:
-        builtins.toJSON (
-          map (file: let
+      activeFiles = baseName: (
+        map
+        (file: let
+          environment =
+            if builtins.elem feature activeEnvironments
+            then feature
+            else last;
+
+          feature = "${first} ${last}";
+          first = parentDirName file;
+          last = dirName file;
+        in {
+          inherit environment file;
+
+          name =
+            if builtins.elem last availableEnvironments
+            then last
+            else "${first} ${last}";
+        })
+        (
+          builtins.filter
+          (file: let
             environment =
               if builtins.elem feature activeEnvironments
               then feature
-              else last;
+              else if builtins.elem dir activeEnvironments
+              then dir
+              else "";
 
-            feature = "${first} ${last}";
-            first = parentDirName file;
-            last = dirName file;
-          in {
-            inherit environment file;
-
-            name =
-              if builtins.elem last availableEnvironments
-              then last
-              else "${first} ${last}";
-          })
-          (
-            builtins.filter
-            (file: let
-              environment =
-                if builtins.elem feature activeEnvironments
-                then feature
-                else if builtins.elem dir activeEnvironments
-                then dir
-                else "";
-
-              feature = "${parent} ${dir}";
-              parent = parentDirName file;
-              dir = dirName file;
-            in
-              baseNameOf
-              file
-              == baseName
-              && environment != "")
-            environmentFiles
-          )
-        );
+            feature = "${parent} ${dir}";
+            parent = parentDirName file;
+            dir = dirName file;
+          in
+            baseNameOf
+            file
+            == baseName
+            && environment != "")
+          environmentFiles
+        )
+      );
 
       activeJustModuleNames = builtins.toJSON (
         lib.lists.unique (
@@ -177,8 +177,13 @@ in
           exec =
             # nusehll
             ''
+              def available-environments [] {
+                '${builtins.toJSON (availableEnvironments ++ availableFeatures)}'
+                | from json
+              }
+
               def gitignores [] {
-                '${activeFiles ".gitignore"}'
+                '${builtins.toJSON (activeFiles ".gitignore")}'
                 | from json
               }
             ''
@@ -186,13 +191,35 @@ in
         }
         // defaultTaskSettings;
 
-      "environments:helix" =
+      "environments:helix" = let
+        configurations = let
+          readFromTOML = file: fromTOML (builtins.readFile file);
+        in
+          builtins.toJSON (
+            builtins.foldl'
+            (a: b: mergeAttrsConcatLists a b)
+            {}
+            ((
+                map
+                (file: readFromTOML file)
+                (map (file: file.file) (activeFiles "languages.toml"))
+              )
+              ++ (
+                let
+                  file = "${inputs.project}/.helix/languages.toml";
+                in
+                  if builtins.pathExists file
+                  then [(readFromTOML file)]
+                  else []
+              ))
+          );
+      in
         {
           exec =
             # nushell
             ''
               def language-configurations [] {
-                "${activeFiles "languages.toml"}"
+                "${configurations}"
                 | from json
               }
             ''
@@ -215,7 +242,7 @@ in
               }
 
               def aliases [] {
-                "${activeFiles "aliases"}"
+                "${builtins.toJSON (activeFiles "aliases")}"
                 | from json
                 | append (
                     fd aliases .environments
