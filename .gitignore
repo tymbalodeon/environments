@@ -14,13 +14,3 @@ documentation/book
 
 # nix
 result
-
-# python
-*.pyc
-.coverage
-.venv
-__pycache__/
-dist/
-
-# python build
-./build/
