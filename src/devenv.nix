@@ -4,6 +4,20 @@
   pkgs,
   ...
 }: let
+  activeEnvironments = lib.lists.unique (
+    (
+      builtins.filter
+      (
+        environment:
+          lib.strings.hasInfix "- environments/${environment}" devenvYaml
+      )
+      availableEnvironments
+    )
+    ++ defaultEnvironments
+  );
+
+  availableEnvironments = builtins.attrNames (builtins.readDir ./.);
+
   defaultEnvironments = [
     "default"
     "git"
@@ -14,7 +28,20 @@
     "yaml"
   ];
 
-  defaultEnvironmentConfigurations = (
+  environmentConfigurations = let
+    activeEnvironmentsWithNoBase =
+      builtins.filter
+      (
+        environment: let
+          environmentBase = "- environments/${environment}";
+        in
+          !(builtins.elem environment defaultEnvironments)
+          && (lib.strings.hasInfix "${environmentBase}/" devenvYaml)
+          && !(lib.strings.hasInfix "${environmentBase} " devenvYaml)
+          && !(lib.strings.hasInfix "${environmentBase}\n" devenvYaml)
+      )
+      activeEnvironments;
+  in
     builtins.foldl'
     (a: b: mergeAttrsConcatLists a b)
     {}
@@ -22,8 +49,9 @@
       (environment:
         import
         ./${environment}/devenv.nix {inherit inputs lib pkgs;})
-      defaultEnvironments)
-  );
+      (activeEnvironmentsWithNoBase ++ defaultEnvironments));
+
+  devenvYaml = builtins.readFile "${inputs.project}/devenv.yaml";
 
   mergeAttrsConcatLists = a: b:
     a
@@ -50,48 +78,7 @@ in
     ];
 
     tasks = let
-      activeEnvironments = let
-        devenvYaml = builtins.readFile "${inputs.project}/devenv.yaml";
-      in
-        lib.lists.unique (
-          lib.lists.flatten (
-            map
-            (
-              environment: let
-                first = builtins.elemAt parts 1;
-                last = lib.lists.last parts;
-
-                name =
-                  if first == last
-                  then first
-                  else [first "${first} ${last}"];
-
-                parts = lib.splitString "/" environment;
-              in
-                name
-            )
-            (
-              builtins.filter
-              (environment: lib.strings.hasPrefix "environments/" environment)
-              (builtins.fromJSON (
-                builtins.readFile (
-                  pkgs.runCommand "yaml.json" {} ''
-                    ${pkgs.nushell}/bin/nu -c '
-                      "${devenvYaml}"
-                      | from yaml
-                      | to json
-                    '  > "$out"
-                  ''
-                )
-              )).imports
-            )
-            ++ defaultEnvironments
-          )
-        );
-
       activeFiles = let
-        availableEnvironments = builtins.attrNames (builtins.readDir ./.);
-
         environmentName = first: last:
           if builtins.elem last availableEnvironments
           then last
@@ -205,4 +192,4 @@ in
         // defaultTaskSettings;
     };
   }
-  defaultEnvironmentConfigurations
+  environmentConfigurations
