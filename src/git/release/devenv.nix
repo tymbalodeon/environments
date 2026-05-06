@@ -8,6 +8,8 @@
     import "${inputs.environments}/files.nix" {
       inherit lib;
 
+      # TODO: pass in feature name here to get included in files.nix
+
       environment = "git";
       files = ./files;
     }

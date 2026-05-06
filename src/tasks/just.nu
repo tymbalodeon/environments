@@ -31,7 +31,7 @@ open (default-justfile)
 | append $alias_recipes
 | save --force Justfile
 
-let recipes = (just --summary | split row " ")
+let recipes = (just --allow-missing --summary | split row " ")
 
 let main_recipes = (
   $recipes
@@ -74,4 +74,4 @@ open Justfile
 | collect
 | save --force Justfile
 
-just --fmt --unstable
+just --allow-missing --fmt --unstable

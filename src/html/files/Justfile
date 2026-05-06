@@ -1,5 +1,0 @@
-set working-directory := "../.."
-
-# Format html files
-@format *args:
-    .environments/html/scripts/format.nu {{ args }}

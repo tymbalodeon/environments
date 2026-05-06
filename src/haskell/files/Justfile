@@ -1,5 +1,0 @@
-set working-directory := "../.."
-
-# View help text
-@help *args:
-    .environments/haskell/scripts/help.nu {{ args }}

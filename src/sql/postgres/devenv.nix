@@ -11,14 +11,15 @@
       environment = "sql";
       files = ./files;
     }
-    // {
-      ".environments/sql/Justfile".text =
-        lib.mkForce
-        (builtins.readFile
-          ../files/Justfile
-          + "\n"
-          + builtins.readFile ./Justfile);
-    };
+    # // {
+    #   ".environments/sql/Justfile".text =
+    #     lib.mkForce
+    #     (builtins.readFile
+    #       ../files/Justfile
+    #       + "\n"
+    #       + builtins.readFile ./Justfile);
+    # };
+    ;
 
   packages = with pkgs; [
     atlas
