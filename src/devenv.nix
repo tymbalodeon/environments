@@ -107,6 +107,81 @@
   parentDirName = file: baseNameOf (dirOf (dirOf file));
 in
   mergeAttrsConcatLists {
+    files = let
+      inherit (lib.lists) last;
+      inherit (lib.strings) splitString;
+
+      environmentScripts = environment:
+        builtins.filter
+        (file: baseNameOf (dirOf file) == "scripts")
+        (lib.filesystem.listFilesRecursive ./${environment}/scripts);
+
+      justfile = environment: let
+        text = justfileText environment;
+      in
+        if text == null
+        then {}
+        else {".environments/${environment}/Justfile" = {inherit text;};};
+
+      justfileText = environment: let
+        recipes = (
+          map
+          (
+            filename: let
+              recipe =
+                lib.lists.last (lib.strings.splitString "/" filename);
+            in ''
+              # FIXME
+              @${lib.removeSuffix ".nu" recipe} *args:
+                  .environments/${environment}/scripts/${recipe} {{ args }}
+            ''
+          )
+          (environmentScripts environment)
+        );
+      in
+        if environment == "default" || lib.lists.length recipes == 0
+        then null
+        else
+          lib.concatStringsSep "\n"
+          (
+            [
+              ''
+                set working-directory := "../.."
+              ''
+            ]
+            ++ recipes
+          );
+
+      scripts = environment:
+        builtins.foldl'
+        (a: b: a // b)
+        {}
+        (
+          map
+          (
+            file: let
+              filename = builtins.unsafeDiscardStringContext (
+                last (splitString "${environment}/" file)
+              );
+            in {
+              ".environments/${environment}/${filename}" = {
+                executable = lib.strings.hasPrefix "scripts/" filename;
+                text = builtins.readFile file;
+              };
+            }
+          )
+          (environmentScripts environment)
+        );
+    in
+      builtins.foldl'
+      (a: b: a // b)
+      {}
+      (
+        map
+        (environment: (justfile environment) // (scripts environment))
+        activeEnvironments
+      );
+
     packages = with pkgs; [
       fd
       taplo
@@ -155,15 +230,37 @@ in
       );
 
       activeJustModuleNames = builtins.toJSON (
-        lib.lists.unique (
-          builtins.filter
-          (environment: builtins.elem environment activeEnvironments)
+        lib.lists.unique
+        (
+          map
+          (environment: environment.name)
           (
-            map
-            (file: parentDirName file)
-            (builtins.filter
-              (file: baseNameOf file == "Justfile")
-              environmentFiles)
+            builtins.filter
+            (environment: environment.name != "default" && environment.numberOfScripts > 0)
+            (
+              map
+              (
+                environmentOrFeature: let
+                  environment =
+                    if lib.strings.hasInfix " " environmentOrFeature
+                    then let
+                      parts = lib.splitString " " environmentOrFeature;
+                    in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
+                    else environmentOrFeature;
+
+                  numberOfScripts = lib.lists.length (
+                    builtins.attrNames (
+                      builtins.readDir ./${environment}/scripts
+                    )
+                  );
+                in {
+                  inherit numberOfScripts;
+
+                  name = environment;
+                }
+              )
+              activeEnvironments
+            )
           )
         )
       );

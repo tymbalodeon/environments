@@ -92,9 +92,9 @@ mod yaml ".environments/yaml/Justfile"
 @yml *args:
     just yaml {{ args }}
 
-alias open := documentation::open
+alias open-documentation := documentation::open-documentation
 alias serve := documentation::serve
 alias leaks := git::leaks
-alias release := git::release
 alias clean := nix::clean
+alias prune := nix::prune
 alias shell := nix::shell

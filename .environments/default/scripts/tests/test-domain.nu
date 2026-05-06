@@ -1,1 +1,0 @@
-/nix/store/skgl9hwayf5qgl1q4xxdrjf4lmraqghb-environments-default-scripts-tests-test-domain.nu

@@ -1,16 +1,4 @@
-{
-  inputs,
-  lib,
-  pkgs,
-  ...
-}: {
-  files = import "${inputs.environments}/files.nix" {
-    inherit lib;
-
-    environment = "documentation";
-    files = ./files;
-  };
-
+{pkgs, ...}: {
   packages = with pkgs; [
     mdbook
     yamlfmt

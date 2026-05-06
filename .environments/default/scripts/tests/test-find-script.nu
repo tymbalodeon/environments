@@ -1,1 +1,0 @@
-/nix/store/4mpn6x0wps5xwly3bql25c6flfd35bm9-environments-default-scripts-tests-test-find-script.nu

@@ -1,36 +1,11 @@
-{
-  inputs,
-  lib,
-  pkgs,
-  ...
-}: {
-  files =
-    import "${inputs.environments}/files.nix" {
-      inherit lib;
-
-      # TODO: pass in feature name here to get included in files.nix
-
-      environment = "git";
-      files = ./files;
-    }
-    # TODO: is it possible to automate overriding feature-level Justfiles as
-    # well?
-    // {
-      ".environments/git/Justfile".text =
-        lib.mkForce
-        (builtins.readFile
-          ../files/Justfile
-          + "\n"
-          + builtins.readFile ./Justfile);
-    };
-
+{pkgs, ...}: {
   tasks."environments:git--release" = {
     before = ["devenv:enterShell"];
 
     exec =
       # nushell
       ''
-        use ${../../default/files/scripts/domain.nu} parse-git-origin
+        use ${../../default/scripts/domain.nu} parse-git-origin
       ''
       + builtins.readFile ./task.nu;
 
