@@ -91,3 +91,10 @@ mod yaml ".environments/yaml/Justfile"
 [private]
 @yml *args:
     just yaml {{ args }}
+
+alias open := documentation::open
+alias serve := documentation::serve
+alias leaks := git::leaks
+alias release := git::release
+alias clean := nix::clean
+alias shell := nix::shell
