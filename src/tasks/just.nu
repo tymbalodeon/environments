@@ -26,6 +26,11 @@ let alias_recipes = (
   | flatten
 )
 
+open (default-justfile)
+| append $module_declarations
+| append $alias_recipes
+| save --force Justfile
+
 let recipes = (just --summary | split row " ")
 
 let main_recipes = (
@@ -64,10 +69,9 @@ let main_aliases = (
   | to text
 )
 
-open (default-justfile)
-| append $module_declarations
-| append $alias_recipes
+open Justfile
 | append $main_aliases
+| collect
 | save --force Justfile
 
 just --fmt --unstable

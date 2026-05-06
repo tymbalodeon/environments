@@ -159,7 +159,8 @@ in
           builtins.filter
           (environment: builtins.elem environment activeEnvironments)
           (
-            map (file: parentDirName file)
+            map
+            (file: parentDirName file)
             (builtins.filter
               (file: baseNameOf file == "Justfile")
               environmentFiles)
