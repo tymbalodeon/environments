@@ -1,10 +1,8 @@
-.devenv*
-devenv.local.nix
-devenv.local.yaml
-.direnv
 init/flake.lock
 
 # default
+.devenv*
+devenv.local.*
 .direnv
 .env
 .envrc
