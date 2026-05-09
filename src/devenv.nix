@@ -4,13 +4,14 @@
   pkgs,
   ...
 }: let
-  activeEnvironments = lib.lists.unique (
+  inherit (lib.filesystem) listFilesRecursive;
+  inherit (lib.lists) flatten last length unique;
+  inherit (lib.strings) hasInfix hasPrefix splitString;
+
+  activeEnvironments = unique (
     (
       builtins.filter
-      (
-        environment:
-          lib.strings.hasInfix "- environments/${environment}" devenvYaml
-      )
+      (environment: hasInfix "- environments/${environment}" devenvYaml)
       availableEnvironments
     )
     ++ (
@@ -18,10 +19,7 @@
       (feature: "${dirOf feature} ${baseNameOf feature}")
       (
         builtins.filter
-        (
-          feature:
-            lib.strings.hasInfix "- environments/${feature}" devenvYaml
-        )
+        (feature: hasInfix "- environments/${feature}" devenvYaml)
         availableFeatures
       )
     )
@@ -41,7 +39,7 @@
         file:
           (baseNameOf file)
           == "devenv.nix"
-          && builtins.length (lib.strings.splitString "/" file) == 7
+          && length (splitString "/" file) == 7
       )
       environmentFiles
     );
@@ -69,9 +67,9 @@
           environmentBase = "- environments/${environment}";
         in
           !(builtins.elem environment defaultEnvironments)
-          && (lib.strings.hasInfix "${environmentBase}/" devenvYaml)
-          && !(lib.strings.hasInfix "${environmentBase} " devenvYaml)
-          && !(lib.strings.hasInfix "${environmentBase}\n" devenvYaml)
+          && (hasInfix "${environmentBase}/" devenvYaml)
+          && !(hasInfix "${environmentBase} " devenvYaml)
+          && !(hasInfix "${environmentBase}\n" devenvYaml)
       )
       activeEnvironments;
   in
@@ -84,7 +82,7 @@
         ./${environment}/devenv.nix {inherit inputs lib pkgs;})
       (activeEnvironmentsWithNoBase ++ defaultEnvironments));
 
-  environmentFiles = lib.filesystem.listFilesRecursive ./.;
+  environmentFiles = listFilesRecursive ./.;
 
   mergeAttrsConcatLists = a: b:
     a
@@ -98,7 +96,7 @@
           if builtins.isAttrs aValue && builtins.isAttrs bValue
           then mergeAttrsConcatLists aValue bValue
           else if builtins.isList aValue && builtins.isList bValue
-          then lib.lists.unique (aValue ++ bValue)
+          then unique (aValue ++ bValue)
           else bValue
       )
       b
@@ -108,90 +106,103 @@
 in
   mergeAttrsConcatLists {
     files = let
-      inherit (lib.lists) last;
-      inherit (lib.strings) splitString;
-
-      activeEnvironmentsAndFeatures = lib.lists.unique (
-        map
+      activeEnvironmentsAndFeatures =
+        builtins.foldl'
+        (a: b: mergeAttrsConcatLists a b)
+        {}
         (
-          environment: let
-            feature =
-              lib.lists.last (lib.splitString " " environment);
-          in {
-            features =
-              if feature != environment
-              then [feature]
-              else [];
+          map
+          (
+            environment: let
+              feature = last parts;
+              name = builtins.elemAt parts 0;
+              parts = splitString " " environment;
+            in {
+              ${name}.features =
+                if feature != environment
+                then [feature]
+                else [];
+            }
+          )
+          activeEnvironments
+        );
 
-            name = environment;
-          }
-        )
-        activeEnvironments
-      );
+      environments = environment: let
+        name = builtins.elemAt (builtins.attrNames environment) 0;
+      in
+        [name]
+        ++ (
+          map
+          (feature: "${name}/${feature}")
+          (environment.${name}.features)
+        );
 
       environmentScripts = environment:
         builtins.filter
         (file: baseNameOf (dirOf file) == "scripts")
-        (lib.filesystem.listFilesRecursive ./${environment}/scripts);
+        (listFilesRecursive ./${environment}/scripts);
 
-      # TODO: map over features
-      justfile = environment: let
-        text = let
-          recipes = (
-            map
-            (
-              filename: let
-                helpText = let
-                  match =
-                    builtins.match
-                    ".*(# .*\n)(export )?(def main).*"
-                    (builtins.readFile filename);
-                in
-                  if match != null && lib.lists.length match > 0
-                  then builtins.elemAt match 0
-                  else "";
+      justfile = environments:
+        mergeAttrsConcatLists (
+          map
+          (
+            environment: {
+              ".environments/${environment.baseEnvironment}/Justfile" = let
+                recipes = (
+                  map
+                  (
+                    filename: let
+                      helpText = let
+                        match =
+                          builtins.match
+                          ".*(# .*\n)(export )?(def main).*"
+                          (builtins.readFile filename);
+                      in
+                        if match != null && length match > 0
+                        then builtins.elemAt match 0
+                        else "";
 
-                recipe =
-                  lib.lists.last (lib.strings.splitString "/" filename);
-              in
-                helpText
-                + ''
-                  @${lib.removeSuffix ".nu" recipe} *args:
-                      .environments/${environment}/scripts/${recipe} {{ args }}
-                ''
-            )
-            (environmentScripts environment)
-          );
-        in
-          if environment == "default" || lib.lists.length recipes == 0
-          then null
-          else
-            lib.concatStringsSep "\n"
-            (
-              [
-                ''
-                  set working-directory := "../.."
+                      recipe = last (splitString "/" filename);
+                    in
+                      helpText
+                      + ''
+                        @${lib.removeSuffix ".nu" recipe} *args:
+                            .environments/${environment.baseEnvironment}/scripts/${recipe} {{ args }}
+                      ''
+                  )
+                  (
+                    flatten (
+                      map
+                      (environment: environmentScripts environment)
+                      (environments environment)
+                    )
+                  )
+                );
+              in [
+                (
+                  if environment.name == "default" || length recipes == 0
+                  then ""
+                  else
+                    lib.concatStringsSep "\n"
+                    (
+                      [
+                        ''
+                          set working-directory := "../.."
 
-                  [private]
-                  @_: help
-                ''
-              ]
-              ++ recipes
-            );
-      in
-        if text == null
-        then {}
-        else {".environments/${environment}/Justfile" = {inherit text;};};
+                          [private]
+                          @_: help
+                        ''
+                      ]
+                      ++ recipes
+                    )
+                )
+              ];
+            }
+          )
+          environments
+        );
 
-      scripts = environment: let
-        environments =
-          [environment.name]
-          ++ (
-            map
-            (feature: "${environment.name}/${feature}")
-            (environment.features)
-          );
-      in
+      scripts = environment:
         builtins.foldl'
         (a: b: a // b)
         {}
@@ -200,19 +211,19 @@ in
           (
             file: let
               filename = builtins.unsafeDiscardStringContext (
-                last (splitString "${environment.name}/" file)
+                last (splitString "${environment.path}/" file)
               );
             in {
-              ".environments/${environment.name}/${filename}" = {
-                executable = lib.strings.hasPrefix "scripts/" filename;
+              ".environments/${environment.baseEnvironment}/${filename}" = {
+                executable = hasPrefix "scripts/" filename;
                 text = builtins.readFile file;
               };
             }
           )
-          (lib.lists.flatten (
+          (flatten (
             map
             (environment: environmentScripts environment)
-            environments
+            (environments environment)
           ))
         );
     in
@@ -220,9 +231,31 @@ in
       (a: b: a // b)
       {}
       (
+        # TODO: mapattrs?
         map
-        # (environment: (justfile environment) // (scripts environment))
-        (environment: scripts environment)
+        (
+          environment: let
+            baseEnvironment = builtins.elemAt parts 0;
+
+            path = let
+              feature = last parts;
+            in
+              if baseEnvironment != feature
+              then "${baseEnvironment}/${feature}"
+              else baseEnvironment;
+
+            parts = splitString " " environment.name;
+          in let
+            parsedEnvironment = {
+              inherit baseEnvironment path;
+
+              features = environment.features;
+              name = environment.name;
+            };
+          in
+            # (justfile parsedEnvironment) //
+            (scripts parsedEnvironment)
+        )
         activeEnvironmentsAndFeatures
       );
 
@@ -274,25 +307,26 @@ in
       );
 
       activeJustModuleNames = builtins.toJSON (
-        lib.lists.unique
+        unique
         (
           map
           (environment: environment.name)
           (
             builtins.filter
-            (environment: environment.name != "default" && environment.numberOfScripts > 0)
+            (environment:
+              environment.name != "default" && environment.numberOfScripts > 0)
             (
               map
               (
                 environmentOrFeature: let
                   environment =
-                    if lib.strings.hasInfix " " environmentOrFeature
+                    if hasInfix " " environmentOrFeature
                     then let
-                      parts = lib.splitString " " environmentOrFeature;
+                      parts = splitString " " environmentOrFeature;
                     in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
                     else environmentOrFeature;
 
-                  numberOfScripts = lib.lists.length (
+                  numberOfScripts = length (
                     builtins.attrNames (
                       builtins.readDir ./${environment}/scripts
                     )
@@ -320,7 +354,9 @@ in
             # nusehll
             ''
               def available-environments [] {
-                '${builtins.toJSON (availableEnvironments ++ availableFeatures)}'
+                '${
+                builtins.toJSON (availableEnvironments ++ availableFeatures)
+              }'
                 | from json
               }
 
