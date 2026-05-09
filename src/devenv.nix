@@ -111,60 +111,60 @@ in
       inherit (lib.lists) last;
       inherit (lib.strings) splitString;
 
+      baseEnvironment = environment: builtins.elemAt (lib.splitString "/" environment) 0;
+
       environmentScripts = environment:
         builtins.filter
         (file: baseNameOf (dirOf file) == "scripts")
         (lib.filesystem.listFilesRecursive ./${environment}/scripts);
 
       justfile = environment: let
-        text = justfileText environment;
+        text = let
+          recipes = (
+            map
+            (
+              filename: let
+                helpText = let
+                  match =
+                    builtins.match
+                    ".*(# .*\n)(export )?(def main).*"
+                    (builtins.readFile filename);
+                in
+                  if match != null && lib.lists.length match > 0
+                  then builtins.elemAt match 0
+                  else "";
+
+                recipe =
+                  lib.lists.last (lib.strings.splitString "/" filename);
+              in
+                helpText
+                + ''
+                  @${lib.removeSuffix ".nu" recipe} *args:
+                      .environments/${environment}/scripts/${recipe} {{ args }}
+                ''
+            )
+            (environmentScripts environment)
+          );
+        in
+          if environment == "default" || lib.lists.length recipes == 0
+          then null
+          else
+            lib.concatStringsSep "\n"
+            (
+              [
+                ''
+                  set working-directory := "../.."
+
+                  [private]
+                  @_: help
+                ''
+              ]
+              ++ recipes
+            );
       in
         if text == null
         then {}
         else {".environments/${environment}/Justfile" = {inherit text;};};
-
-      justfileText = environment: let
-        recipes = (
-          map
-          (
-            filename: let
-              helpText = let
-                match =
-                  builtins.match
-                  ".*(# .*\n)(export )?(def main).*"
-                  (builtins.readFile filename);
-              in
-                if match != null && lib.lists.length match > 0
-                then builtins.elemAt match 0
-                else "";
-
-              recipe =
-                lib.lists.last (lib.strings.splitString "/" filename);
-            in
-              helpText
-              + ''
-                @${lib.removeSuffix ".nu" recipe} *args:
-                    .environments/${environment}/scripts/${recipe} {{ args }}
-              ''
-          )
-          (environmentScripts environment)
-        );
-      in
-        if environment == "default" || lib.lists.length recipes == 0
-        then null
-        else
-          lib.concatStringsSep "\n"
-          (
-            [
-              ''
-                set working-directory := "../.."
-
-                [private]
-                @_: help
-              ''
-            ]
-            ++ recipes
-          );
 
       scripts = environment:
         builtins.foldl'
@@ -178,7 +178,7 @@ in
                 last (splitString "${environment}/" file)
               );
             in {
-              ".environments/${environment}/${filename}" = {
+              ".environments/${baseEnvironment environment}/${filename}" = {
                 executable = lib.strings.hasPrefix "scripts/" filename;
                 text = builtins.readFile file;
               };
@@ -193,7 +193,9 @@ in
       (
         map
         (environment: (justfile environment) // (scripts environment))
-        activeEnvironments
+        (map
+          (environment: lib.replaceString " " "/" environment)
+          activeEnvironments)
       );
 
     packages = with pkgs; [
