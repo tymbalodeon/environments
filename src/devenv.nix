@@ -129,8 +129,6 @@ in
         activeEnvironments
       );
 
-      baseEnvironment = environment: builtins.elemAt (lib.splitString "/" environment) 0;
-
       environmentScripts = environment:
         builtins.filter
         (file: baseNameOf (dirOf file) == "scripts")
@@ -185,8 +183,15 @@ in
         then {}
         else {".environments/${environment}/Justfile" = {inherit text;};};
 
-      # TODO: map over features
-      scripts = environment:
+      scripts = environment: let
+        environments =
+          [environment.name]
+          ++ (
+            map
+            (feature: "${environment.name}/${feature}")
+            (environment.features)
+          );
+      in
         builtins.foldl'
         (a: b: a // b)
         {}
@@ -195,16 +200,20 @@ in
           (
             file: let
               filename = builtins.unsafeDiscardStringContext (
-                last (splitString "${environment}/" file)
+                last (splitString "${environment.name}/" file)
               );
             in {
-              ".environments/${baseEnvironment environment}/${filename}" = {
+              ".environments/${environment.name}/${filename}" = {
                 executable = lib.strings.hasPrefix "scripts/" filename;
                 text = builtins.readFile file;
               };
             }
           )
-          (environmentScripts environment)
+          (lib.lists.flatten (
+            map
+            (environment: environmentScripts environment)
+            environments
+          ))
         );
     in
       builtins.foldl'
@@ -212,7 +221,8 @@ in
       {}
       (
         map
-        (environment: (justfile environment) // (scripts environment))
+        # (environment: (justfile environment) // (scripts environment))
+        (environment: scripts environment)
         activeEnvironmentsAndFeatures
       );
 
