@@ -111,6 +111,24 @@ in
       inherit (lib.lists) last;
       inherit (lib.strings) splitString;
 
+      activeEnvironmentsAndFeatures = lib.lists.unique (
+        map
+        (
+          environment: let
+            feature =
+              lib.lists.last (lib.splitString " " environment);
+          in {
+            features =
+              if feature != environment
+              then [feature]
+              else [];
+
+            name = environment;
+          }
+        )
+        activeEnvironments
+      );
+
       baseEnvironment = environment: builtins.elemAt (lib.splitString "/" environment) 0;
 
       environmentScripts = environment:
@@ -118,6 +136,7 @@ in
         (file: baseNameOf (dirOf file) == "scripts")
         (lib.filesystem.listFilesRecursive ./${environment}/scripts);
 
+      # TODO: map over features
       justfile = environment: let
         text = let
           recipes = (
@@ -166,6 +185,7 @@ in
         then {}
         else {".environments/${environment}/Justfile" = {inherit text;};};
 
+      # TODO: map over features
       scripts = environment:
         builtins.foldl'
         (a: b: a // b)
@@ -193,9 +213,7 @@ in
       (
         map
         (environment: (justfile environment) // (scripts environment))
-        (map
-          (environment: lib.replaceString " " "/" environment)
-          activeEnvironments)
+        activeEnvironmentsAndFeatures
       );
 
     packages = with pkgs; [
