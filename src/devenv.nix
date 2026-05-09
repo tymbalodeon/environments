@@ -128,13 +128,24 @@ in
           map
           (
             filename: let
+              helpText = let
+                match =
+                  builtins.match
+                  ".*(# .*\n)(export )?(def main).*"
+                  (builtins.readFile filename);
+              in
+                if match != null && lib.lists.length match > 0
+                then builtins.elemAt match 0
+                else "";
+
               recipe =
                 lib.lists.last (lib.strings.splitString "/" filename);
-            in ''
-              # FIXME
-              @${lib.removeSuffix ".nu" recipe} *args:
-                  .environments/${environment}/scripts/${recipe} {{ args }}
-            ''
+            in
+              helpText
+              + ''
+                @${lib.removeSuffix ".nu" recipe} *args:
+                    .environments/${environment}/scripts/${recipe} {{ args }}
+              ''
           )
           (environmentScripts environment)
         );
@@ -147,6 +158,9 @@ in
             [
               ''
                 set working-directory := "../.."
+
+                [private]
+                @_: help
               ''
             ]
             ++ recipes
