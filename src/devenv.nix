@@ -106,7 +106,7 @@
 in
   mergeAttrsConcatLists {
     files = let
-      activeEnvironmentsAndFeatures =
+      activeEnvironmentsAndFeatures = lib.attrsToList (
         builtins.foldl'
         (a: b: mergeAttrsConcatLists a b)
         {}
@@ -125,22 +125,37 @@ in
             }
           )
           activeEnvironments
-        );
+        )
+      );
 
-      environments = environment: let
-        name = builtins.elemAt (builtins.attrNames environment) 0;
-      in
-        [name]
+      environments = environment:
+        [
+          {
+            baseEnvironment = environment.name;
+            path = environment.name;
+          }
+        ]
         ++ (
           map
-          (feature: "${name}/${feature}")
-          (environment.${name}.features)
+          (feature: {
+            baseEnvironment = environment.name;
+            path = "${environment.name}/${feature}";
+          })
+          (environment.value.features)
         );
 
       environmentScripts = environment:
-        builtins.filter
-        (file: baseNameOf (dirOf file) == "scripts")
-        (listFilesRecursive ./${environment}/scripts);
+        map
+        (file:
+          environment
+          // {
+            inherit file;
+          })
+        (
+          builtins.filter
+          (file: baseNameOf (dirOf file) == "scripts")
+          (listFilesRecursive ./${environment.path}/scripts)
+        );
 
       justfile = environments:
         mergeAttrsConcatLists (
@@ -209,14 +224,14 @@ in
         (
           map
           (
-            file: let
+            environment: let
               filename = builtins.unsafeDiscardStringContext (
-                last (splitString "${environment.path}/" file)
+                last (splitString "${environment.path}/" environment.file)
               );
             in {
               ".environments/${environment.baseEnvironment}/${filename}" = {
                 executable = hasPrefix "scripts/" filename;
-                text = builtins.readFile file;
+                text = builtins.readFile environment.file;
               };
             }
           )
@@ -234,27 +249,9 @@ in
         # TODO: mapattrs?
         map
         (
-          environment: let
-            baseEnvironment = builtins.elemAt parts 0;
-
-            path = let
-              feature = last parts;
-            in
-              if baseEnvironment != feature
-              then "${baseEnvironment}/${feature}"
-              else baseEnvironment;
-
-            parts = splitString " " environment.name;
-          in let
-            parsedEnvironment = {
-              inherit baseEnvironment path;
-
-              features = environment.features;
-              name = environment.name;
-            };
-          in
-            # (justfile parsedEnvironment) //
-            (scripts parsedEnvironment)
+          environment:
+          # (justfile parsedEnvironment) //
+          (scripts environment)
         )
         activeEnvironmentsAndFeatures
       );
