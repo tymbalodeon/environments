@@ -78,17 +78,24 @@ mod yaml ".environments/yaml/Justfile"
 
 [private]
 @doc *args:
-  just documentation {{ args }}
+    just documentation {{ args }}
 
 [private]
 @docs *args:
-  just documentation {{ args }}
+    just documentation {{ args }}
 
 [private]
 @md *args:
-  just markdown {{ args }}
+    just markdown {{ args }}
 
 [private]
 @yml *args:
-  just yaml {{ args }}
+    just yaml {{ args }}
 
+alias open-documentation := documentation::open-documentation
+alias serve := documentation::serve
+alias leaks := git::leaks
+alias release := git::release
+alias clean := nix::clean
+alias prune := nix::prune
+alias shell := nix::shell

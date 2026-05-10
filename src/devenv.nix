@@ -157,65 +157,86 @@ in
           (listFilesRecursive ./${environment.path}/scripts)
         );
 
-      justfile = environments:
-        mergeAttrsConcatLists (
-          map
-          (
-            environment: {
-              ".environments/${environment.baseEnvironment}/Justfile" = let
-                recipes = (
-                  map
-                  (
-                    filename: let
-                      helpText = let
-                        match =
-                          builtins.match
-                          ".*(# .*\n)(export )?(def main).*"
-                          (builtins.readFile filename);
-                      in
-                        if match != null && length match > 0
-                        then builtins.elemAt match 0
-                        else "";
+      justfile = environment: let
+        scripts = (
+          builtins.foldl'
+          (a: b: {
+            baseEnvironment = b.baseEnvironment;
 
-                      recipe = last (splitString "/" filename);
-                    in
-                      helpText
-                      + ''
-                        @${lib.removeSuffix ".nu" recipe} *args:
-                            .environments/${environment.baseEnvironment}/scripts/${recipe} {{ args }}
-                      ''
-                  )
-                  (
-                    flatten (
-                      map
-                      (environment: environmentScripts environment)
-                      (environments environment)
-                    )
-                  )
-                );
-              in [
-                (
-                  if environment.name == "default" || length recipes == 0
-                  then ""
-                  else
-                    lib.concatStringsSep "\n"
-                    (
-                      [
-                        ''
-                          set working-directory := "../.."
+            files = let
+              aFile = file a;
+              bFile = file b;
+              aFiles = mergedFiles a;
+              bFiles = mergedFiles b;
 
-                          [private]
-                          @_: help
-                        ''
-                      ]
-                      ++ recipes
-                    )
-                )
-              ];
-            }
-          )
-          environments
+              mergedFiles = x:
+                if lib.hasAttr "files" x
+                then x.files
+                else [];
+
+              file = x:
+                if lib.hasAttr "file" x
+                then [x.file]
+                else [];
+            in
+              aFiles ++ bFiles ++ aFile ++ bFile;
+
+            path = a.path;
+          })
+          {}
+          (flatten (
+            map
+            (environment: environmentScripts environment)
+            (environments environment)
+          ))
         );
+      in
+        if lib.hasAttr "baseEnvironment" scripts
+        then {
+          ".environments/${scripts.baseEnvironment}/Justfile" = let
+            recipes = (
+              map
+              (
+                file: let
+                  helpText = let
+                    match =
+                      builtins.match
+                      ".*(# .*\n)(export )?(def main).*"
+                      (builtins.readFile file);
+                  in
+                    if match != null && length match > 0
+                    then builtins.elemAt match 0
+                    else "";
+
+                  recipe = last (splitString "/" file);
+                in
+                  helpText
+                  + ''
+                    @${lib.removeSuffix ".nu" recipe} *args:
+                        .environments/${scripts.baseEnvironment}/scripts/${recipe} {{ args }}
+                  ''
+              )
+              scripts.files
+            );
+          in {
+            text =
+              if environment.name == "default" || length recipes == 0
+              then ""
+              else
+                lib.concatStringsSep "\n"
+                (
+                  [
+                    ''
+                      set working-directory := "../.."
+                      [private]
+                      @_: help
+                    ''
+                  ]
+                  ++ recipes
+                );
+          };
+        }
+        else {};
 
       scripts = environment:
         builtins.foldl'
@@ -246,13 +267,8 @@ in
       (a: b: a // b)
       {}
       (
-        # TODO: mapattrs?
         map
-        (
-          environment:
-          # (justfile parsedEnvironment) //
-          (scripts environment)
-        )
+        (environment: (justfile environment) // (scripts environment))
         activeEnvironmentsAndFeatures
       );
 
