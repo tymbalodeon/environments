@@ -73,16 +73,27 @@
       )
       activeEnvironments;
   in
-    builtins.foldl'
-    (a: b: mergeAttrsConcatLists a b)
-    {}
-    (map
+    foldAttrsConcatLists (
+      map
       (environment:
         import
         ./${environment}/devenv.nix {inherit inputs lib pkgs;})
-      (activeEnvironmentsWithNoBase ++ defaultEnvironments));
+      (activeEnvironmentsWithNoBase ++ defaultEnvironments)
+    );
 
   environmentFiles = listFilesRecursive ./.;
+
+  foldAttrs = list:
+    builtins.foldl'
+    (a: b: a // b)
+    {}
+    list;
+
+  foldAttrsConcatLists = list:
+    builtins.foldl'
+    (a: b: mergeAttrsConcatLists a b)
+    {}
+    list;
 
   mergeAttrsConcatLists = a: b:
     a
@@ -107,10 +118,7 @@ in
   mergeAttrsConcatLists {
     files = let
       activeEnvironmentsAndFeatures = lib.attrsToList (
-        builtins.foldl'
-        (a: b: mergeAttrsConcatLists a b)
-        {}
-        (
+        foldAttrsConcatLists (
           map
           (
             environment: let
@@ -128,7 +136,7 @@ in
         )
       );
 
-      environments = environment:
+      environmentPaths = environment:
         [
           {
             baseEnvironment = environment.name;
@@ -144,17 +152,75 @@ in
           (environment.value.features)
         );
 
-      environmentScripts = environment:
-        map
-        (file:
-          environment
-          // {
-            inherit file;
-          })
-        (
-          builtins.filter
-          (file: baseNameOf (dirOf file) == "scripts")
-          (listFilesRecursive ./${environment.path}/scripts)
+      environmentScripts = environment: let
+        scripts =
+          map
+          (file:
+            environment
+            // {
+              inherit file;
+            })
+          (
+            builtins.filter
+            (file: baseNameOf (dirOf file) == "scripts")
+            (listFilesRecursive ./${environment.path}/scripts)
+          );
+      in
+        if environment.baseEnvironment == "default" || length scripts < 1
+        then scripts
+        else
+          scripts
+          ++ [
+            (environment
+              // {
+                text =
+                  # nushell
+                  ''
+                    #!/usr/bin/env nu
+
+                    use ../../default/scripts/help.nu display-aliases
+                    use ../../default/scripts/help.nu display-just-help
+
+                    # View module aliases
+                    def "main aliases" [
+                      --color = "auto" # When to use colored output {always|auto|never}
+                      --sort-by-environment # Sort aliases by environment name
+                      --sort-by-recipe # Sort recipe by original recipe name
+                      --no-submodule-aliases # Don't include submodule aliases
+                    ] {
+                      (
+                        display-aliases
+                          $no_submodule_aliases
+                          $sort_by_environment
+                          $sort_by_recipe
+                          --color $color
+                          --justfile .environments/${environment.baseEnvironment}/Justfile
+                      )
+                    }
+
+                    # View help text
+                    def main [
+                      recipe?: string # View help text for recipe
+                      ...subcommands: string  # View help for a recipe subcommand
+                      --color = "always" # When to use colored output {always|auto|never}
+                    ] {
+                      (
+                        display-just-help
+                          ${environment.baseEnvironment}
+                          $recipe
+                          $subcommands
+                          --color $color
+                      )
+                    }
+                  '';
+              })
+          ];
+
+      environmentAndFeatureScripts = environment:
+        flatten (
+          map
+          (environment: environmentScripts environment)
+          (environmentPaths environment)
         );
 
       justfile = environment: let
@@ -164,35 +230,33 @@ in
             baseEnvironment = b.baseEnvironment;
 
             files = let
-              aFile = file a;
-              bFile = file b;
-              aFiles = mergedFiles a;
-              bFiles = mergedFiles b;
-
-              mergedFiles = x:
-                if lib.hasAttr "files" x
-                then x.files
+              attrOrEmpty = x: attr:
+                if lib.hasAttr attr x
+                then let
+                  value = x.${attr};
+                in
+                  if builtins.isList value
+                  then value
+                  else [value]
                 else [];
 
-              file = x:
-                if lib.hasAttr "file" x
-                then [x.file]
-                else [];
+              environmentFile = x: attrOrEmpty x "file";
+              environmentFiles = x: attrOrEmpty x "files";
             in
-              aFiles ++ bFiles ++ aFile ++ bFile;
+              (environmentFile a)
+              ++ (environmentFile b)
+              ++ (environmentFiles a)
+              ++ (environmentFiles b);
 
             path = a.path;
           })
           {}
-          (flatten (
-            map
-            (environment: environmentScripts environment)
-            (environments environment)
-          ))
+          (environmentAndFeatureScripts environment)
         );
       in
-        if lib.hasAttr "baseEnvironment" scripts
-        then {
+        if environment.name == "default" || !(lib.hasAttr "baseEnvironment" scripts)
+        then {}
+        else {
           ".environments/${scripts.baseEnvironment}/Justfile" = let
             recipes = (
               map
@@ -228,45 +292,47 @@ in
                   [
                     ''
                       set working-directory := "../.."
+
                       [private]
                       @_: help
+
+                      # View help text
+                      @help *args:
+                          .environments/${environment.name}/scripts/help.nu {{ args }}
                     ''
                   ]
                   ++ recipes
                 );
           };
-        }
-        else {};
+        };
 
       scripts = environment:
-        builtins.foldl'
-        (a: b: a // b)
-        {}
-        (
+        foldAttrs (
           map
           (
             environment: let
-              filename = builtins.unsafeDiscardStringContext (
-                last (splitString "${environment.path}/" environment.file)
-              );
+              filename =
+                if lib.hasAttr "file" environment
+                then
+                  builtins.unsafeDiscardStringContext (
+                    last (splitString "${environment.path}/" environment.file)
+                  )
+                else "scripts/help.nu";
             in {
               ".environments/${environment.baseEnvironment}/${filename}" = {
                 executable = hasPrefix "scripts/" filename;
-                text = builtins.readFile environment.file;
+
+                text =
+                  if lib.hasAttr "text" environment
+                  then environment.text
+                  else builtins.readFile environment.file;
               };
             }
           )
-          (flatten (
-            map
-            (environment: environmentScripts environment)
-            (environments environment)
-          ))
+          (environmentAndFeatureScripts environment)
         );
     in
-      builtins.foldl'
-      (a: b: a // b)
-      {}
-      (
+      foldAttrs (
         map
         (environment: (justfile environment) // (scripts environment))
         activeEnvironmentsAndFeatures
@@ -387,10 +453,8 @@ in
           readFromTOML = file: fromTOML (builtins.readFile file);
         in
           builtins.toJSON (
-            builtins.foldl'
-            (a: b: mergeAttrsConcatLists a b)
-            {}
-            ((
+            foldAttrsConcatLists (
+              (
                 map
                 (file: readFromTOML file)
                 (map (file: file.file) (activeFiles "languages.toml"))
@@ -402,7 +466,8 @@ in
                   if builtins.pathExists file
                   then [(readFromTOML file)]
                   else []
-              ))
+              )
+            )
           );
       in
         {
