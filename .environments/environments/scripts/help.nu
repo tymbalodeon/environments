@@ -1,0 +1,1 @@
+/nix/store/4ydizlm9413h7cjyfrir3izkf91x09ap-environments-environments-scripts-help.nu

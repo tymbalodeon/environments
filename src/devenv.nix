@@ -138,17 +138,11 @@ in
 
       environmentPaths = environment:
         [
-          {
-            baseEnvironment = environment.name;
-            path = environment.name;
-          }
+          (environment // {path = environment.name;})
         ]
         ++ (
           map
-          (feature: {
-            baseEnvironment = environment.name;
-            path = "${environment.name}/${feature}";
-          })
+          (feature: environment // {path = "${environment.name}/${feature}";})
           (environment.value.features)
         );
 
@@ -161,12 +155,23 @@ in
               inherit file;
             })
           (
-            builtins.filter
-            (file: baseNameOf (dirOf file) == "scripts")
-            (listFilesRecursive ./${environment.path}/scripts)
+            let
+              filesPath =
+                if lib.hasAttr "local" environment && environment.local
+                then "${inputs.project}/.environments/${environment.path}/scripts"
+                else ./${environment.path}/scripts;
+            in
+              builtins.filter
+              (file:
+                (baseNameOf (dirOf file) == "scripts")
+                && (
+                  ((baseNameOf file) != "help.nu")
+                  || environment.name == "default"
+                ))
+              (listFilesRecursive filesPath)
           );
       in
-        if environment.baseEnvironment == "default" || length scripts < 1
+        if environment.name == "default" || length scripts < 1
         then scripts
         else
           scripts
@@ -194,7 +199,7 @@ in
                           $sort_by_environment
                           $sort_by_recipe
                           --color $color
-                          --justfile .environments/${environment.baseEnvironment}/Justfile
+                          --justfile .environments/${environment.name}/Justfile
                       )
                     }
 
@@ -206,7 +211,7 @@ in
                     ] {
                       (
                         display-just-help
-                          ${environment.baseEnvironment}
+                          ${environment.name}
                           $recipe
                           $subcommands
                           --color $color
@@ -227,7 +232,7 @@ in
         scripts = (
           builtins.foldl'
           (a: b: {
-            baseEnvironment = b.baseEnvironment;
+            name = b.name;
 
             files = let
               attrOrEmpty = x: attr:
@@ -254,10 +259,10 @@ in
           (environmentAndFeatureScripts environment)
         );
       in
-        if environment.name == "default" || !(lib.hasAttr "baseEnvironment" scripts)
+        if environment.name == "default" || !(lib.hasAttr "name" scripts)
         then {}
         else {
-          ".environments/${scripts.baseEnvironment}/Justfile" = let
+          ".environments/${scripts.name}/Justfile" = let
             recipes = (
               map
               (
@@ -277,7 +282,7 @@ in
                   helpText
                   + ''
                     @${lib.removeSuffix ".nu" recipe} *args:
-                        .environments/${scripts.baseEnvironment}/scripts/${recipe} {{ args }}
+                        .environments/${scripts.name}/scripts/${recipe} {{ args }}
                   ''
               )
               scripts.files
@@ -319,7 +324,7 @@ in
                   )
                 else "scripts/help.nu";
             in {
-              ".environments/${environment.baseEnvironment}/${filename}" = {
+              ".environments/${environment.name}/${filename}" = {
                 executable = hasPrefix "scripts/" filename;
 
                 text =
@@ -335,7 +340,18 @@ in
       foldAttrs (
         map
         (environment: (justfile environment) // (scripts environment))
-        activeEnvironmentsAndFeatures
+        (activeEnvironmentsAndFeatures
+          ++ (
+            map
+            (environment: {
+              local = true;
+              name = environment;
+              value.features = [];
+            })
+            (builtins.filter
+              (x: !(builtins.elem x availableEnvironments))
+              (builtins.attrNames (builtins.readDir "${inputs.project}/.environments")))
+          ))
       );
 
     packages = with pkgs; [
