@@ -26,6 +26,47 @@
     ++ defaultEnvironments
   );
 
+  activeFiles = baseName: (
+    map
+    (file: let
+      environment =
+        if builtins.elem feature activeEnvironments
+        then feature
+        else last;
+
+      feature = "${first} ${last}";
+      first = parentDirName file;
+      last = dirName file;
+    in {
+      inherit environment file;
+
+      name =
+        if builtins.elem last availableEnvironments
+        then last
+        else "${first} ${last}";
+    })
+    (
+      builtins.filter
+      (file: let
+        environment =
+          if builtins.elem feature activeEnvironments
+          then feature
+          else if builtins.elem dir activeEnvironments
+          then dir
+          else "";
+
+        feature = "${parent} ${dir}";
+        parent = parentDirName file;
+        dir = dirName file;
+      in
+        baseNameOf
+        file
+        == baseName
+        && environment != "")
+      environmentFiles
+    )
+  );
+
   availableFeatures =
     map (
       file: let
@@ -262,7 +303,7 @@ in
         if environment.name == "default" || !(lib.hasAttr "name" scripts)
         then {}
         else {
-          ".environments/${scripts.name}/Justfile" = let
+          ".environments/${scripts.name}/Justfile".text = let
             recipes = (
               map
               (
@@ -287,28 +328,26 @@ in
               )
               scripts.files
             );
-          in {
-            text =
-              if environment.name == "default" || length recipes == 0
-              then ""
-              else
-                lib.concatStringsSep "\n"
-                (
-                  [
-                    ''
-                      set working-directory := "../.."
+          in
+            if environment.name == "default" || length recipes == 0
+            then ""
+            else
+              lib.concatLines
+              (
+                [
+                  ''
+                    set working-directory := "../.."
 
-                      [private]
-                      @_: help
+                    [private]
+                    @_: help
 
-                      # View help text
-                      @help *args:
-                          .environments/${environment.name}/scripts/help.nu {{ args }}
-                    ''
-                  ]
-                  ++ recipes
-                );
-          };
+                    # View help text
+                    @help *args:
+                        .environments/${environment.name}/scripts/help.nu {{ args }}
+                  ''
+                ]
+                ++ recipes
+              );
         };
 
       scripts = environment:
@@ -360,86 +399,8 @@ in
     ];
 
     tasks = let
-      activeFiles = baseName: (
-        map
-        (file: let
-          environment =
-            if builtins.elem feature activeEnvironments
-            then feature
-            else last;
-
-          feature = "${first} ${last}";
-          first = parentDirName file;
-          last = dirName file;
-        in {
-          inherit environment file;
-
-          name =
-            if builtins.elem last availableEnvironments
-            then last
-            else "${first} ${last}";
-        })
-        (
-          builtins.filter
-          (file: let
-            environment =
-              if builtins.elem feature activeEnvironments
-              then feature
-              else if builtins.elem dir activeEnvironments
-              then dir
-              else "";
-
-            feature = "${parent} ${dir}";
-            parent = parentDirName file;
-            dir = dirName file;
-          in
-            baseNameOf
-            file
-            == baseName
-            && environment != "")
-          environmentFiles
-        )
-      );
-
-      activeJustModuleNames = builtins.toJSON (
-        unique
-        (
-          map
-          (environment: environment.name)
-          (
-            builtins.filter
-            (environment:
-              environment.name != "default" && environment.numberOfScripts > 0)
-            (
-              map
-              (
-                environmentOrFeature: let
-                  environment =
-                    if hasInfix " " environmentOrFeature
-                    then let
-                      parts = splitString " " environmentOrFeature;
-                    in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
-                    else environmentOrFeature;
-
-                  numberOfScripts = length (
-                    builtins.attrNames (
-                      builtins.readDir ./${environment}/scripts
-                    )
-                  );
-                in {
-                  inherit numberOfScripts;
-
-                  name = environment;
-                }
-              )
-              activeEnvironments
-            )
-          )
-        )
-      );
-
       defaultTaskSettings = {
-        before = ["devenv:enterShell"];
+        after = ["devenv:enterShell"];
         package = pkgs.nushell;
       };
     in {
@@ -499,33 +460,84 @@ in
         }
         // defaultTaskSettings;
 
-      "environments:just" =
+      "environments:justfile" = let
+        aliasDeclarations = lib.concatStrings (
+          map
+          (
+            environment:
+              lib.concatLines (
+                map
+                (alias: ''
+                  [private]
+                  @${alias} *args:
+                      just ${environment.environment} {{ args }}
+                '')
+                (
+                  builtins.filter
+                  (alias: alias != "")
+                  (splitString "\n" (builtins.readFile environment.file))
+                )
+              )
+          )
+          (activeFiles "aliases")
+        );
+
+        activeModules =
+          unique
+          (
+            map
+            (environment: environment.name)
+            (
+              builtins.filter
+              (environment:
+                environment.name != "default" && environment.numberOfScripts > 0)
+              (
+                map
+                (
+                  environmentOrFeature: let
+                    environment =
+                      if hasInfix " " environmentOrFeature
+                      then let
+                        parts = splitString " " environmentOrFeature;
+                      in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
+                      else environmentOrFeature;
+
+                    numberOfScripts = length (
+                      builtins.attrNames (
+                        builtins.readDir ./${environment}/scripts
+                      )
+                    );
+                  in {
+                    inherit numberOfScripts;
+
+                    name = environment;
+                  }
+                )
+                activeEnvironments
+              )
+            )
+          );
+
+        moduleDeclarations =
+          lib.concatLines
+          (map
+            (module: ''mod ${module} ".environments/${module}/Justfile"'')
+            activeModules);
+
+        justfileText = lib.strings.trim (
+          lib.concatLines [
+            (builtins.readFile ./default/Justfile)
+            moduleDeclarations
+            aliasDeclarations
+          ]
+        );
+      in
         {
           exec =
-            # nushell
+            # nusehll
             ''
-              def default-justfile [] {
-                "${./default/Justfile}"
-              }
-
-              def modules [] {
-                "${activeJustModuleNames}"
-                | from json
-              }
-
-              def aliases [] {
-                "${builtins.toJSON (activeFiles "aliases")}"
-                | from json
-                | append (
-                    fd aliases .environments
-                    | lines
-                    | each {
-                        {
-                          environment: ($in | path dirname | path basename)
-                          file: $in
-                        }
-                      }
-                )
+              def default-justfile-text [] {
+                '${justfileText}'
               }
             ''
             + builtins.readFile ./tasks/just.nu;
