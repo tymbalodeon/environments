@@ -1,1 +1,1 @@
-/nix/store/cldr5yyaj9fy5877agh4i1c22knkh68s-environments-nix-scripts-shell.nu
+/nix/store/87n5j4ss2vni953rxi62adailjzs0zl5-environments-nix-scripts-shell.nu

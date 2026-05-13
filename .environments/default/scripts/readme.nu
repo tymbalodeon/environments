@@ -1,1 +1,1 @@
-/nix/store/yxn3ha50qkz718ad1x5vs83fhmpcp3pz-environments-default-scripts-readme.nu
+/nix/store/mpy9fham24j27j6sv2xpcvdm80id9yp9-environments-default-scripts-readme.nu

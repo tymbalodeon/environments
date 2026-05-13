@@ -1,1 +1,1 @@
-/nix/store/0l6a6f5pg28xqkpxs5mz2gac2vnzkq13-environments-git-scripts-release.nu
+/nix/store/1r3k3xyvm854ng9sd9i0ayigy2bwcma5-environments-git-scripts-release.nu

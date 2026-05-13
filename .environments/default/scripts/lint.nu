@@ -1,1 +1,1 @@
-/nix/store/rv1yrya6j8sjn55api3jz6nszbs9y4yf-environments-default-scripts-lint.nu
+/nix/store/nyrlw5iqfg3q70r3ns0br1zjj2hphw1z-environments-default-scripts-lint.nu

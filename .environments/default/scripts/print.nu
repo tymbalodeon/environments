@@ -1,1 +1,1 @@
-/nix/store/y0kv43l74bd0921b8djidid76b79pa6c-environments-default-scripts-print.nu
+/nix/store/x4d8q1rsd29j5ir20ij49d1rzsydgvzi-environments-default-scripts-print.nu

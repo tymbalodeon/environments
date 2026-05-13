@@ -1,1 +1,1 @@
-/nix/store/88v05jx717wmj0hvxkha6hn3l0ilfxca-environments-default-scripts-environment-source.nu
+/nix/store/ppq2wfvc3d65q8m93kzmba8r928fwk4a-environments-default-scripts-environment-source.nu

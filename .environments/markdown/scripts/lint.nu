@@ -1,1 +1,1 @@
-/nix/store/52md9ypcaxw7v3d2d7cvnzlwkf7szqdw-environments-markdown-scripts-lint.nu
+/nix/store/gqkgcdbnca5s2csg7p47b7cx5gj0p313-environments-markdown-scripts-lint.nu

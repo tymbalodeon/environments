@@ -1,1 +1,1 @@
-/nix/store/0wa991kksbdyl2lgbyqsp68b56z0gjnb-environments-default-scripts-environment-update.nu
+/nix/store/f827hnkzsbfmxadc128qc0fs26589kw9-environments-default-scripts-environment-update.nu

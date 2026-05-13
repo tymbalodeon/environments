@@ -1,1 +1,1 @@
-/nix/store/cm19brsrp4gc0ksw5fz3ar2dm5axappz-environments-nix-scripts-clean.nu
+/nix/store/bcpyzlfrbj5w41h907kwg2frmcplsp3k-environments-nix-scripts-clean.nu
