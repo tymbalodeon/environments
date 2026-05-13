@@ -155,6 +155,12 @@
     );
 
   parentDirName = file: baseNameOf (dirOf (dirOf file));
+
+  projectEnvironments =
+    builtins.filter
+    (environment: !(builtins.elem environment availableEnvironments))
+    (builtins.attrNames
+      (builtins.readDir "${inputs.project}/.environments"));
 in
   mergeAttrsConcatLists {
     files = let
@@ -387,9 +393,7 @@ in
               name = environment;
               value.features = [];
             })
-            (builtins.filter
-              (x: !(builtins.elem x availableEnvironments))
-              (builtins.attrNames (builtins.readDir "${inputs.project}/.environments")))
+            projectEnvironments
           ))
       );
 
@@ -484,39 +488,40 @@ in
 
         activeModules =
           unique
-          (
-            map
-            (environment: environment.name)
-            (
-              builtins.filter
-              (environment:
-                environment.name != "default" && environment.numberOfScripts > 0)
+          ((
+              map
+              (environment: environment.name)
               (
-                map
+                builtins.filter
+                (environment:
+                  environment.name != "default" && environment.numberOfScripts > 0)
                 (
-                  environmentOrFeature: let
-                    environment =
-                      if hasInfix " " environmentOrFeature
-                      then let
-                        parts = splitString " " environmentOrFeature;
-                      in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
-                      else environmentOrFeature;
+                  map
+                  (
+                    environmentOrFeature: let
+                      environment =
+                        if hasInfix " " environmentOrFeature
+                        then let
+                          parts = splitString " " environmentOrFeature;
+                        in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
+                        else environmentOrFeature;
 
-                    numberOfScripts = length (
-                      builtins.attrNames (
-                        builtins.readDir ./${environment}/scripts
-                      )
-                    );
-                  in {
-                    inherit numberOfScripts;
+                      numberOfScripts = length (
+                        builtins.attrNames (
+                          builtins.readDir ./${environment}/scripts
+                        )
+                      );
+                    in {
+                      inherit numberOfScripts;
 
-                    name = environment;
-                  }
+                      name = environment;
+                    }
+                  )
+                  activeEnvironments
                 )
-                activeEnvironments
               )
             )
-          );
+            ++ projectEnvironments);
 
         moduleDeclarations =
           lib.concatLines
