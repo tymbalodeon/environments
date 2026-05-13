@@ -494,7 +494,22 @@ in
                 )
               )
           )
-          (activeFiles "aliases")
+          (
+            (activeFiles "aliases")
+            ++ (
+              map
+              (file: {
+                inherit file;
+
+                environment = baseNameOf (dirOf file);
+              })
+              (
+                builtins.filter
+                (file: baseNameOf file == "aliases")
+                (listFilesRecursive "${inputs.project}/.environments")
+              )
+            )
+          )
         );
 
         activeModules =
