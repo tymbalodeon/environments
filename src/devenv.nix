@@ -214,14 +214,19 @@ in
                 then "${inputs.project}/.environments/${environment.path}/scripts"
                 else ./${environment.path}/scripts;
             in
-              builtins.filter
-              (file:
-                (baseNameOf (dirOf file) == "scripts")
-                && (
-                  ((baseNameOf file) != "help.nu")
-                  || environment.name == "default"
-                ))
-              (listFilesRecursive filesPath)
+              if lib.pathExists filesPath
+              then
+                (
+                  builtins.filter
+                  (file:
+                    (baseNameOf (dirOf file) == "scripts")
+                    && (
+                      ((baseNameOf file) != "help.nu")
+                      || environment.name == "default"
+                    ))
+                  (listFilesRecursive filesPath)
+                )
+              else []
           );
       in
         if environment.name == "default" || length scripts < 1
@@ -512,11 +517,19 @@ in
                         in "${builtins.elemAt parts 0} ${builtins.elemAt parts 1}"
                         else environmentOrFeature;
 
-                      numberOfScripts = length (
-                        builtins.attrNames (
-                          builtins.readDir ./${environment}/scripts
-                        )
-                      );
+                      numberOfScripts = let
+                        path = ./${environment}/scripts;
+                      in
+                        if lib.pathExists path
+                        then
+                          (
+                            length (
+                              builtins.attrNames (
+                                builtins.readDir ./${environment}/scripts
+                              )
+                            )
+                          )
+                        else 0;
                     in {
                       inherit numberOfScripts;
 
