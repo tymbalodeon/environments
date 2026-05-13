@@ -159,10 +159,16 @@
   projectEnvironments =
     builtins.filter
     (environment: !(builtins.elem environment availableEnvironments))
-    (builtins.attrNames
-      (builtins.readDir "${inputs.project}/.environments"));
+    (
+      map
+      (directory: directory.name)
+      (builtins.filter
+        (file: file.value == "directory")
+        (lib.attrsToList
+          (builtins.readDir "${inputs.project}/.environments")))
+    );
 in
-  mergeAttrsConcatLists {
+  builtins.trace projectEnvironments mergeAttrsConcatLists {
     files = let
       activeEnvironmentsAndFeatures = lib.attrsToList (
         foldAttrsConcatLists (
