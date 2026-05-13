@@ -1,3 +1,0 @@
-# Build and install the application
-@build *args:
-    .environments/python/scripts/build.nu {{ args }}

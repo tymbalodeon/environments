@@ -10,11 +10,12 @@
     inherit lib;
 
     environment = "rust";
-    files = ./files;
+    files = ./scripts;
   };
 
   languages.rust = {
-    channel = "nightly";
+    # TODO: requires adding oxalica
+    # channel = "nightly";
     enable = true;
   };
 
