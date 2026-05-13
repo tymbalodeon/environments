@@ -168,7 +168,7 @@
           (builtins.readDir "${inputs.project}/.environments")))
     );
 in
-  builtins.trace projectEnvironments mergeAttrsConcatLists {
+  mergeAttrsConcatLists {
     files = let
       activeEnvironmentsAndFeatures = lib.attrsToList (
         foldAttrsConcatLists (
