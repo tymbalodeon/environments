@@ -515,7 +515,7 @@ def get-aliases [
   let aliases = (
     open $justfile
     | lines
-    | where {str starts-with  alias}
+    | where {str starts-with alias}
     | str replace "alias " ""
     | each {
         |alias|
