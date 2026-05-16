@@ -91,6 +91,7 @@ mod yaml ".environments/yaml/Justfile"
 [private]
 @yml *args:
     just yaml {{ args }}
+
 alias open-documentation := documentation::open-documentation
 alias serve := documentation::serve
 alias leaks := git::leaks

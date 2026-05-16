@@ -40,6 +40,7 @@ let main_aliases = (
 )
 
 open Justfile
+| append "\n"
 | append $main_aliases
 | collect
 | save --force Justfile
