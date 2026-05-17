@@ -1,3 +1,6 @@
 {
-  env.ENVIRONMENTS_HIDE_HELP = true;
+  env = {
+    ENVIRONMENTS_HIDE_DEFAULT = true;
+    ENVIRONMENTS_HIDE_HELP = true;
+  };
 }

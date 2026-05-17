@@ -467,10 +467,13 @@ in
                       }
 
                       let hidden_submodules = if (
-                        $environments
+                        open devenv.yaml
+                        | get imports
+                        | where {$in != environments}
                         | is-not-empty
-                      ) and hide_default in ($environments | columns) and (
-                        $environments.hide_default
+                      ) and (
+                        $env.ENVIRONMENTS_HIDE_DEFAULT
+                        | is-not-empty
                       ) {
                         $hidden_submodules
                         | append (get-default-environments).name
@@ -525,11 +528,14 @@ in
                       }
 
                       if not $all and (
-                        (get-settings-bool hide_default) or (get-settings-bool hide_help)
+                        ($env.ENVIRONMENTS_HIDE_DEFAULT | is-not-empty) or (
+                          $env.ENVIRONMENTS_HIDE_HELP
+                          | is-not-empty
+                        )
                       ) {
                         print $"(
                           ansi default_bold
-                        )use `just help --all` for more recipes(ansi reset)\n"
+                        )use `just help --all` for more recipes(ansi reset)"
                       }
 
                       append-main-aliases $text --color $color
@@ -956,17 +962,6 @@ in
                           $all
                           --color $color
                       )
-                    }
-
-                    def get-settings-bool [column: string] {
-                      let settings = (open-configuration-file)
-
-                      try {
-                        $settings
-                        | get $column
-                      } catch {
-                        false
-                      }
                     }
 
                     # View help text
