@@ -14,8 +14,8 @@
   };
 
   languages.rust = {
+    channel = "nightly";
     enable = true;
-    toolchainFile = "${inputs.project}/rust-toolchain.toml";
   };
 
   packages = with pkgs; [
@@ -34,18 +34,4 @@
     rust-analyzer
     zellij
   ];
-
-  tasks."environments:rust" = {
-    before = ["devenv:enterShell"];
-
-    exec =
-      ''
-        def rust-toolchain-file [] {
-          "${builtins.readFile ./rust-toolchain.toml}"
-        }
-      ''
-      + builtins.readFile ./task.nu;
-
-    package = pkgs.nushell;
-  };
 }
