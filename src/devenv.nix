@@ -321,7 +321,7 @@ in
                         name =
                           if lib.hasAttr "name" environment
                           then environment.name
-                          else environment;
+                          else environment.environment;
                       })
                       aliasFiles
                     )}'
