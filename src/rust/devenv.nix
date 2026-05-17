@@ -14,9 +14,8 @@
   };
 
   languages.rust = {
-    # TODO: requires adding oxalica
-    # channel = "nightly";
     enable = true;
+    toolchainFile = "${inputs.project}/rust-toolchain.toml";
   };
 
   packages = with pkgs; [
