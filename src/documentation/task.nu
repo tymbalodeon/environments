@@ -20,13 +20,7 @@ def main [] {
   if ("documentation" | path exists) and ("documentation" | path type) != dir {
     rm documentation
 
-    let title = do --ignore-errors {
-      open .environments/environments.toml
-      | get environments
-      | where name == documentation
-      | get title
-      | first
-    }
+    let title = (pwd | path basename)
 
     # FIXME
     # let title = if ($title | is-empty) {
@@ -45,9 +39,15 @@ def main [] {
 
   let mdbook_workflow_file = ".github/workflows/mdbook.yml"
 
-  let updated_mdbook_workflow = (
+  let updated_mdbook_workflow = try {
     open $mdbook_workflow_file
-    | update jobs.build.env.MDBOOK_VERSION (
+  } catch {
+    {}
+  }
+
+  let updated_mdbook_workflow = (
+    $updated_mdbook_workflow
+    | upsert jobs.build.env.MDBOOK_VERSION (
         mdbook --version
         | split row " "
         | last
