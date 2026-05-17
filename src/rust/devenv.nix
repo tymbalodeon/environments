@@ -4,7 +4,10 @@
   pkgs,
   ...
 }: {
-  env.RUST_BACKTRACE = 1;
+  env = {
+    ENVIRONMENTS_RUST_ZELLIJ_LAYOUT = ./layout.kdl;
+    RUST_BACKTRACE = 1;
+  };
 
   files = import "${inputs.environments}/files.nix" {
     inherit lib;
