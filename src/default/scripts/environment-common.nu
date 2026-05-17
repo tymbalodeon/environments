@@ -5,6 +5,7 @@ export def get-environment-path [
   path?: string
 ] {
   let base = (git rev-parse --show-toplevel)
+
   if ($environment | is-empty) {
     $base
   } else {
@@ -166,26 +167,6 @@ export def parse-environments [environments: list<string> quiet = false] {
   }
 
   validate-environments $unique_environments $quiet
-}
-
-export def get-aliases-files [environment: string] {
-  [
-    (get-environment-path $environment aliases)
-    $".environments/($environment)/aliases"
-  ]
-  | each {
-      |file|
-
-      if ($file | path exists) {
-        open $file
-        | lines
-      } else {
-        []
-      }
-    }
-  | flatten
-  | uniq
-  | sort
 }
 
 export def get-available-environments [
