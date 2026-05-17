@@ -459,10 +459,16 @@ in
                       let hidden_submodules = (
                         env
                         | find --no-highlight ENVIRONMENTS_HIDE_
-                        | each {str replace ENVIRONMENTS_HIDE_ ""}
-                        | split row "="
-                        | first
-                        | str downcase
+                        | each {
+                            try {
+                              str replace ENVIRONMENTS_HIDE_ ""
+                              | split row "="
+                              | first
+                              | str downcase
+                            }
+                          }
+
+                        | where {is-not-empty}
                       )
 
                       let hidden_submodules = if (
