@@ -319,7 +319,7 @@ in
                         file = environment.file;
 
                         name =
-                          if lib.hasAttrs "name" environment
+                          if lib.hasAttr "name" environment
                           then environment.name
                           else environment;
                       })
