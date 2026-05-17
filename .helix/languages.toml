@@ -1,30 +1,23 @@
+# just
 [[language]]
-auto-format = true
 name = "just"
-
-[language.formatter]
-args = ["--justfile", "/dev/stdin", "--dump"]
-command = "just"
-
-[[language]]
 auto-format = true
+formatter = { command = "just", args = ["--justfile", "/dev/stdin", "--dump"] }
+
+# markdown
+[[language]]
 name = "markdown"
-
-[language.formatter]
-args = [".md"]
-command = "prettierd"
-
-[[language]]
 auto-format = true
+formatter = { command = "prettierd", args = [".md"] }
+
+# nix
+[[language]]
 name = "nix"
-
-[language.formatter]
-command = "alejandra"
-
-[[language]]
 auto-format = true
-name = "toml"
+formatter = { command = "alejandra" }
 
-[language.formatter]
-args = ["format", "-"]
-command = "taplo"
+# toml
+[[language]]
+name = "toml"
+auto-format = true
+formatter = { command = "taplo", args = ["format", "-"] }

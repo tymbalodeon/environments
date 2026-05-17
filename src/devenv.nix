@@ -1172,6 +1172,15 @@ in
     ];
 
     tasks = let
+      availableEnvironmentsFunction = ''
+        def available-environments [] {
+          '${
+          builtins.toJSON (availableEnvironments ++ availableFeatures)
+        }'
+          | from json
+        }
+      '';
+
       defaultTaskSettings = {
         after = ["devenv:enterShell"];
         package = pkgs.nushell;
@@ -1182,54 +1191,38 @@ in
           exec =
             # nusehll
             ''
-              def available-environments [] {
-                '${
-                builtins.toJSON (availableEnvironments ++ availableFeatures)
-              }'
-                | from json
+              ${availableEnvironmentsFunction}
+
+              def filename [] {
+                ".gitignore"
               }
 
-              def gitignores [] {
+              def files [] {
                 '${builtins.toJSON (activeFiles ".gitignore")}'
                 | from json
               }
             ''
-            + builtins.readFile ./tasks/gitignore.nu;
+            + builtins.readFile ./tasks/merge-environment-files.nu;
         }
         // defaultTaskSettings;
 
-      "environments:helix" = let
-        configurations = let
-          readFromTOML = file: fromTOML (builtins.readFile file);
-        in
-          builtins.toJSON (
-            foldAttrsConcatLists (
-              (
-                map
-                (file: readFromTOML file)
-                (map (file: file.file) (activeFiles "languages.toml"))
-              )
-              ++ (
-                let
-                  file = "${inputs.project}/.helix/languages.toml";
-                in
-                  if builtins.pathExists file
-                  then [(readFromTOML file)]
-                  else []
-              )
-            )
-          );
-      in
+      "environments:helix" =
         {
           exec =
             # nushell
             ''
-              def language-configurations [] {
-                "${configurations}"
+              ${availableEnvironmentsFunction}
+
+              def filename [] {
+                ".helix/languages.toml"
+              }
+
+              def files [] {
+                '${builtins.toJSON (activeFiles "languages.toml")}'
                 | from json
               }
             ''
-            + builtins.readFile ./tasks/helix.nu;
+            + builtins.readFile ./tasks/merge-environment-files.nu;
         }
         // defaultTaskSettings;
 
