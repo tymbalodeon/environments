@@ -313,7 +313,7 @@ in
                       }
 
                       let environment_aliases = (
-                        "${builtins.toJSON (
+                        '${builtins.toJSON (
                       map
                       (environment: {
                         file = environment.file;
@@ -324,7 +324,7 @@ in
                           else environment;
                       })
                       aliasFiles
-                    )}"
+                    )}'
                         | from json
                         | each {
                             |environment|
@@ -421,11 +421,10 @@ in
                     }
 
                     def main-help [all: bool environment?: string --color: string] {
-                      let environments = if not $all and (
-                        ".environments/environments.toml"
-                        | path exists
-                      ) {
-                        open .environments/environments.toml
+                      let environments = if not $all {
+                        '${builtins.toJSON activeEnvironments}'
+                        | from json
+                        | where {" " not-in $in}
                       }
 
                       let args = [
@@ -433,7 +432,7 @@ in
                           --list
                         ]
 
-                      let args = if ($env.ENVIRONMENTS_HIDE_HELP | is-not-empty) {
+                      let args = if "ENVIRONMENTS_HIDE_HELP" in ($env | columns) {
                         $args
                         | append [
                           --list-heading $"(
@@ -457,14 +456,14 @@ in
                           )
                       )
 
-                      let hidden_submodules = if ($environments | is-not-empty) and (
-                        "environemnts" in ($environments | columns)
-                      ) {
-                        $environments
-                        | get environments
-                        | where {"hide" in ($in | columns) and $in.hide}
-                        | get name
-                      }
+                      let hidden_submodules = (
+                        env
+                        | find --no-highlight ENVIRONMENTS_HIDE_
+                        | each {str replace ENVIRONMENTS_HIDE_ ""}
+                        | split row "="
+                        | first
+                        | str downcase
+                      )
 
                       let hidden_submodules = if (
                         open devenv.yaml
@@ -472,8 +471,7 @@ in
                         | where {$in != environments}
                         | is-not-empty
                       ) and (
-                        $env.ENVIRONMENTS_HIDE_DEFAULT
-                        | is-not-empty
+                        "ENVIRONMENTS_HIDE_DEFAULT" in ($env | columns)
                       ) {
                         $hidden_submodules
                         | append (get-default-environments).name
@@ -518,7 +516,7 @@ in
                         | to text --no-newline
                       }
 
-                      let text = if ($env.ENVIRONMENTS_HIDE_HELP | is-not-empty) {
+                      let text = if "ENVIRONMENTS_HIDE_HELP" in ($env | columns) {
                         $text
                         | lines
                         | where {$in | ansi strip | find --regex ' +help \*args' | is-empty}
@@ -528,9 +526,8 @@ in
                       }
 
                       if not $all and (
-                        ($env.ENVIRONMENTS_HIDE_DEFAULT | is-not-empty) or (
-                          $env.ENVIRONMENTS_HIDE_HELP
-                          | is-not-empty
+                        "ENVIRONMENTS_HIDE_DEFAULT" in ($env | columns) or (
+                          "ENVIRONMENTS_HIDE_HELP" in ($env | columns)
                         )
                       ) {
                         print $"(

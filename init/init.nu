@@ -67,37 +67,9 @@ def main [
     | save devenv.yaml
   }
 
-  if (".environments" | path type) != dir {
-    rm --force .environments
-    mkdir .environments
+  if (".environments" | path type) == file {
+    rm .environments
   }
-
-  if (".environments/environments.toml" | path type) != file {
-    rm --force --recursive .environments/environments.toml
-    touch .environments/environments.toml
-  }
-
-  let environments_toml = (open .environments/environments.toml)
-
-  let environments = (
-    $environments
-    | each {{name: $in}}
-  )
-
-  let environmetns = try {
-    $environments
-    | append $environments_toml.environments
-  }
-
-  let environments = (
-    $environments
-    | uniq
-    | sort
-  )
-
-  $environments_toml
-  | upsert environments $environments
-  | save --force .environments/environments.toml
 
   try { jj git init --colocate out+err> /dev/null }
 
