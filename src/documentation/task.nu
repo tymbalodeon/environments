@@ -39,6 +39,8 @@ def main [] {
 
   let mdbook_workflow_file = ".github/workflows/mdbook.yml"
 
+  mkdir ($mdbook_workflow_file | path dirname)
+
   let updated_mdbook_workflow = try {
     open $mdbook_workflow_file
   } catch {
