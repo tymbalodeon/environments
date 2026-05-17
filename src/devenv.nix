@@ -315,16 +315,14 @@ in
                       let environment_aliases = (
                         "${builtins.toJSON (
                       map
-                      (environment:
-                        builtins.trace environment
-                        {
-                          file = environment.file;
+                      (environment: {
+                        file = environment.file;
 
-                          name =
-                            if lib.hasAttrs "name" environment
-                            then environment.name
-                            else environment;
-                        })
+                        name =
+                          if lib.hasAttrs "name" environment
+                          then environment.name
+                          else environment;
+                      })
                       aliasFiles
                     )}"
                         | from json
