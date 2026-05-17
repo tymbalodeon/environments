@@ -9,8 +9,3 @@ inputs:
   project:
     flake: false
     url: path:.
-  rust-overlay:
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
-    url: github:oxalica/rust-overlay
