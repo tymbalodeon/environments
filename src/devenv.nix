@@ -428,18 +428,12 @@ in
                         open .environments/environments.toml
                       }
 
-                      let hide_help = ($environments | is-not-empty) and (
-                        "hide_help" in ($environments | columns)
-                      ) and (
-                        $environments.hide_help
-                      )
-
                       let args = [
                           --color $color
                           --list
                         ]
 
-                      let args = if not $hide_help {
+                      let args = if ($env.ENVIRONMENTS_HIDE_HELP | is-not-empty) {
                         $args
                         | append [
                           --list-heading $"(
@@ -521,7 +515,7 @@ in
                         | to text --no-newline
                       }
 
-                      let text = if $hide_help {
+                      let text = if ($env.ENVIRONMENTS_HIDE_HELP | is-not-empty) {
                         $text
                         | lines
                         | where {$in | ansi strip | find --regex ' +help \*args' | is-empty}
