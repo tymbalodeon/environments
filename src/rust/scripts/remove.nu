@@ -1,5 +1,6 @@
 #!/usr/bin/env nu
 
+# Remove dependencies
 def main [
   ...dependencies: string # Dependencies to remove
 ] {

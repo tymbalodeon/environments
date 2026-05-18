@@ -1,5 +1,6 @@
 #!/usr/bin/env nu
 
+# Lint rust code
 def main [] {
   (
     cargo clippy
