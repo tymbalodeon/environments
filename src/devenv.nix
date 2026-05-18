@@ -173,17 +173,24 @@
 
   parentDirName = file: baseNameOf (dirOf (dirOf file));
 
-  projectEnvironments =
-    builtins.filter
-    (environment: !(builtins.elem environment availableEnvironments))
-    (
-      map
-      (directory: directory.name)
-      (builtins.filter
-        (file: file.value == "directory")
-        (lib.attrsToList
-          (builtins.readDir "${inputs.project}/.environments")))
-    );
+  projectEnvironments = let
+    environmentsDirectory = "${inputs.project}/.environments";
+  in
+    if lib.pathExists environmentsDirectory
+    then
+      (
+        builtins.filter
+        (environment: !(builtins.elem environment availableEnvironments))
+        (
+          map
+          (directory: directory.name)
+          (builtins.filter
+            (file: file.value == "directory")
+            (lib.attrsToList
+              (builtins.readDir "${inputs.project}/.environments")))
+        )
+      )
+    else [];
 in
   mergeAttrsConcatLists {
     files = let
