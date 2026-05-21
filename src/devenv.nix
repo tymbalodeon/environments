@@ -387,7 +387,7 @@ in
                   helpText = let
                     match =
                       builtins.match
-                      ".*(# .*\n)(export )?(def main).*"
+                      ".*(# .*\n)(export )?def( --wrapped)? main.*"
                       (builtins.readFile file);
                   in
                     if match != null && length match > 0

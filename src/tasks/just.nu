@@ -30,7 +30,7 @@ let main_aliases = (
 
       $recipe.recipe not-in $main_recipes and (
         $submodule_recipes.recipe
-        | find $recipe.recipe
+        | find --regex $"^($recipe.recipe)$"
         | length
       ) == 1
     }
