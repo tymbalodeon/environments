@@ -1,4 +1,3 @@
-# use ENVIRONMENT_PTYHON=enable devenv shell --impure --refresh-eval-cache
 {
   inputs,
   lib,
